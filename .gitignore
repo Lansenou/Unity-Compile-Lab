@@ -1,0 +1,10 @@
+bin/
+obj/
+/artifacts/
+/dist/
+/coverage/
+*.user
+.vs/
+.idea/
+.claude/
+TestResults/

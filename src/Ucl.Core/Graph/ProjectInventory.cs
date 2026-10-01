@@ -1,0 +1,38 @@
+using Ucl.Core.Model;
+using Ucl.Core.Parsing;
+
+namespace Ucl.Core.Graph;
+
+/// <summary>Everything the graph builder needs from a project, already read from disk. Paths are logical and sorted.</summary>
+public sealed record ProjectInventory
+{
+    /// <summary>Editor version from <c>ProjectVersion.txt</c>.</summary>
+    public required UnityVersion ProjectVersion { get; init; }
+
+    /// <summary>C# scripts.</summary>
+    public IReadOnlyList<string> Scripts { get; init; } = [];
+
+    /// <summary>asmdef files with their meta.</summary>
+    public IReadOnlyList<TextFile> Asmdefs { get; init; } = [];
+
+    /// <summary>asmref files with their meta.</summary>
+    public IReadOnlyList<TextFile> Asmrefs { get; init; } = [];
+
+    /// <summary>DLLs (text empty) with their meta.</summary>
+    public IReadOnlyList<TextFile> Plugins { get; init; } = [];
+
+    /// <summary><c>csc.rsp</c> files.</summary>
+    public IReadOnlyList<TextFile> ResponseFiles { get; init; } = [];
+
+    /// <summary><c>.ruleset</c> files (paths only).</summary>
+    public IReadOnlyList<string> RuleSets { get; init; } = [];
+
+    /// <summary><c>.editorconfig</c> and <c>.globalconfig</c> files (paths only).</summary>
+    public IReadOnlyList<string> AnalyzerConfigs { get; init; } = [];
+
+    /// <summary>Player settings.</summary>
+    public ProjectSettingsData Settings { get; init; } = ProjectSettingsData.Default;
+
+    /// <summary>Resolved packages, sorted by name.</summary>
+    public IReadOnlyList<ResolvedPackage> Packages { get; init; } = [];
+}

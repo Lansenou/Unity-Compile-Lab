@@ -1,0 +1,4 @@
+# LF everywhere: bash rejects CRLF scripts, and fixtures are hashed byte for byte (SHA256SUMS).
+* text=auto eol=lf
+/fixtures/** -text
+*.dll binary
