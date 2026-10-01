@@ -37,6 +37,14 @@ public static class App
                     return CheckCommand.Run(options, stdout, stderr, env);
                 case "graph":
                     return GraphCommand.Run(options, stdout, stderr, env);
+                case "explain":
+                    return ExplainCommand.Run(options, stdout, stderr, env);
+                case "fetch":
+                    return FetchCommand.Run(options, stdout, stderr, env);
+                case "doctor":
+                    return DoctorCommand.Run(options, stdout, stderr, env);
+                case "export-csproj":
+                    return ExportCsprojCommand.Run(options, stdout, stderr, env);
                 default:
                     stderr.WriteLine($"error {ProblemIds.BadArguments}: command '{options.Command}' is not available in ucl {Version} yet");
                     return ExitCodes.Configuration;
