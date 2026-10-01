@@ -123,7 +123,7 @@ internal sealed class AssemblyCompiler
         raw.InsertRange(0, compilation.GetDiagnostics().Select(d => (d, DiagnosticOrigin.Compiler)));
         var diagnostics = raw
             .Where(r => r.Diagnostic.Severity != DiagnosticSeverity.Hidden && !r.Diagnostic.IsSuppressed)
-            .Select(r => Map(r.Diagnostic, r.Origin, plan.Name))
+            .Select(r => Map(r.Diagnostic, r.Origin, plan))
             .Distinct()
             .ToList();
         var failed = diagnostics.Any(d => d.Severity == Severity.Error);
@@ -142,7 +142,7 @@ internal sealed class AssemblyCompiler
             else
             {
                 failed = true;
-                diagnostics.AddRange(emit.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => Map(d, DiagnosticOrigin.Compiler, plan.Name)));
+                diagnostics.AddRange(emit.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => Map(d, DiagnosticOrigin.Compiler, plan)));
             }
         }
 
@@ -172,7 +172,7 @@ internal sealed class AssemblyCompiler
             Cached = cached,
         };
 
-    private CoreDiagnostic Map(Microsoft.CodeAnalysis.Diagnostic d, DiagnosticOrigin origin, string assembly)
+    private CoreDiagnostic Map(Microsoft.CodeAnalysis.Diagnostic d, DiagnosticOrigin origin, AssemblyPlan plan)
     {
         string? file = null;
         int line = 0, column = 0;
@@ -191,6 +191,10 @@ internal sealed class AssemblyCompiler
             DiagnosticSeverity.Warning => Severity.Warning,
             _ => Severity.Info,
         };
-        return new CoreDiagnostic(d.Id, severity, origin, assembly, file, line, column, d.GetMessage(CultureInfo.InvariantCulture), d.IsWarningAsError);
+        // Roslyn also flags .editorconfig and ruleset escalations as IsWarningAsError; exit code 2 is only for -warnaserror.
+        var promoted = d.IsWarningAsError
+            && !plan.WarnNotAsErrorIds.Contains(d.Id)
+            && (plan.WarnAsErrorAll || _settings.WarnAsError || plan.WarnAsErrorIds.Contains(d.Id));
+        return new CoreDiagnostic(d.Id, severity, origin, plan.Name, file, line, column, d.GetMessage(CultureInfo.InvariantCulture), promoted);
     }
 }

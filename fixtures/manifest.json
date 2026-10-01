@@ -533,6 +533,222 @@
       ]
     },
     {
+      "name": "asmdef-include-platforms",
+      "description": "An asmdef with includePlatforms [Android] is compiled only in the Android player; the editor and other players leave it out.",
+      "requirements": [
+        "R2",
+        "R7"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [
+            "Game.AndroidBridge"
+          ],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "Android",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.AndroidBridge",
+              "definesInclude": [
+                "UNITY_ANDROID",
+                "ENABLE_IL2CPP"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG",
+                "UNITY_STANDALONE"
+              ]
+            },
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_ANDROID",
+                "ENABLE_IL2CPP"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG",
+                "UNITY_STANDALONE"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [
+            "Game.AndroidBridge"
+          ],
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "name": "asmdef-exclude-platforms",
+      "description": "An asmdef with excludePlatforms [WebGL] is left out of the WebGL player but compiled in the editor (even with WebGL active) and in other players.",
+      "requirements": [
+        "R2",
+        "R7"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "WebGL",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Threading",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_WEBGL",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_STANDALONE"
+              ]
+            },
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_WEBGL",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_STANDALONE"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "WebGL",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_WEBGL",
+                "ENABLE_IL2CPP"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG",
+                "UNITY_STANDALONE"
+              ]
+            }
+          ],
+          "excluded": [
+            "Game.Threading"
+          ],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Threading",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            },
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        }
+      ]
+    },
+    {
       "name": "editor-folder-depth",
       "description": "A script in a folder named Editor at any depth (Assets/Tools/Level/Editor) goes to Assembly-CSharp-Editor, which a player build leaves out.",
       "requirements": [
@@ -706,6 +922,181 @@
               "column": 43
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "plugins-editor-firstpass",
+      "description": "Editor scripts under Assets/Plugins/Editor compile into Assembly-CSharp-Editor-firstpass, which sees Assembly-CSharp-firstpass and is seen by Assembly-CSharp-Editor; players leave both editor assemblies out.",
+      "requirements": [
+        "R2"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp-firstpass",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            },
+            {
+              "name": "Assembly-CSharp-Editor-firstpass",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            },
+            {
+              "name": "Assembly-CSharp-Editor",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp-firstpass",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [
+            "Assembly-CSharp-Editor",
+            "Assembly-CSharp-Editor-firstpass"
+          ],
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "name": "standard-assets-firstpass",
+      "description": "Scripts under \"Assets/Standard Assets\" compile into Assembly-CSharp-firstpass, which Assembly-CSharp references.",
+      "requirements": [
+        "R2"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp-firstpass",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            },
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp-firstpass",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            },
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
         }
       ]
     },
@@ -935,768 +1326,6 @@
               "definesExclude": [
                 "UNITY_EDITOR",
                 "UNITY_STANDALONE"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": []
-        }
-      ]
-    },
-    {
-      "name": "no-engine-references",
-      "description": "An asmdef with noEngineReferences compiles without UnityEngine and UnityEditor DLLs, so MonoBehaviour is CS0246.",
-      "requirements": [
-        "R2"
-      ],
-      "materialize": [],
-      "cells": [
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "editor",
-          "platform": "StandaloneWindows64",
-          "editorOs": "windows",
-          "extraArgs": [],
-          "exitCode": 1,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Game.Shared",
-              "definesInclude": [
-                "UNITY_EDITOR",
-                "UNITY_EDITOR_WIN",
-                "UNITY_STANDALONE_WIN",
-                "DEBUG"
-              ],
-              "definesExclude": [
-                "DEVELOPMENT_BUILD",
-                "UNITY_ANDROID"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": [
-            {
-              "id": "CS0246",
-              "severity": "error",
-              "file": "Assets/Game/Shared/SharedTicker.cs",
-              "line": 3,
-              "column": 33
-            }
-          ]
-        },
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "player",
-          "platform": "StandaloneWindows64",
-          "extraArgs": [],
-          "exitCode": 1,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Game.Shared",
-              "definesInclude": [
-                "UNITY_STANDALONE_WIN",
-                "ENABLE_MONO"
-              ],
-              "definesExclude": [
-                "UNITY_EDITOR",
-                "DEBUG"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": [
-            {
-              "id": "CS0246",
-              "severity": "error",
-              "file": "Assets/Game/Shared/SharedTicker.cs",
-              "line": 3,
-              "column": 33
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "unsafe-refused",
-      "description": "Unsafe code in a predefined assembly without Player Settings allowUnsafeCode is CS0227.",
-      "requirements": [
-        "R6"
-      ],
-      "materialize": [],
-      "cells": [
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "editor",
-          "platform": "StandaloneWindows64",
-          "editorOs": "windows",
-          "extraArgs": [],
-          "exitCode": 1,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_EDITOR",
-                "UNITY_EDITOR_WIN",
-                "UNITY_STANDALONE_WIN",
-                "DEBUG"
-              ],
-              "definesExclude": [
-                "DEVELOPMENT_BUILD",
-                "UNITY_ANDROID"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": [
-            {
-              "id": "CS0227",
-              "severity": "error",
-              "file": "Assets/Scripts/Rendering/PixelBuffer.cs",
-              "line": 5,
-              "column": 35
-            }
-          ]
-        },
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "player",
-          "platform": "StandaloneWindows64",
-          "extraArgs": [],
-          "exitCode": 1,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_STANDALONE_WIN",
-                "ENABLE_MONO"
-              ],
-              "definesExclude": [
-                "UNITY_EDITOR",
-                "DEBUG"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": [
-            {
-              "id": "CS0227",
-              "severity": "error",
-              "file": "Assets/Scripts/Rendering/PixelBuffer.cs",
-              "line": 5,
-              "column": 35
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "csc-rsp-define",
-      "description": "A -define: in Assets/csc.rsp defines the symbol for the predefined assemblies.",
-      "requirements": [
-        "R5",
-        "R6"
-      ],
-      "materialize": [],
-      "cells": [
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "editor",
-          "platform": "StandaloneWindows64",
-          "editorOs": "windows",
-          "extraArgs": [],
-          "exitCode": 0,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_EDITOR",
-                "UNITY_EDITOR_WIN",
-                "UNITY_STANDALONE_WIN",
-                "DEBUG",
-                "USE_FAST_MATH"
-              ],
-              "definesExclude": [
-                "DEVELOPMENT_BUILD",
-                "UNITY_ANDROID"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": []
-        },
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "player",
-          "platform": "StandaloneWindows64",
-          "extraArgs": [],
-          "exitCode": 0,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_STANDALONE_WIN",
-                "ENABLE_MONO",
-                "USE_FAST_MATH"
-              ],
-              "definesExclude": [
-                "UNITY_EDITOR",
-                "DEBUG"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": []
-        }
-      ]
-    },
-    {
-      "name": "player-editor-type",
-      "description": "A runtime script that uses UnityEditor without #if UNITY_EDITOR compiles in the editor but fails in a player build, which has no UnityEditor DLLs.",
-      "requirements": [
-        "R7"
-      ],
-      "materialize": [],
-      "cells": [
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "editor",
-          "platform": "StandaloneWindows64",
-          "editorOs": "windows",
-          "extraArgs": [],
-          "exitCode": 0,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_EDITOR",
-                "UNITY_EDITOR_WIN",
-                "UNITY_STANDALONE_WIN",
-                "DEBUG"
-              ],
-              "definesExclude": [
-                "DEVELOPMENT_BUILD",
-                "UNITY_ANDROID"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": []
-        },
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "player",
-          "platform": "StandaloneWindows64",
-          "extraArgs": [],
-          "exitCode": 1,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_STANDALONE_WIN",
-                "ENABLE_MONO"
-              ],
-              "definesExclude": [
-                "UNITY_EDITOR",
-                "DEBUG"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": [
-            {
-              "id": "CS0246",
-              "severity": "error",
-              "file": "Assets/Scripts/LevelLoader.cs",
-              "line": 1,
-              "column": 7
-            },
-            {
-              "id": "CS0103",
-              "severity": "error",
-              "file": "Assets/Scripts/LevelLoader.cs",
-              "line": 10,
-              "column": 26
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "langversion-too-new",
-      "description": "A C# 10 file-scoped namespace fails under Unity's C# 9.0 language version.",
-      "requirements": [
-        "R6"
-      ],
-      "materialize": [],
-      "cells": [
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "editor",
-          "platform": "StandaloneWindows64",
-          "editorOs": "windows",
-          "extraArgs": [],
-          "exitCode": 1,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_EDITOR",
-                "UNITY_EDITOR_WIN",
-                "UNITY_STANDALONE_WIN",
-                "DEBUG"
-              ],
-              "definesExclude": [
-                "DEVELOPMENT_BUILD",
-                "UNITY_ANDROID"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": [
-            {
-              "id": "CS8773",
-              "severity": "error",
-              "file": "Assets/Scripts/Inventory/InventorySlot.cs",
-              "line": 1,
-              "column": 1
-            }
-          ]
-        },
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "player",
-          "platform": "StandaloneWindows64",
-          "extraArgs": [],
-          "exitCode": 1,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_STANDALONE_WIN",
-                "ENABLE_MONO"
-              ],
-              "definesExclude": [
-                "UNITY_EDITOR",
-                "DEBUG"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": [
-            {
-              "id": "CS8773",
-              "severity": "error",
-              "file": "Assets/Scripts/Inventory/InventorySlot.cs",
-              "line": 1,
-              "column": 1
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "asmdef-include-platforms",
-      "description": "An asmdef with includePlatforms [Android] is compiled only in the Android player; the editor and other players leave it out.",
-      "requirements": [
-        "R2",
-        "R7"
-      ],
-      "materialize": [],
-      "cells": [
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "editor",
-          "platform": "StandaloneWindows64",
-          "editorOs": "windows",
-          "extraArgs": [],
-          "exitCode": 0,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_EDITOR",
-                "UNITY_EDITOR_WIN",
-                "UNITY_STANDALONE_WIN",
-                "DEBUG"
-              ],
-              "definesExclude": [
-                "DEVELOPMENT_BUILD",
-                "UNITY_ANDROID"
-              ]
-            }
-          ],
-          "excluded": [
-            "Game.AndroidBridge"
-          ],
-          "diagnostics": []
-        },
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "player",
-          "platform": "Android",
-          "extraArgs": [],
-          "exitCode": 0,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Game.AndroidBridge",
-              "definesInclude": [
-                "UNITY_ANDROID",
-                "ENABLE_IL2CPP"
-              ],
-              "definesExclude": [
-                "UNITY_EDITOR",
-                "DEBUG",
-                "UNITY_STANDALONE"
-              ]
-            },
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_ANDROID",
-                "ENABLE_IL2CPP"
-              ],
-              "definesExclude": [
-                "UNITY_EDITOR",
-                "DEBUG",
-                "UNITY_STANDALONE"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": []
-        },
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "player",
-          "platform": "StandaloneWindows64",
-          "extraArgs": [],
-          "exitCode": 0,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_STANDALONE_WIN",
-                "ENABLE_MONO"
-              ],
-              "definesExclude": [
-                "UNITY_EDITOR",
-                "DEBUG"
-              ]
-            }
-          ],
-          "excluded": [
-            "Game.AndroidBridge"
-          ],
-          "diagnostics": []
-        }
-      ]
-    },
-    {
-      "name": "asmdef-exclude-platforms",
-      "description": "An asmdef with excludePlatforms [WebGL] is left out of the WebGL player but compiled in the editor (even with WebGL active) and in other players.",
-      "requirements": [
-        "R2",
-        "R7"
-      ],
-      "materialize": [],
-      "cells": [
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "editor",
-          "platform": "WebGL",
-          "editorOs": "windows",
-          "extraArgs": [],
-          "exitCode": 0,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Game.Threading",
-              "definesInclude": [
-                "UNITY_EDITOR",
-                "UNITY_EDITOR_WIN",
-                "UNITY_WEBGL",
-                "DEBUG"
-              ],
-              "definesExclude": [
-                "DEVELOPMENT_BUILD",
-                "UNITY_STANDALONE"
-              ]
-            },
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_EDITOR",
-                "UNITY_EDITOR_WIN",
-                "UNITY_WEBGL",
-                "DEBUG"
-              ],
-              "definesExclude": [
-                "DEVELOPMENT_BUILD",
-                "UNITY_STANDALONE"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": []
-        },
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "player",
-          "platform": "WebGL",
-          "extraArgs": [],
-          "exitCode": 0,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_WEBGL",
-                "ENABLE_IL2CPP"
-              ],
-              "definesExclude": [
-                "UNITY_EDITOR",
-                "DEBUG",
-                "UNITY_STANDALONE"
-              ]
-            }
-          ],
-          "excluded": [
-            "Game.Threading"
-          ],
-          "diagnostics": []
-        },
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "player",
-          "platform": "StandaloneWindows64",
-          "extraArgs": [],
-          "exitCode": 0,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Game.Threading",
-              "definesInclude": [
-                "UNITY_STANDALONE_WIN",
-                "ENABLE_MONO"
-              ],
-              "definesExclude": [
-                "UNITY_EDITOR",
-                "DEBUG"
-              ]
-            },
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_STANDALONE_WIN",
-                "ENABLE_MONO"
-              ],
-              "definesExclude": [
-                "UNITY_EDITOR",
-                "DEBUG"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": []
-        }
-      ]
-    },
-    {
-      "name": "plugins-editor-firstpass",
-      "description": "Editor scripts under Assets/Plugins/Editor compile into Assembly-CSharp-Editor-firstpass, which sees Assembly-CSharp-firstpass and is seen by Assembly-CSharp-Editor; players leave both editor assemblies out.",
-      "requirements": [
-        "R2"
-      ],
-      "materialize": [],
-      "cells": [
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "editor",
-          "platform": "StandaloneWindows64",
-          "editorOs": "windows",
-          "extraArgs": [],
-          "exitCode": 0,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Assembly-CSharp-firstpass",
-              "definesInclude": [
-                "UNITY_EDITOR",
-                "UNITY_EDITOR_WIN",
-                "UNITY_STANDALONE_WIN",
-                "DEBUG"
-              ],
-              "definesExclude": [
-                "DEVELOPMENT_BUILD",
-                "UNITY_ANDROID"
-              ]
-            },
-            {
-              "name": "Assembly-CSharp-Editor-firstpass",
-              "definesInclude": [
-                "UNITY_EDITOR",
-                "UNITY_EDITOR_WIN",
-                "UNITY_STANDALONE_WIN",
-                "DEBUG"
-              ],
-              "definesExclude": [
-                "DEVELOPMENT_BUILD",
-                "UNITY_ANDROID"
-              ]
-            },
-            {
-              "name": "Assembly-CSharp-Editor",
-              "definesInclude": [
-                "UNITY_EDITOR",
-                "UNITY_EDITOR_WIN",
-                "UNITY_STANDALONE_WIN",
-                "DEBUG"
-              ],
-              "definesExclude": [
-                "DEVELOPMENT_BUILD",
-                "UNITY_ANDROID"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": []
-        },
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "player",
-          "platform": "StandaloneWindows64",
-          "extraArgs": [],
-          "exitCode": 0,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Assembly-CSharp-firstpass",
-              "definesInclude": [
-                "UNITY_STANDALONE_WIN",
-                "ENABLE_MONO"
-              ],
-              "definesExclude": [
-                "UNITY_EDITOR",
-                "DEBUG"
-              ]
-            }
-          ],
-          "excluded": [
-            "Assembly-CSharp-Editor",
-            "Assembly-CSharp-Editor-firstpass"
-          ],
-          "diagnostics": []
-        }
-      ]
-    },
-    {
-      "name": "standard-assets-firstpass",
-      "description": "Scripts under \"Assets/Standard Assets\" compile into Assembly-CSharp-firstpass, which Assembly-CSharp references.",
-      "requirements": [
-        "R2"
-      ],
-      "materialize": [],
-      "cells": [
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "editor",
-          "platform": "StandaloneWindows64",
-          "editorOs": "windows",
-          "extraArgs": [],
-          "exitCode": 0,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Assembly-CSharp-firstpass",
-              "definesInclude": [
-                "UNITY_EDITOR",
-                "UNITY_EDITOR_WIN",
-                "UNITY_STANDALONE_WIN",
-                "DEBUG"
-              ],
-              "definesExclude": [
-                "DEVELOPMENT_BUILD",
-                "UNITY_ANDROID"
-              ]
-            },
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_EDITOR",
-                "UNITY_EDITOR_WIN",
-                "UNITY_STANDALONE_WIN",
-                "DEBUG"
-              ],
-              "definesExclude": [
-                "DEVELOPMENT_BUILD",
-                "UNITY_ANDROID"
-              ]
-            }
-          ],
-          "excluded": [],
-          "diagnostics": []
-        },
-        {
-          "unityVersion": "6000.0.30f1",
-          "target": "player",
-          "platform": "StandaloneWindows64",
-          "extraArgs": [],
-          "exitCode": 0,
-          "oracle": "pending",
-          "realEditor": false,
-          "assemblies": [
-            {
-              "name": "Assembly-CSharp-firstpass",
-              "definesInclude": [
-                "UNITY_STANDALONE_WIN",
-                "ENABLE_MONO"
-              ],
-              "definesExclude": [
-                "UNITY_EDITOR",
-                "DEBUG"
-              ]
-            },
-            {
-              "name": "Assembly-CSharp",
-              "definesInclude": [
-                "UNITY_STANDALONE_WIN",
-                "ENABLE_MONO"
-              ],
-              "definesExclude": [
-                "UNITY_EDITOR",
-                "DEBUG"
               ]
             }
           ],
@@ -2272,6 +1901,83 @@
       ]
     },
     {
+      "name": "no-engine-references",
+      "description": "An asmdef with noEngineReferences compiles without UnityEngine and UnityEditor DLLs, so MonoBehaviour is CS0246.",
+      "requirements": [
+        "R2"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Shared",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0246",
+              "severity": "error",
+              "file": "Assets/Game/Shared/SharedTicker.cs",
+              "line": 3,
+              "column": 33
+            }
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Shared",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0246",
+              "severity": "error",
+              "file": "Assets/Game/Shared/SharedTicker.cs",
+              "line": 3,
+              "column": 33
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "unsafe-allowed",
       "description": "An asmdef with allowUnsafeCode: true compiles unsafe code without CS0227.",
       "requirements": [
@@ -2320,6 +2026,147 @@
               "definesInclude": [
                 "UNITY_STANDALONE_WIN",
                 "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "name": "unsafe-refused",
+      "description": "Unsafe code in a predefined assembly without Player Settings allowUnsafeCode is CS0227.",
+      "requirements": [
+        "R6"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0227",
+              "severity": "error",
+              "file": "Assets/Scripts/Rendering/PixelBuffer.cs",
+              "line": 5,
+              "column": 35
+            }
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0227",
+              "severity": "error",
+              "file": "Assets/Scripts/Rendering/PixelBuffer.cs",
+              "line": 5,
+              "column": 35
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "csc-rsp-define",
+      "description": "A -define: in Assets/csc.rsp defines the symbol for the predefined assemblies.",
+      "requirements": [
+        "R5",
+        "R6"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG",
+                "USE_FAST_MATH"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO",
+                "USE_FAST_MATH"
               ],
               "definesExclude": [
                 "UNITY_EDITOR",
@@ -3355,6 +3202,2142 @@
           ],
           "excluded": [],
           "diagnostics": []
+        }
+      ]
+    },
+    {
+      "name": "package-missing",
+      "description": "Packages/manifest.json depends on com.example.save-system 2.1.0, which is not embedded, local, in Library/PackageCache or in the download cache: UCL3006 and exit 3.",
+      "requirements": [
+        "R3",
+        "R10"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 3,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [],
+          "problems": [
+            "UCL3006"
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 3,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [],
+          "problems": [
+            "UCL3006"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "builtin-module-disabled",
+      "description": "Packages/manifest.json does not list com.unity.modules.physics, so UnityEngine.PhysicsModule is not referenced and Rigidbody is CS0246.",
+      "requirements": [
+        "R3"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0246",
+              "severity": "error",
+              "file": "Assets/Scripts/Jumper.cs",
+              "line": 7,
+              "column": 13
+            },
+            {
+              "id": "CS0246",
+              "severity": "error",
+              "file": "Assets/Scripts/Jumper.cs",
+              "line": 11,
+              "column": 29
+            },
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Scripts/Jumper.cs",
+              "line": 16,
+              "column": 47
+            }
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0246",
+              "severity": "error",
+              "file": "Assets/Scripts/Jumper.cs",
+              "line": 7,
+              "column": 13
+            },
+            {
+              "id": "CS0246",
+              "severity": "error",
+              "file": "Assets/Scripts/Jumper.cs",
+              "line": 11,
+              "column": 29
+            },
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Scripts/Jumper.cs",
+              "line": 16,
+              "column": 47
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "player-editor-type",
+      "description": "A runtime script that uses UnityEditor without #if UNITY_EDITOR compiles in the editor but fails in a player build, which has no UnityEditor DLLs.",
+      "requirements": [
+        "R7"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0246",
+              "severity": "error",
+              "file": "Assets/Scripts/LevelLoader.cs",
+              "line": 1,
+              "column": 7
+            },
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Scripts/LevelLoader.cs",
+              "line": 10,
+              "column": 26
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "langversion-too-new",
+      "description": "A C# 10 file-scoped namespace fails under Unity's C# 9.0 language version.",
+      "requirements": [
+        "R6"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS8773",
+              "severity": "error",
+              "file": "Assets/Scripts/Inventory/InventorySlot.cs",
+              "line": 1,
+              "column": 1
+            }
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS8773",
+              "severity": "error",
+              "file": "Assets/Scripts/Inventory/InventorySlot.cs",
+              "line": 1,
+              "column": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "asmref-sources",
+      "description": "Assets/Game/Extensions/Game.Core.asmref (GUID reference) adds its folder to Game.Core: the extension reads an internal member of Game.Core, and Assembly-CSharp uses it.",
+      "requirements": [
+        "R2"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Core",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            },
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Core",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            },
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "name": "plugin-platform",
+      "description": "Vendor.Math.dll is enabled for Android only in its .meta: an Android player references it; the Editor (Editor platform disabled) and a Windows player do not, so its use is CS0246.",
+      "requirements": [
+        "R2"
+      ],
+      "materialize": [
+        {
+          "dll": "Vendor.Math",
+          "to": "Assets/Plugins/Android/Vendor.Math.dll"
+        }
+      ],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "Android",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_ANDROID",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_STANDALONE"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0246",
+              "severity": "error",
+              "file": "Assets/Scripts/Tween.cs",
+              "line": 2,
+              "column": 7
+            },
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Scripts/Tween.cs",
+              "line": 13,
+              "column": 46
+            }
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "Android",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_ANDROID",
+                "ENABLE_IL2CPP"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "UNITY_STANDALONE",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0246",
+              "severity": "error",
+              "file": "Assets/Scripts/Tween.cs",
+              "line": 2,
+              "column": 7
+            },
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Scripts/Tween.cs",
+              "line": 13,
+              "column": 46
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "plugin-auto-reference-off",
+      "description": "Vendor.Math.dll has Auto Reference off (isExplicitlyReferenced: 1): Assembly-CSharp cannot see it (CS0246); Game.Tweening lists it in precompiledReferences with overrideReferences and compiles.",
+      "requirements": [
+        "R2"
+      ],
+      "materialize": [
+        {
+          "dll": "Vendor.Math",
+          "to": "Assets/Plugins/Vendor.Math.dll"
+        }
+      ],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Tweening",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            },
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0246",
+              "severity": "error",
+              "file": "Assets/Scripts/Bouncer.cs",
+              "line": 2,
+              "column": 7
+            },
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Scripts/Bouncer.cs",
+              "line": 8,
+              "column": 43
+            }
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Tweening",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            },
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0246",
+              "severity": "error",
+              "file": "Assets/Scripts/Bouncer.cs",
+              "line": 2,
+              "column": 7
+            },
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Scripts/Bouncer.cs",
+              "line": 8,
+              "column": 43
+            }
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "Android",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Tweening",
+              "definesInclude": [
+                "UNITY_ANDROID",
+                "ENABLE_IL2CPP"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "UNITY_STANDALONE",
+                "DEBUG"
+              ]
+            },
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_ANDROID",
+                "ENABLE_IL2CPP"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "UNITY_STANDALONE",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0246",
+              "severity": "error",
+              "file": "Assets/Scripts/Bouncer.cs",
+              "line": 2,
+              "column": 7
+            },
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Scripts/Bouncer.cs",
+              "line": 8,
+              "column": 43
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "plugin-analyzer-label",
+      "description": "A DLL labelled RoslynAnalyzer runs as an analyzer (UFX001 on BadScore) but is not a reference: naming its type from a script is an error.",
+      "requirements": [
+        "R2",
+        "R8"
+      ],
+      "materialize": [
+        {
+          "dll": "Ucl.Fixture.Analyzer",
+          "to": "Assets/Analyzers/Ucl.Fixture.Analyzer.dll"
+        }
+      ],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Scripts/AnalyzerProbe.cs",
+              "line": 4,
+              "column": 32
+            },
+            {
+              "id": "UFX001",
+              "severity": "warning",
+              "file": "Assets/Scripts/BadScore.cs",
+              "line": 3,
+              "column": 14
+            }
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Scripts/AnalyzerProbe.cs",
+              "line": 4,
+              "column": 32
+            },
+            {
+              "id": "UFX001",
+              "severity": "warning",
+              "file": "Assets/Scripts/BadScore.cs",
+              "line": 3,
+              "column": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "auto-referenced-false",
+      "description": "Game.Audio has autoReferenced: false: Game.Settings, which references it by name, compiles; Assembly-CSharp does not see it (CS0234).",
+      "requirements": [
+        "R2"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Audio",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            },
+            {
+              "name": "Game.Settings",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            },
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0234",
+              "severity": "error",
+              "file": "Assets/Scripts/MuteButton.cs",
+              "line": 1,
+              "column": 12
+            },
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Scripts/MuteButton.cs",
+              "line": 8,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Audio",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            },
+            {
+              "name": "Game.Settings",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            },
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0234",
+              "severity": "error",
+              "file": "Assets/Scripts/MuteButton.cs",
+              "line": 1,
+              "column": 12
+            },
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Scripts/MuteButton.cs",
+              "line": 8,
+              "column": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "unsupported-version",
+      "description": "ProjectVersion.txt says 2022.3.40f1 and the cell asks for that version: UCL3002 and exit 3, with no cell compiled.",
+      "requirements": [
+        "R1",
+        "R10"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "2022.3.40f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 3,
+          "oracle": "pending",
+          "realEditor": false,
+          "diagnostics": [],
+          "problems": [
+            "UCL3002"
+          ]
+        },
+        {
+          "unityVersion": "2022.3.40f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 3,
+          "oracle": "pending",
+          "realEditor": false,
+          "diagnostics": [],
+          "problems": [
+            "UCL3002"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bad-asmdef-json",
+      "description": "Assets/Game/Net/Game.Net.asmdef is not valid JSON (an unterminated array): UCL3004 and exit 3.",
+      "requirements": [
+        "R2",
+        "R10"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 3,
+          "oracle": "pending",
+          "realEditor": false,
+          "diagnostics": [],
+          "problems": [
+            "UCL3004"
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 3,
+          "oracle": "pending",
+          "realEditor": false,
+          "diagnostics": [],
+          "problems": [
+            "UCL3004"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "hidden-assets",
+      "description": "Scripts under Samples~/, .hidden/, cvs/ and Scratch.tmp/, and a file named .Draft.cs, are hidden from the Asset Database and never compiled; each would be CS0103.",
+      "requirements": [
+        "R2"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "name": "package-script-no-asmdef",
+      "description": "The embedded package com.example.loose-utils has a script outside any asmdef: UCL1010 warning, the script is not compiled, and its use from Assets is CS0246.",
+      "requirements": [
+        "R3"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0246",
+              "severity": "error",
+              "file": "Assets/Scripts/Announcer.cs",
+              "line": 1,
+              "column": 7
+            },
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Scripts/Announcer.cs",
+              "line": 8,
+              "column": 19
+            },
+            {
+              "id": "UCL1010",
+              "severity": "warning",
+              "file": "Packages/com.example.loose-utils/Runtime/StringUtils.cs",
+              "line": 0,
+              "column": 0
+            }
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0246",
+              "severity": "error",
+              "file": "Assets/Scripts/Announcer.cs",
+              "line": 1,
+              "column": 7
+            },
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Scripts/Announcer.cs",
+              "line": 8,
+              "column": 19
+            },
+            {
+              "id": "UCL1010",
+              "severity": "warning",
+              "file": "Packages/com.example.loose-utils/Runtime/StringUtils.cs",
+              "line": 0,
+              "column": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input-system-defines",
+      "description": "activeInputHandler: 2 (Both) defines ENABLE_INPUT_SYSTEM and ENABLE_LEGACY_INPUT_MANAGER in editor and player.",
+      "requirements": [
+        "R5"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG",
+                "ENABLE_INPUT_SYSTEM",
+                "ENABLE_LEGACY_INPUT_MANAGER"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO",
+                "ENABLE_INPUT_SYSTEM",
+                "ENABLE_LEGACY_INPUT_MANAGER"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "Android",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_ANDROID",
+                "ENABLE_IL2CPP",
+                "ENABLE_INPUT_SYSTEM",
+                "ENABLE_LEGACY_INPUT_MANAGER"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "UNITY_STANDALONE",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "name": "backend-il2cpp",
+      "description": "scriptingBackend Standalone: 1 selects IL2CPP for every Standalone platform (ENABLE_IL2CPP, no ENABLE_MONO); --backend mono overrides it.",
+      "requirements": [
+        "R5"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG",
+                "ENABLE_IL2CPP"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID",
+                "ENABLE_MONO"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_IL2CPP"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG",
+                "ENABLE_MONO"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneLinux64",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_LINUX",
+                "ENABLE_IL2CPP"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG",
+                "ENABLE_MONO"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [
+            "--backend",
+            "mono"
+          ],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG",
+                "ENABLE_IL2CPP"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "name": "development-build",
+      "description": "--development defines DEVELOPMENT_BUILD (with DEBUG, TRACE, UNITY_ASSERTIONS) in player cells only; the Editor never defines DEVELOPMENT_BUILD.",
+      "requirements": [
+        "R5"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [
+            "--development"
+          ],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEVELOPMENT_BUILD",
+                "DEBUG",
+                "TRACE",
+                "UNITY_ASSERTIONS"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [
+            "--development"
+          ],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO",
+                "DEVELOPMENT_BUILD",
+                "DEBUG",
+                "TRACE",
+                "UNITY_ASSERTIONS"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "Android",
+          "extraArgs": [
+            "--development"
+          ],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_ANDROID",
+                "ENABLE_IL2CPP",
+                "DEVELOPMENT_BUILD",
+                "DEBUG",
+                "TRACE",
+                "UNITY_ASSERTIONS"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "UNITY_STANDALONE"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "name": "nullable-rsp",
+      "description": "Assets/csc.rsp -nullable:enable turns on the nullable context: CS8600 and CS8602 warnings, exit 0.",
+      "requirements": [
+        "R6"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS8600",
+              "severity": "warning",
+              "file": "Assets/Scripts/PlayerName.cs",
+              "line": 9,
+              "column": 26
+            },
+            {
+              "id": "CS8602",
+              "severity": "warning",
+              "file": "Assets/Scripts/PlayerName.cs",
+              "line": 10,
+              "column": 16
+            }
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS8600",
+              "severity": "warning",
+              "file": "Assets/Scripts/PlayerName.cs",
+              "line": 9,
+              "column": 26
+            },
+            {
+              "id": "CS8602",
+              "severity": "warning",
+              "file": "Assets/Scripts/PlayerName.cs",
+              "line": 10,
+              "column": 16
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "path-unicode",
+      "description": "A script under Assets/My Scripts/Ünïcode/ (a space and non-ASCII letters) is compiled and its CS0103 is reported with the exact project-relative path.",
+      "requirements": [
+        "R9"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/My Scripts/Ünïcode/Greeter.cs",
+              "line": 7,
+              "column": 31
+            }
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/My Scripts/Ünïcode/Greeter.cs",
+              "line": 7,
+              "column": 31
+            }
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneLinux64",
+          "editorOs": "linux",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_LINUX",
+                "UNITY_STANDALONE_LINUX",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR_WIN",
+                "DEVELOPMENT_BUILD"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/My Scripts/Ünïcode/Greeter.cs",
+              "line": 7,
+              "column": 31
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "editorconfig-severity",
+      "description": "The project-root .editorconfig sets dotnet_diagnostic.CS0168.severity = error: the unused local is an error, not a warning, and the exit code is 1.",
+      "requirements": [
+        "R6"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0168",
+              "severity": "error",
+              "file": "Assets/Scripts/Loader.cs",
+              "line": 7,
+              "column": 13
+            }
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": [
+            {
+              "id": "CS0168",
+              "severity": "error",
+              "file": "Assets/Scripts/Loader.cs",
+              "line": 7,
+              "column": 13
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "duplicate-assembly-name",
+      "description": "Assets/Game/Shared and Assets/Vendor/SharedCopy both define an asmdef named Game.Shared: UCL3005 and exit 3.",
+      "requirements": [
+        "R2",
+        "R10"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 3,
+          "oracle": "pending",
+          "realEditor": false,
+          "diagnostics": [],
+          "problems": [
+            "UCL3005"
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 3,
+          "oracle": "pending",
+          "realEditor": false,
+          "diagnostics": [],
+          "problems": [
+            "UCL3005"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "test-assembly",
+      "description": "With com.unity.test-framework resolved (embedded stand-in), Game.Tests (defineConstraints UNITY_INCLUDE_TESTS, autoReferenced false) compiles in the Editor and is left out of a player build unless --include-tests.",
+      "requirements": [
+        "R2",
+        "R5"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Runtime",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            },
+            {
+              "name": "Game.Tests",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Runtime",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [
+            "Game.Tests"
+          ],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [
+            "--include-tests"
+          ],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Runtime",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            },
+            {
+              "name": "Game.Tests",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "Android",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Runtime",
+              "definesInclude": [
+                "UNITY_ANDROID",
+                "ENABLE_IL2CPP"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "UNITY_STANDALONE",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [
+            "Game.Tests"
+          ],
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "name": "editor-asmdef-from-runtime",
+      "description": "Game.Runtime references the Editor-only Game.EditorTools: fine in the Editor; in a player Game.EditorTools is absent, the reference is dropped and its use is an error.",
+      "requirements": [
+        "R2",
+        "R7"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.EditorTools",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            },
+            {
+              "name": "Game.Runtime",
+              "definesInclude": [
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_WIN",
+                "UNITY_STANDALONE_WIN",
+                "DEBUG"
+              ],
+              "definesExclude": [
+                "DEVELOPMENT_BUILD",
+                "UNITY_ANDROID"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Runtime",
+              "definesInclude": [
+                "UNITY_STANDALONE_WIN",
+                "ENABLE_MONO"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [
+            "Game.EditorTools"
+          ],
+          "diagnostics": [
+            {
+              "id": "CS0234",
+              "severity": "error",
+              "file": "Assets/Game/Runtime/LevelState.cs",
+              "line": 1,
+              "column": 12
+            },
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Game/Runtime/LevelState.cs",
+              "line": 8,
+              "column": 35
+            }
+          ]
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "Android",
+          "extraArgs": [],
+          "exitCode": 1,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Runtime",
+              "definesInclude": [
+                "UNITY_ANDROID",
+                "ENABLE_IL2CPP"
+              ],
+              "definesExclude": [
+                "UNITY_EDITOR",
+                "UNITY_STANDALONE",
+                "DEBUG"
+              ]
+            }
+          ],
+          "excluded": [
+            "Game.EditorTools"
+          ],
+          "diagnostics": [
+            {
+              "id": "CS0234",
+              "severity": "error",
+              "file": "Assets/Game/Runtime/LevelState.cs",
+              "line": 1,
+              "column": 12
+            },
+            {
+              "id": "CS0103",
+              "severity": "error",
+              "file": "Assets/Game/Runtime/LevelState.cs",
+              "line": 8,
+              "column": 35
+            }
+          ]
         }
       ]
     }

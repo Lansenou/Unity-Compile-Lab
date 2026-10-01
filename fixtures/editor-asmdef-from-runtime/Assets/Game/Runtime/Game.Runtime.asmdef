@@ -1,0 +1,16 @@
+{
+    "name": "Game.Runtime",
+    "rootNamespace": "Game.Runtime",
+    "references": [
+        "Game.EditorTools"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
