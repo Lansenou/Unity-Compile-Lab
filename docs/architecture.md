@@ -118,7 +118,7 @@ changes, so editing a method body recompiles one assembly. Entries live in `<pro
 ## Read-only contract
 
 `ucl` never writes under `Assets/`, `Packages/` or `ProjectSettings/`, and under `Library/` only inside
-`Library/ucl`. All writes go through `IFileSystem.WriteFile`, whose physical implementation refuses any
+`Library/ucl`. All writes go through `IFileSystem.WriteAllBytes`, whose physical implementation refuses any
 path outside the cache directory; `ReadOnlyTests` hashes a fixture tree before and after a full run.
 
 ## Error handling
