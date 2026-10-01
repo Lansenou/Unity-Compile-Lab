@@ -1,0 +1,17 @@
+{
+    "name": "Game.DebugTools",
+    "rootNamespace": "Game.DebugTools",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_EDITOR || DEVELOPMENT_BUILD",
+        "!DISABLE_DEBUG_TOOLS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

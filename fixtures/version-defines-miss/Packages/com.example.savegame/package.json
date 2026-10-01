@@ -1,0 +1,8 @@
+{
+  "name": "com.example.savegame",
+  "version": "1.4.0",
+  "displayName": "Example Save Game",
+  "description": "Slot-based save files.",
+  "unity": "6000.0",
+  "dependencies": {}
+}

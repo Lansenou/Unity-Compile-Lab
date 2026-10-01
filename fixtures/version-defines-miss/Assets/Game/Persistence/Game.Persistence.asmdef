@@ -1,0 +1,22 @@
+{
+    "name": "Game.Persistence",
+    "rootNamespace": "Game.Persistence",
+    "references": [
+        "Example.SaveGame"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.example.savegame",
+            "expression": "[2.0.0,3.0.0)",
+            "define": "SAVEGAME_2"
+        }
+    ],
+    "noEngineReferences": false
+}

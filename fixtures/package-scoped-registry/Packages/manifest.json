@@ -1,0 +1,15 @@
+{
+  "scopedRegistries": [
+    {
+      "name": "Example Registry",
+      "url": "https://npm.example.com",
+      "scopes": [
+        "com.example"
+      ]
+    }
+  ],
+  "dependencies": {
+    "com.example.inventory": "2.3.1",
+    "com.unity.modules.physics": "1.0.0"
+  }
+}
