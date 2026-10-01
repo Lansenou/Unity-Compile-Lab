@@ -1,0 +1,9 @@
+{
+  "assemblies": [],
+  "diagnostics": [
+    {"id": "UNITY-ASMDEF", "severity": "warning", "file": "Assets/Game/Game.Core.asmdef", "line": 0, "column": 0, "message": "Assembly has reference to non-existent assembly 'Missing.Thing'"},
+    {"id": "CS0168", "severity": "warning", "file": "Assets/Scripts/Health.cs", "line": 12, "column": 30, "message": "The variable 'e' is declared but never used"},
+    {"id": "CS0103", "severity": "error", "file": "Assets/Scripts/Player.cs", "line": 9, "column": 9, "message": "The name 'transfrom' does not exist in the current context"},
+    {"id": "CS0246", "severity": "error", "file": "Packages/com.ucl.sample/Runtime/Spawner.cs", "line": 7, "column": 17, "message": "The type or namespace name 'EnemyPool' could not be found (are you missing a using directive or an assembly reference?)"}
+  ]
+}

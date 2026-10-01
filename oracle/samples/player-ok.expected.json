@@ -1,0 +1,8 @@
+{
+  "assemblies": [
+    "Assembly-CSharp",
+    "Assembly-CSharp-firstpass",
+    "Game.Core"
+  ],
+  "diagnostics": []
+}

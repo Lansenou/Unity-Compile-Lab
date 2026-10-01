@@ -1,0 +1,62 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-maint" at "2026-09-30T14:09:51.0273311Z"
+Built from '6000.0/staging' branch; Version is '6000.0.30f1 (62b05ba0686a) revision 6467674'; Using compiler version '192829333'; Build Type 'Release'
+OS: 'Ubuntu 22.04.4 LTS (Jammy Jellyfish) Linux 6.5.0-41-generic' Language: 'en' Physical Memory: 31941 MB
+BatchMode: 1, IsHumanControllingUs: false, StartBugReporterOnCrash: false, Is64bit: true, IsPro: true
+
+COMMAND LINE ARGUMENTS:
+/home/maint/Unity/Hub/Editor/6000.0.30f1/Editor/Unity
+-batchmode
+-nographics
+-quit
+-projectPath
+/tmp/ucl-oracle.Lp8cW2/project
+-buildTarget
+Win64
+-logFile
+/tmp/ucl-oracle.Lp8cW2/editor.log
+-executeMethod
+Ucl.Oracle.CompilePlayer
+-uclOutDir
+/tmp/ucl-oracle.Lp8cW2/player-out
+
+Successfully changed project path to: /tmp/ucl-oracle.Lp8cW2/project
+/tmp/ucl-oracle.Lp8cW2/project
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+[Package Manager] Done resolving packages in 1.62 seconds
+Initialize engine version: 6000.0.30f1 (62b05ba0686a)
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  0.398 seconds
+Application.AssetDatabase Initial Refresh Start
+[ScriptCompilation] Requested script compilation because: Assetdatabase observed changes in script compilation related files
+Rebuilding DAG because FileSignature timestamp changed: Library/Bee/1900b0aE-inputdata.json
+Starting: /home/maint/Unity/Hub/Editor/6000.0.30f1/Editor/Data/bee_backend --profile="Library/Bee/backend_profiler1.traceevents" --stdin-canary --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --dagfilejson="Library/Bee/1900b0aE.dag.json" ScriptAssemblies
+[ 11/ 26  1s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-firstpass.dll (+2 others)
+[ 14/ 26  1s] Csc Library/Bee/artifacts/1900b0aE.dag/Game.Core.dll (+2 others)
+[ 19/ 26  2s] Csc Library/Bee/artifacts/1900b0aE.dag/Ucl.Oracle.Editor.dll (+2 others)
+[ 23/ 26  3s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll (+2 others)
+*** Tundra build success (3.05 seconds), 16 items updated, 26 evaluated
+AssetDatabase: script compilation time: 3.271802s
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  0.721 seconds
+Asset Pipeline Refresh (id=9a7b5c3d1e2f4a6b8c0d2e4f6a8b0c1d): Total: 4.902 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+Application.AssetDatabase Initial Refresh End
+Invoking Ucl.Oracle.CompilePlayer
+UCL-ORACLE-BEGIN target=StandaloneWindows64 group=Standalone options=None
+
+Starting: /home/maint/Unity/Hub/Editor/6000.0.30f1/Editor/Data/bee_backend --profile="Library/Bee/backend_profiler2.traceevents" --stdin-canary --dagfile="Library/Bee/Player0a1b2c3d.dag" --continue-on-failure --dagfilejson="Library/Bee/Player0a1b2c3d.dag.json" ScriptAssemblies
+[  7/ 15  1s] Csc Library/Bee/artifacts/Player0a1b2c3d.dag/Assembly-CSharp-firstpass.dll (+pdb)
+[  9/ 15  1s] Csc Library/Bee/artifacts/Player0a1b2c3d.dag/Game.Core.dll (+pdb)
+[ 13/ 15  2s] Csc Library/Bee/artifacts/Player0a1b2c3d.dag/Assembly-CSharp.dll (+pdb)
+*** Tundra build success (2.18 seconds), 9 items updated, 15 evaluated
+UCL-ORACLE-ASSEMBLY: Assembly-CSharp
+
+UCL-ORACLE-ASSEMBLY: Assembly-CSharp-firstpass
+
+UCL-ORACLE-ASSEMBLY: Game.Core
+
+UCL-ORACLE-END count=3
+
+Batchmode quit successfully invoked - shutting down!
+Exiting batchmode successfully now!
+Application will terminate with return code 0
