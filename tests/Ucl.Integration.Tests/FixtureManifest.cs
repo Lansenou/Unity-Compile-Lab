@@ -39,7 +39,8 @@ public sealed record FixtureCell(
     [property: JsonPropertyName("realEditor")] bool RealEditor,
     [property: JsonPropertyName("assemblies")] IReadOnlyList<ExpectedAssembly>? Assemblies,
     [property: JsonPropertyName("excluded")] IReadOnlyList<string>? Excluded,
-    [property: JsonPropertyName("diagnostics")] IReadOnlyList<ExpectedDiagnostic>? Diagnostics);
+    [property: JsonPropertyName("diagnostics")] IReadOnlyList<ExpectedDiagnostic>? Diagnostics,
+    [property: JsonPropertyName("problems")] IReadOnlyList<string>? Problems = null);
 
 /// <summary>An expected assembly.</summary>
 public sealed record ExpectedAssembly(

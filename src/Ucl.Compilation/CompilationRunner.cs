@@ -21,7 +21,10 @@ public sealed class CompilationRunner
     {
         var catalog = new ReferenceCatalog(_fs, editor);
         var hasher = new ContentHasher(_fs);
-        var compiler = new AssemblyCompiler(_fs, project, catalog, hasher, settings);
+        var memo = settings.CacheDirectory is null ? null : new HashMemoStore(_fs, settings.CacheDirectory);
+        memo?.LoadInto(hasher);
+        var cache = settings.CacheDirectory is null ? null : new BuildCache(_fs, settings.CacheDirectory);
+        var compiler = new AssemblyCompiler(_fs, project, catalog, hasher, settings, cache);
         var gate = new SemaphoreSlim(Math.Max(1, settings.MaxParallelism));
         var tasks = new Dictionary<string, Task<AssemblyOutcome>>(StringComparer.Ordinal);
 
@@ -50,6 +53,7 @@ public sealed class CompilationRunner
         }
 
         Task.WaitAll(tasks.Values.ToArray());
+        memo?.Save(hasher);
         var assemblies = graph.Assemblies.Select(p => tasks[p.Name].Result.Result).ToList();
         var diagnostics = DiagnosticOrder.Sort(graph.Diagnostics.Concat(assemblies.SelectMany(a => a.Diagnostics)));
         return new CellResult

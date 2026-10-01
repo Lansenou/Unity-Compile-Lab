@@ -37,10 +37,22 @@ public sealed class FixtureTests
         var report = FixtureRunner.Check(project, cell, temp.Path);
 
         var json = JsonDocument.Parse(report.Stdout).RootElement;
-        var cellJson = json.GetProperty("cells")[0];
         var context = $"{fixture} cell {index} ({cell.Target} {cell.Platform} {cell.UnityVersion})\n{report.Stdout}";
 
         Assert.True(cell.ExitCode == report.Exit, $"exit {report.Exit}, expected {cell.ExitCode}: {context}");
+        var problems = json.GetProperty("problems").EnumerateArray()
+            .Concat(json.GetProperty("cells").EnumerateArray().SelectMany(c => c.GetProperty("problems").EnumerateArray()))
+            .Select(p => p.GetProperty("id").GetString()!)
+            .Distinct()
+            .Order(StringComparer.Ordinal);
+        Assert.True((cell.Problems ?? []).Distinct().Order(StringComparer.Ordinal).SequenceEqual(problems), $"problems [{string.Join(", ", problems)}]: {context}");
+        if (json.GetProperty("cells").GetArrayLength() == 0)
+        {
+            Assert.True(cell.Assemblies is null or { Count: 0 }, $"no cell was compiled: {context}");
+            return;
+        }
+
+        var cellJson = json.GetProperty("cells")[0];
         var assemblies = cellJson.GetProperty("assemblies").EnumerateArray().ToDictionary(a => a.GetProperty("name").GetString()!, a => a);
         if (cell.Assemblies is { } expectedAssemblies)
         {

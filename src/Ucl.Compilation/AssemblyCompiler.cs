@@ -25,9 +25,11 @@ internal sealed class AssemblyCompiler
     private readonly ContentHasher _hasher;
     private readonly CompileSettings _settings;
     private readonly AnalyzerLoader _loader = new();
+    private readonly BuildCache? _cache;
 
-    public AssemblyCompiler(IFileSystem fs, ProjectContext project, ReferenceCatalog catalog, ContentHasher hasher, CompileSettings settings)
+    public AssemblyCompiler(IFileSystem fs, ProjectContext project, ReferenceCatalog catalog, ContentHasher hasher, CompileSettings settings, BuildCache? cache)
     {
+        _cache = cache;
         _fs = fs;
         _project = project;
         _catalog = catalog;
@@ -39,61 +41,70 @@ internal sealed class AssemblyCompiler
     {
         var clock = Stopwatch.StartNew();
         var hash = new InputsHashBuilder(_settings.ToolVersion, plan);
+        var sources = plan.Sources.Select(l => (Logical: l, Physical: _project.ToPhysical(l))).ToList();
+        foreach (var (logical, physical) in sources)
+        {
+            hash.Add("source", logical, _hasher.HashFile(physical));
+        }
+
+        var referencePaths = new List<(string Display, string Path)>(_catalog.EditorReferences(graph, plan.Engine));
+        foreach (var dll in plan.PrecompiledReferences)
+        {
+            var path = _project.ToPhysical(dll);
+            if (_fs.FileExists(path))
+            {
+                referencePaths.Add(($"plugin:{dll}", path));
+            }
+        }
+
+        foreach (var (display, path) in referencePaths)
+        {
+            hash.Add("reference", display, _hasher.HashFile(path));
+        }
+
+        foreach (var name in plan.References)
+        {
+            hash.Add("reference", $"assembly:{name}", dependencies[name].ImageHash);
+        }
+
+        var analyzerPaths = _settings.Analyzers ? plan.Analyzers : [];
+        var configs = plan.AnalyzerConfigs.Select(c => (Logical: c, Physical: _project.ToPhysical(c))).Where(c => _fs.FileExists(c.Physical)).ToList();
+        var extraInputs = analyzerPaths.Select(a => ("analyzer", a))
+            .Concat(configs.Select(c => ("analyzerconfig", c.Logical)))
+            .Concat(plan.AdditionalFiles.Select(f => ("additionalfile", f)))
+            .Concat(plan.RuleSet is null ? [] : new[] { ("ruleset", plan.RuleSet) });
+        foreach (var (kind, logical) in extraInputs)
+        {
+            var physical = _project.ToPhysical(logical);
+            hash.Add(kind, logical, _fs.FileExists(physical) ? _hasher.HashFile(physical) : "missing");
+        }
+
+        var inputsHash = hash.Finish(_settings.WarnAsError);
+        var displays = referencePaths.Select(r => r.Display).Concat(plan.References.Select(n => $"assembly:{n}")).Order(StringComparer.Ordinal).ToList();
+        if (_cache?.TryLoad(inputsHash) is { } hit)
+        {
+            return new AssemblyOutcome(
+                Result(plan, hit.Failed, inputsHash, displays, analyzerPaths, hit.Diagnostics, clock.ElapsedMilliseconds, cached: true),
+                hit.Image is null ? null : MetadataReference.CreateFromImage(hit.Image),
+                hit.ImageHash);
+        }
+
         var parseOptions = new CSharpParseOptions(
             LanguageVersionFacts.TryParse(plan.LangVersion, out var lang) ? lang : LanguageVersion.CSharp9,
             DocumentationMode.None,
             SourceCodeKind.Regular,
             plan.Defines.Symbols);
-
-        var trees = new List<SyntaxTree>(plan.Sources.Count);
-        foreach (var logical in plan.Sources)
+        var trees = new List<SyntaxTree>(sources.Count);
+        foreach (var (_, physical) in sources)
         {
-            var physical = _project.ToPhysical(logical);
             var bytes = _fs.ReadAllBytes(physical);
-            hash.Add("source", logical, ContentHasher.HashBytes(bytes));
             var text = SourceText.From(bytes, bytes.Length, Encoding.UTF8, SourceHashAlgorithm.Sha256, throwIfBinaryDetected: false, canBeEmbedded: false);
             trees.Add(CSharpSyntaxTree.ParseText(text, parseOptions, physical));
         }
 
-        var references = new List<(string Display, MetadataReference Reference)>();
-        foreach (var (display, path) in _catalog.EditorReferences(graph, plan.Engine))
-        {
-            hash.Add("reference", display, _hasher.HashFile(path));
-            references.Add((display, _catalog.Get(path)));
-        }
-
-        foreach (var dll in plan.PrecompiledReferences)
-        {
-            var path = _project.ToPhysical(dll);
-            if (!_fs.FileExists(path))
-            {
-                continue;
-            }
-
-            hash.Add("reference", $"plugin:{dll}", _hasher.HashFile(path));
-            references.Add(($"plugin:{dll}", _catalog.Get(path)));
-        }
-
-        foreach (var name in plan.References)
-        {
-            var dep = dependencies[name];
-            hash.Add("reference", $"assembly:{name}", dep.ImageHash);
-            references.Add(($"assembly:{name}", dep.Reference!));
-        }
-
-        var analyzerPaths = _settings.Analyzers ? plan.Analyzers : [];
-        foreach (var a in analyzerPaths)
-        {
-            hash.Add("analyzer", a, _hasher.HashFile(_project.ToPhysical(a)));
-        }
-
-        var configs = plan.AnalyzerConfigs.Select(c => (Logical: c, Physical: _project.ToPhysical(c))).Where(c => _fs.FileExists(c.Physical)).ToList();
-        foreach (var c in configs)
-        {
-            hash.Add("analyzerconfig", c.Logical, _hasher.HashFile(c.Physical));
-        }
-
-        var inputsHash = hash.Finish(_settings.WarnAsError);
+        var references = referencePaths.Select(r => _catalog.Get(r.Path)).Cast<MetadataReference>()
+            .Concat(plan.References.Select(n => dependencies[n].Reference!))
+            .ToList();
         var options = CompilerOptionsFactory.Create(plan, _settings.WarnAsError, _fs, _project);
         AnalyzerConfigSet? configSet = null;
         if (configs.Count > 0)
@@ -102,7 +113,7 @@ internal sealed class AssemblyCompiler
             options = options.WithSyntaxTreeOptionsProvider(new TreeOptionsProvider(configSet, trees));
         }
 
-        Microsoft.CodeAnalysis.Compilation compilation = CSharpCompilation.Create(plan.Name, trees, references.Select(r => r.Reference), options);
+        Microsoft.CodeAnalysis.Compilation compilation = CSharpCompilation.Create(plan.Name, trees, references, options);
         var raw = new List<(Microsoft.CodeAnalysis.Diagnostic Diagnostic, DiagnosticOrigin Origin)>();
         if (analyzerPaths.Count > 0)
         {
@@ -117,7 +128,7 @@ internal sealed class AssemblyCompiler
             .ToList();
         var failed = diagnostics.Any(d => d.Severity == Severity.Error);
 
-        MetadataReference? image = null;
+        byte[]? imageBytes = null;
         var imageHash = string.Empty;
         if (!failed)
         {
@@ -125,9 +136,8 @@ internal sealed class AssemblyCompiler
             var emit = compilation.Emit(stream, options: new EmitOptions(metadataOnly: true));
             if (emit.Success)
             {
-                var bytes = stream.ToArray();
-                imageHash = ContentHasher.HashBytes(bytes);
-                image = MetadataReference.CreateFromImage(bytes);
+                imageBytes = stream.ToArray();
+                imageHash = ContentHasher.HashBytes(imageBytes);
             }
             else
             {
@@ -136,7 +146,17 @@ internal sealed class AssemblyCompiler
             }
         }
 
-        var result = new AssemblyResult
+        var sorted = DiagnosticOrder.Sort(diagnostics);
+        _cache?.Store(inputsHash, failed, sorted, imageBytes, imageHash);
+        return new AssemblyOutcome(
+            Result(plan, failed, inputsHash, displays, analyzerPaths, sorted, clock.ElapsedMilliseconds, cached: false),
+            imageBytes is null ? null : MetadataReference.CreateFromImage(imageBytes),
+            imageHash);
+    }
+
+    private static AssemblyResult Result(
+        AssemblyPlan plan, bool failed, string inputsHash, IReadOnlyList<string> references, IReadOnlyList<string> analyzers,
+        IReadOnlyList<CoreDiagnostic> diagnostics, long elapsed, bool cached) => new()
         {
             Name = plan.Name,
             Kind = plan.Kind,
@@ -144,14 +164,13 @@ internal sealed class AssemblyCompiler
             Status = failed ? AssemblyStatus.Failed : AssemblyStatus.Compiled,
             InputsHash = inputsHash,
             Defines = plan.Defines.Symbols.ToList(),
-            References = references.Select(r => r.Display).Order(StringComparer.Ordinal).ToList(),
-            Analyzers = analyzerPaths,
+            References = references,
+            Analyzers = analyzers,
             SourceCount = plan.Sources.Count,
-            Diagnostics = DiagnosticOrder.Sort(diagnostics),
-            ElapsedMs = clock.ElapsedMilliseconds,
+            Diagnostics = diagnostics,
+            ElapsedMs = elapsed,
+            Cached = cached,
         };
-        return new AssemblyOutcome(result, image, imageHash);
-    }
 
     private CoreDiagnostic Map(Microsoft.CodeAnalysis.Diagnostic d, DiagnosticOrigin origin, string assembly)
     {
