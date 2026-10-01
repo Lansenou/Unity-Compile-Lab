@@ -1,0 +1,12 @@
+# Repository code style. Line endings are LF everywhere (see .gitattributes), so dotnet format on
+# Windows must not ask for CRLF.
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+
+[*.cs]
+indent_style = space
+indent_size = 4
