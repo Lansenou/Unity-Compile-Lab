@@ -29,7 +29,7 @@ binaries and attaches them to a GitHub release.
 | `v0.1.0` | `508f36f` | phase 1 |
 | `v0.2.0` | `29ef819` | phases 2 and 3 were developed in parallel and completed together |
 | `v0.3.0` | `29ef819` | same commit as `v0.2.0` |
-| `v0.4.0` | head of `claude/bold-ptolemy-f3272x` after the final review | |
+| `v0.4.0` | `3c49b99` | final review; CI green on Linux, Windows and macOS (run 17) |
 
 ```sh
 git tag -a v0.4.0 <commit> -m v0.4.0 && git push origin v0.4.0
