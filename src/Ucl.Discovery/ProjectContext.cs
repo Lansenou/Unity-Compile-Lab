@@ -27,12 +27,15 @@ public sealed record ProjectContext
             var root = second < 0 ? logical : logical[..second];
             if (PackageRoots.TryGetValue(root, out var physical))
             {
-                return second < 0 ? physical : Path.Combine(physical, logical[(second + 1)..]);
+                return second < 0 ? physical : Path.Combine(physical, Native(logical[(second + 1)..]));
             }
         }
 
-        return Path.Combine(Root, logical);
+        return Path.Combine(Root, Native(logical));
     }
+
+    // Logical paths use '/'; on Windows the physical form must use the native separator throughout.
+    private static string Native(string relative) => relative.Replace('/', Path.DirectorySeparatorChar);
 
     /// <summary>Maps an absolute path back to its logical path, or null when it is outside the project and its packages.</summary>
     public string? ToLogical(string physical)
