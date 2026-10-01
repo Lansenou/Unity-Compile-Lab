@@ -145,7 +145,8 @@ public sealed class PackageResolutionTests : IDisposable
         Assert.Contains("embedded", problem.Message);
         Assert.Contains("file:", problem.Message);
         Assert.Contains("PackageCache", problem.Message);
-        Assert.Contains(Path.Combine(tree["home"], ".cache", "ucl", "packages"), problem.Message);
+        Assert.Contains("~/.cache/ucl/packages", problem.Message);
+        Assert.DoesNotContain(tree["home"], problem.Message);
         Assert.Contains("ucl fetch", problem.Message);
         Assert.Empty(ctx.Inventory!.Packages);
     }

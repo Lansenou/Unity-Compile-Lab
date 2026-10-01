@@ -187,16 +187,17 @@ internal sealed class PackageResolver(IFileSystem fs, IEnvironment env, string p
     private Problem NotFound(string name, string version)
     {
         var shown = version.Length > 0 ? $"{name}@{version}" : name;
+        // Project-relative and symbolic paths only: reports must be identical on every machine.
         var download = IsPlainVersion(version)
-            ? Path.Combine(DownloadCacheDir, $"{name}@{version}")
-            : $"{DownloadCacheDir} (only for registry versions)";
+            ? $"the download cache ($UCL_PACKAGE_CACHE or ~/.cache/ucl/packages)/{name}@{version}"
+            : "the download cache (only for registry versions)";
         var hint = IsPlainVersion(version)
             ? "Run `ucl fetch` to download registry packages, or open the project in Unity once to fill Library/PackageCache."
             : "Open the project in Unity once so it fills Library/PackageCache (git and other non-registry packages resolve only there).";
         return new Problem(
             ProblemIds.UnresolvedPackage,
-            $"Package {shown} was not found. Searched: (1) embedded folders in {packagesDir} whose package.json has name '{name}'; "
-            + $"(2) a file: path in the manifest or lock file; (3) {Path.Combine(packageCacheDir, name + "@*")}; (4) {download}. {hint}",
+            $"Package {shown} was not found. Searched: (1) embedded folders in Packages/ whose package.json has name '{name}'; "
+            + $"(2) a file: path in the manifest or lock file; (3) Library/PackageCache/{name}@*; (4) {download}. {hint}",
             "Packages/manifest.json");
     }
 }
