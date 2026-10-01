@@ -1,0 +1,19 @@
+# GitLab CI job for a Unity 6 project. Runs on a runner tagged "unity6" that has a Unity 6 editor
+# installed (ucl reads its DLLs; Unity itself never runs). Set UNITY_EDITOR_PATH if the editor is not in
+# a Unity Hub default folder.
+ucl:
+  stage: test
+  tags: [unity6]
+  variables:
+    UCL_PACKAGE_CACHE: "$CI_PROJECT_DIR/.ucl-packages"
+  cache:
+    key: ucl-packages
+    paths: [.ucl-packages/]
+  script:
+    - dotnet tool update --global UnityCompileLab.Tool || dotnet tool install --global UnityCompileLab.Tool
+    - export PATH="$PATH:$HOME/.dotnet/tools"
+    - ucl fetch .
+    - ucl check . --target editor --target player --platform StandaloneLinux64 --format json --output ucl.json
+  artifacts:
+    when: always
+    paths: [ucl.json]
