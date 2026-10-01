@@ -3,10 +3,10 @@ namespace Ucl.Integration.Tests;
 /// <summary>Locations in the repository and the stub editors, built once per test run.</summary>
 public static class Repo
 {
-    private static readonly Lazy<string> StubsLazy = new(() => Ucl.StubBuilder.StubBuilder.Build(Root, Path.Combine(Root, "artifacts", "stubs")));
-
     /// <summary>The repository root (the folder holding Ucl.slnx).</summary>
     public static string Root { get; } = FindRoot();
+
+    private static readonly Lazy<string> StubsLazy = new(() => Ucl.StubBuilder.StubBuilder.Build(Root!, Path.Combine(Root!, "artifacts", "stubs")));
 
     /// <summary>The fixtures folder.</summary>
     public static string Fixtures => Path.Combine(Root, "fixtures");
