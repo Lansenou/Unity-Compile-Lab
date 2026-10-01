@@ -7,7 +7,8 @@ namespace Ucl.Compilation;
 
 /// <summary>
 /// Loads analyzer DLLs, each into its own load context so two analyzers with clashing dependencies coexist;
-/// Roslyn itself resolves from the default context so analyzers bind to the host compiler.
+/// Roslyn itself resolves from the default context so analyzers bind to the host compiler. DLLs are loaded
+/// from bytes, never mapped from their path, so ucl does not lock files in the user's project on Windows.
 /// </summary>
 internal sealed class AnalyzerLoader : IAnalyzerAssemblyLoader
 {
@@ -18,7 +19,13 @@ internal sealed class AnalyzerLoader : IAnalyzerAssemblyLoader
     }
 
     public Assembly LoadFromPath(string fullPath) =>
-        _loaded.GetOrAdd(fullPath, p => new IsolatedContext(p).LoadFromAssemblyPath(p));
+        _loaded.GetOrAdd(fullPath, p => FromBytes(new IsolatedContext(p), p));
+
+    private static Assembly FromBytes(AssemblyLoadContext context, string path)
+    {
+        using var stream = new MemoryStream(File.ReadAllBytes(path));
+        return context.LoadFromStream(stream);
+    }
 
     private sealed class IsolatedContext(string mainPath) : AssemblyLoadContext($"ucl-analyzer:{Path.GetFileName(mainPath)}")
     {
@@ -30,7 +37,7 @@ internal sealed class AnalyzerLoader : IAnalyzerAssemblyLoader
             }
 
             var candidate = Path.Combine(Path.GetDirectoryName(mainPath)!, assemblyName.Name + ".dll");
-            return File.Exists(candidate) ? LoadFromAssemblyPath(candidate) : null;
+            return File.Exists(candidate) ? FromBytes(this, candidate) : null;
         }
     }
 }
