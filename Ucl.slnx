@@ -1,2 +1,14 @@
 <Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Ucl.Cli/Ucl.Cli.csproj" />
+    <Project Path="src/Ucl.Compilation/Ucl.Compilation.csproj" />
+    <Project Path="src/Ucl.Core/Ucl.Core.csproj" />
+    <Project Path="src/Ucl.Discovery/Ucl.Discovery.csproj" />
+    <Project Path="src/Ucl.Reporting/Ucl.Reporting.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Ucl.Discovery.Tests/Ucl.Discovery.Tests.csproj" />
+    <Project Path="tests/Ucl.Integration.Tests/Ucl.Integration.Tests.csproj" />
+    <Project Path="tests/Ucl.StubBuilder/Ucl.StubBuilder.csproj" />
+  </Folder>
 </Solution>
