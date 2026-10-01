@@ -10,12 +10,11 @@ public sealed class FixtureTests
     public static TheoryData<string, int> Cells()
     {
         var data = new TheoryData<string, int>();
-        var real = Environment.GetEnvironmentVariable("UCL_REAL_EDITOR") == "1";
         foreach (var f in FixtureManifest.Load().Fixtures)
         {
             for (var i = 0; i < f.Cells.Count; i++)
             {
-                if (!f.Cells[i].RealEditor || real)
+                if (RealEditor.Runs(f.Cells[i]))
                 {
                     data.Add(f.Name, i);
                 }

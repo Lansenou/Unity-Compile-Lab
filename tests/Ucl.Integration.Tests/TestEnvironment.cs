@@ -12,7 +12,10 @@ public sealed class TestEnvironment : IEnvironment
     public TestEnvironment(string home, IDictionary<string, string>? extra = null)
     {
         HomeDirectory = home;
-        _vars = new Dictionary<string, string>(StringComparer.Ordinal) { ["UCL_EDITOR_ROOTS"] = Repo.StubEditors };
+        // UCL_REAL_EDITOR=1 (docs/oracle.md): use the real install at UNITY_EDITOR_PATH instead of the stubs.
+        _vars = RealEditor.Path is { } real
+            ? new Dictionary<string, string>(StringComparer.Ordinal) { ["UNITY_EDITOR_PATH"] = real }
+            : new Dictionary<string, string>(StringComparer.Ordinal) { ["UCL_EDITOR_ROOTS"] = Repo.StubEditors };
         foreach (var (k, v) in extra ?? new Dictionary<string, string>())
         {
             _vars[k] = v;

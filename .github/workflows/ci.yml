@@ -95,3 +95,35 @@ jobs:
         run: |
           scripts/build-release.sh "dev-${GITHUB_SHA::12}" dist osx-arm64
           scripts/smoke.sh dist/ucl-osx-arm64/ucl
+
+  # On a v* tag pushed by a maintainer, after all gates: build the four single-file binaries and the
+  # global tool package, and attach them to a GitHub release. The only job with write permission.
+  # Publishing to NuGet is not automated (no API key is configured); see docs/status.md.
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [linux, windows, macos]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Build release artifacts
+        run: scripts/build-release.sh "$GITHUB_REF_NAME" dist
+      - name: Verify checksums
+        run: (cd dist && sha256sum --check SHA256SUMS)
+      - name: Create the GitHub release (never replaces an existing one)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "release $GITHUB_REF_NAME already exists; not touching it"; exit 0
+          fi
+          notes=$(awk -v v="${GITHUB_REF_NAME#v}" '$0 ~ "^## \\[" v "\\]" {p=1; next} /^## \[/ {p=0} p' CHANGELOG.md)
+          gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --notes "${notes:-See CHANGELOG.md}"

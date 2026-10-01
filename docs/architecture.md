@@ -134,7 +134,9 @@ the stack trace on stderr.
 ## Ports
 
 Interfaces exist only at real boundaries: `IFileSystem` (disk), `IEnvironment` (environment variables, OS,
-home folder), `IProcessRunner` (git for `--changed`), `IHttpClient` (fetch), `IClock` (`--timings`).
+home folder), `IProcessRunner` (git for `--changed` and `doctor`), `IHttpClient` (`fetch`). Analyzer DLLs are
+the one read that bypasses `IFileSystem`: the runtime loads them from disk by path. `--timings` uses a
+`Stopwatch` and never reaches deterministic output.
 
 ## Files over 400 lines
 
