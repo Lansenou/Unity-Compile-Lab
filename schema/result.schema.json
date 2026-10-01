@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Lansenou/unity-compile-lab/schema/result.schema.json",
+  "title": "ucl check result",
+  "description": "Output of `ucl check --format json`. Schema id ucl-result/1. Fields are only added in minor versions; a removal or rename bumps the schema id.",
+  "type": "object",
+  "required": ["schema", "tool", "exitCode", "summary", "problems", "cells"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "ucl-result/1" },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": { "name": { "const": "ucl" }, "version": { "type": "string" } }
+    },
+    "exitCode": { "$ref": "#/$defs/exitCode" },
+    "summary": { "$ref": "#/$defs/summary" },
+    "problems": { "type": "array", "items": { "$ref": "#/$defs/problem" } },
+    "cells": { "type": "array", "items": { "$ref": "#/$defs/cell" } }
+  },
+  "$defs": {
+    "exitCode": {
+      "description": "0 clean (warnings allowed), 1 errors, 2 warnings-as-errors only, 3 configuration problem, 4 internal error.",
+      "type": "integer", "enum": [0, 1, 2, 3, 4]
+    },
+    "summary": {
+      "type": "object",
+      "required": ["cells", "errors", "warnings", "analyzerDiagnostics"],
+      "additionalProperties": false,
+      "properties": {
+        "cells": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "integer", "minimum": 0 },
+        "warnings": { "type": "integer", "minimum": 0 },
+        "analyzerDiagnostics": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "problem": {
+      "type": "object",
+      "required": ["id", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^UCL[0-9]{4}$" },
+        "message": { "type": "string" },
+        "file": { "type": "string" }
+      }
+    },
+    "cell": {
+      "type": "object",
+      "required": ["unityVersion", "target", "platform", "development", "exitCode", "summary", "problems", "assemblies", "excluded", "diagnostics"],
+      "additionalProperties": false,
+      "properties": {
+        "unityVersion": { "type": "string" },
+        "target": { "enum": ["editor", "player"] },
+        "platform": { "enum": ["StandaloneWindows64", "StandaloneOSX", "StandaloneLinux64", "iOS", "Android", "WebGL"] },
+        "backend": { "enum": ["mono", "il2cpp"] },
+        "development": { "type": "boolean" },
+        "editorOs": { "enum": ["windows", "macos", "linux"] },
+        "exitCode": { "$ref": "#/$defs/exitCode" },
+        "summary": { "$ref": "#/$defs/summary" },
+        "problems": { "type": "array", "items": { "$ref": "#/$defs/problem" } },
+        "assemblies": { "type": "array", "items": { "$ref": "#/$defs/assembly" } },
+        "excluded": {
+          "type": "array",
+          "items": {
+            "type": "object", "required": ["name", "reason"], "additionalProperties": false,
+            "properties": { "name": { "type": "string" }, "reason": { "type": "string" } }
+          }
+        },
+        "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } }
+      }
+    },
+    "assembly": {
+      "type": "object",
+      "required": ["name", "kind", "status", "inputsHash", "sourceFiles", "defines", "references", "analyzers", "diagnosticCounts"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "kind": { "enum": ["predefined", "asmdef"] },
+        "definition": { "type": "string" },
+        "status": { "enum": ["compiled", "failed", "skipped"] },
+        "skipReason": { "type": "string" },
+        "inputsHash": { "type": "string", "pattern": "^([0-9a-f]{64})?$" },
+        "sourceFiles": { "type": "integer", "minimum": 0 },
+        "defines": { "type": "array", "items": { "type": "string" } },
+        "references": { "type": "array", "items": { "type": "string", "pattern": "^(assembly|plugin|editor|profile):" } },
+        "analyzers": { "type": "array", "items": { "type": "string" } },
+        "diagnosticCounts": {
+          "type": "object", "required": ["error", "warning", "info"], "additionalProperties": false,
+          "properties": {
+            "error": { "type": "integer", "minimum": 0 },
+            "warning": { "type": "integer", "minimum": 0 },
+            "info": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "timeMs": { "type": "integer", "minimum": 0, "description": "Only with --timings." },
+        "cached": { "type": "boolean", "description": "Only with --timings." }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "required": ["id", "severity", "origin", "line", "column", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "severity": { "enum": ["error", "warning", "info"] },
+        "origin": { "enum": ["compiler", "analyzer", "ucl"] },
+        "assembly": { "type": "string" },
+        "file": { "type": "string", "description": "Project-relative, '/' separators; packages as Packages/<name>/..." },
+        "line": { "type": "integer", "minimum": 0, "description": "1-based; 0 when the diagnostic has no position." },
+        "column": { "type": "integer", "minimum": 0 },
+        "message": { "type": "string" },
+        "warningAsError": { "type": "boolean" }
+      }
+    }
+  }
+}

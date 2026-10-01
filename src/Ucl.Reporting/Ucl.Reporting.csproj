@@ -2,4 +2,10 @@
   <PropertyGroup>
     <RootNamespace>Ucl.Reporting</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Ucl.Core/Ucl.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="../../schema/result.schema.json" LogicalName="result.schema.json" />
+  </ItemGroup>
 </Project>
