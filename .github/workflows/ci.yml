@@ -36,6 +36,8 @@ jobs:
           key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
       - run: dotnet --info
       - run: scripts/check.sh --mutation
+      - name: Benchmark (R11 targets)
+        run: scripts/bench.sh
       - name: Smoke test the release binary
         run: |
           scripts/build-release.sh "dev-${GITHUB_SHA::12}" dist linux-x64
