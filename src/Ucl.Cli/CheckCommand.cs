@@ -1,4 +1,5 @@
 using Ucl.Compilation;
+using Ucl.Core.Model;
 using Ucl.Core.Results;
 using Ucl.Core.Rules;
 using Ucl.Discovery;
@@ -22,18 +23,35 @@ internal static class CheckCommand
         };
 
         var runner = new CompilationRunner(session.Fs);
+        var problems = new List<Problem>(session.Problems);
+        IReadOnlyList<string>? changed = null;
+        if (options.Changed is not null && session.Project.Inventory is not null)
+        {
+            var found = ChangedFiles.Since(options.Changed, session.Project, new SystemProcessRunner());
+            if (found.Ok)
+            {
+                changed = found.Value;
+            }
+            else
+            {
+                problems.Add(new Problem(ProblemIds.BadArguments, found.Error!));
+            }
+        }
+
         var cells = new List<CellResult>();
         foreach (var (cell, editor) in session.Cells)
         {
-            cells.Add(runner.Run(session.Graph(cell), session.Project, editor!, settings));
+            var graph = session.Graph(cell);
+            var only = changed is null ? null : ChangedFiles.Affected(graph, changed);
+            cells.Add(runner.Run(graph, session.Project, editor!, settings, only));
         }
 
-        var problemsExit = session.Problems.Count > 0 ? ExitCodes.Configuration : ExitCodes.Clean;
+        var problemsExit = problems.Count > 0 ? ExitCodes.Configuration : ExitCodes.Clean;
         var run = new RunResult
         {
             ToolVersion = App.Version,
             Cells = cells,
-            Problems = session.Problems,
+            Problems = problems,
             Timings = options.Timings,
             ExitCode = App.Worst(cells.Select(c => c.ExitCode).Append(problemsExit)),
         };

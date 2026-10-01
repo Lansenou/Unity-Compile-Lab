@@ -17,8 +17,14 @@ public sealed class CompilationRunner
     }
 
     /// <summary>Compiles a cell. Assemblies whose dependencies failed are skipped, as Unity does.</summary>
-    public CellResult Run(AssemblyGraph graph, ProjectContext project, EditorInstall editor, CompileSettings settings)
+    /// <param name="graph">The cell's graph.</param>
+    /// <param name="project">The project.</param>
+    /// <param name="editor">The editor install.</param>
+    /// <param name="settings">Run-wide switches.</param>
+    /// <param name="only">When set (<c>--changed</c>), report only these assemblies; their dependencies are still compiled (or read from the cache) because they are inputs.</param>
+    public CellResult Run(AssemblyGraph graph, ProjectContext project, EditorInstall editor, CompileSettings settings, IReadOnlySet<string>? only = null)
     {
+        var needed = Needed(graph, only);
         var catalog = new ReferenceCatalog(_fs, editor);
         var hasher = new ContentHasher(_fs);
         var memo = settings.CacheDirectory is null ? null : new HashMemoStore(_fs, settings.CacheDirectory);
@@ -28,7 +34,7 @@ public sealed class CompilationRunner
         var gate = new SemaphoreSlim(Math.Max(1, settings.MaxParallelism));
         var tasks = new Dictionary<string, Task<AssemblyOutcome>>(StringComparer.Ordinal);
 
-        foreach (var plan in graph.Assemblies)
+        foreach (var plan in graph.Assemblies.Where(p => needed.Contains(p.Name)))
         {
             var deps = plan.References.ToDictionary(r => r, r => tasks[r], StringComparer.Ordinal);
             tasks[plan.Name] = Task.Run(async () =>
@@ -54,8 +60,10 @@ public sealed class CompilationRunner
 
         Task.WaitAll(tasks.Values.ToArray());
         memo?.Save(hasher);
-        var assemblies = graph.Assemblies.Select(p => tasks[p.Name].Result.Result).ToList();
-        var diagnostics = DiagnosticOrder.Sort(graph.Diagnostics.Concat(assemblies.SelectMany(a => a.Diagnostics)));
+        var reported = graph.Assemblies.Where(p => only is null || only.Contains(p.Name)).ToList();
+        var assemblies = reported.Select(p => tasks[p.Name].Result.Result).ToList();
+        var planning = graph.Diagnostics.Where(d => only is null || d.Assembly is null || only.Contains(d.Assembly));
+        var diagnostics = DiagnosticOrder.Sort(planning.Concat(assemblies.SelectMany(a => a.Diagnostics)));
         return new CellResult
         {
             Cell = graph.Cell,
@@ -65,6 +73,21 @@ public sealed class CompilationRunner
             Problems = graph.Problems,
             ExitCode = ExitCodes.Compute(graph.Problems, diagnostics),
         };
+    }
+
+    // The reported assemblies and everything they reference, transitively.
+    private static HashSet<string> Needed(AssemblyGraph graph, IReadOnlySet<string>? only)
+    {
+        var needed = new HashSet<string>(only ?? graph.Assemblies.Select(a => a.Name), StringComparer.Ordinal);
+        foreach (var plan in graph.Assemblies.Reverse())
+        {
+            if (needed.Contains(plan.Name))
+            {
+                needed.UnionWith(plan.References);
+            }
+        }
+
+        return needed;
     }
 
     private static AssemblyOutcome Skipped(AssemblyPlan plan, string reason) => new(
