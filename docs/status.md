@@ -8,7 +8,7 @@ billing view); treat them as upper-bound guesses.
 | Phase | Cap (USD, cumulative) | Estimated spend | State |
 |---|---|---|---|
 | 0 design | 5 | ~3 | done |
-| 1 core, discovery, compile, 15 fixtures | 45 | ~25 | done, tagged `v0.1.0` |
+| 1 core, discovery, compile, 15 fixtures | 45 | ~25 | done, `v0.1.0` tagged locally (see Tags) |
 | 2 corpus, verify, oracle, analyzers, SARIF, matrix | 75 | | not started |
 | 3 cache, benchmarks, extras | 95 | | not started |
 | 4 integration docs, final review | 110 | | not started |
@@ -57,3 +57,14 @@ Not measured yet (phase 3).
 ## For a maintainer with a licensed Unity 6 install
 
 * Phase 2 adds `oracle/record.sh`; until then nothing to do.
+
+## Tags
+
+This session's git proxy accepts pushes to the working branch only; tag pushes are refused (HTTP 403).
+Release tags are therefore recorded here for the owner to create:
+
+| Tag | Commit |
+|---|---|
+| `v0.1.0` | `508f36f` |
+
+`git tag -a v0.1.0 508f36f -m v0.1.0 && git push origin v0.1.0` (and likewise for later rows).
