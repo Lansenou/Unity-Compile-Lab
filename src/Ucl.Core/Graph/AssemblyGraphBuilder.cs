@@ -159,7 +159,14 @@ public static class AssemblyGraphBuilder
             draft.Dropped.AddRange(gone);
         }
 
-        var plugins = PluginResolver.Resolve(inventory, index, cell, baseDefines, drafts, diagnostics);
+        // Plugin defineConstraints see the full define set, constraint-only symbols (D60) included, like asmdef constraints.
+        var pluginDefines = baseDefines.Copy();
+        foreach (var (symbol, reason) in constraintOnly.Reasons)
+        {
+            pluginDefines.Add(symbol, reason);
+        }
+
+        var plugins = PluginResolver.Resolve(inventory, index, cell, pluginDefines, drafts, diagnostics);
         var plans = new Dictionary<string, AssemblyPlan>(StringComparer.Ordinal);
         foreach (var draft in drafts.Values)
         {

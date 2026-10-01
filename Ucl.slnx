@@ -7,6 +7,7 @@
     <Project Path="src/Ucl.Reporting/Ucl.Reporting.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Ucl.Core.Tests/Ucl.Core.Tests.csproj" />
     <Project Path="tests/Ucl.Discovery.Tests/Ucl.Discovery.Tests.csproj" />
     <Project Path="tests/Ucl.Integration.Tests/Ucl.Integration.Tests.csproj" />
     <Project Path="tests/Ucl.StubBuilder/Ucl.StubBuilder.csproj" />

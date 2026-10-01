@@ -1,0 +1,201 @@
+using Ucl.Core.Model;
+
+namespace Ucl.Core.Tests;
+
+/// <summary>Precompiled DLLs: plugin import settings, Auto Reference, overrideReferences, plugin constraints.</summary>
+public class GraphPluginTests
+{
+    private const string Dll = "Assets/Plugins/Lib.dll";
+
+    private static InventoryBuilder WithPlugin(string? meta) => new InventoryBuilder()
+        .Plugin(Dll, meta)
+        .Asmdef("Assets/Mod/Mod.asmdef", "Mod")
+        .Scripts("Assets/A.cs", "Assets/Editor/E.cs");
+
+    private static bool Referenced(Graph.AssemblyGraph g, string assembly, string dll = Dll) =>
+        g.Find(assembly)!.PrecompiledReferences.Contains(dll);
+
+    [Fact]
+    public void Dll_without_meta_is_referenced_everywhere()
+    {
+        var p = WithPlugin(null);
+        foreach (var platform in Enum.GetValues<BuildPlatform>())
+        {
+            Assert.True(Referenced(p.Player(platform), "Assembly-CSharp"));
+            Assert.True(Referenced(p.Player(platform), "Mod"));
+        }
+
+        var editor = p.Editor();
+        Assert.True(Referenced(editor, "Assembly-CSharp-Editor"));
+        Assert.True(Referenced(editor, "Mod"));
+    }
+
+    [Fact]
+    public void Dll_with_empty_platform_data_is_referenced_everywhere()
+    {
+        var p = WithPlugin(Metas.Plugin(string.Empty));
+        Assert.True(Referenced(p.Player(BuildPlatform.iOS), "Mod"));
+        Assert.True(Referenced(p.Editor(), "Mod"));
+    }
+
+    [Fact]
+    public void Any_platform_with_Exclude_Win64()
+    {
+        var p = WithPlugin(Metas.Plugin(Metas.AnyPlatformData("Win64")));
+        Assert.False(Referenced(p.Player(BuildPlatform.StandaloneWindows64), "Assembly-CSharp"));
+        Assert.True(Referenced(p.Player(BuildPlatform.StandaloneOSX), "Assembly-CSharp"));
+        Assert.True(Referenced(p.Player(BuildPlatform.StandaloneLinux64), "Assembly-CSharp"));
+        Assert.True(Referenced(p.Player(BuildPlatform.Android), "Mod"));
+        // Editor cells use the Editor key, not the active build target.
+        Assert.True(Referenced(p.Editor(BuildPlatform.StandaloneWindows64), "Assembly-CSharp"));
+    }
+
+    [Fact]
+    public void Any_platform_with_Exclude_Editor()
+    {
+        var p = WithPlugin(Metas.Plugin(Metas.AnyPlatformData("Editor")));
+        Assert.False(Referenced(p.Editor(), "Assembly-CSharp"));
+        Assert.False(Referenced(p.Editor(), "Mod"));
+        Assert.True(Referenced(p.Player(), "Assembly-CSharp"));
+    }
+
+    [Fact]
+    public void Explicit_per_platform_enable()
+    {
+        var p = WithPlugin(Metas.Plugin(Metas.ExplicitPlatformData(("Standalone", "Win64"), ("Android", "Android"))));
+        Assert.True(Referenced(p.Player(BuildPlatform.StandaloneWindows64), "Assembly-CSharp"));
+        Assert.True(Referenced(p.Player(BuildPlatform.Android), "Assembly-CSharp"));
+        Assert.False(Referenced(p.Player(BuildPlatform.StandaloneLinux64), "Assembly-CSharp"));
+        Assert.False(Referenced(p.Player(BuildPlatform.iOS), "Assembly-CSharp"));
+        Assert.False(Referenced(p.Editor(BuildPlatform.StandaloneWindows64), "Assembly-CSharp"));
+    }
+
+    [Fact]
+    public void Editor_key_for_editor_cells()
+    {
+        var p = WithPlugin(Metas.Plugin(Metas.ExplicitPlatformData(("Editor", "Editor"))));
+        var editor = p.Editor(BuildPlatform.Android);
+        Assert.True(Referenced(editor, "Assembly-CSharp"));
+        Assert.True(Referenced(editor, "Assembly-CSharp-Editor"));
+        Assert.True(Referenced(editor, "Mod"));
+        Assert.False(Referenced(p.Player(BuildPlatform.Android), "Assembly-CSharp"));
+        Assert.False(Referenced(p.Player(BuildPlatform.StandaloneWindows64), "Assembly-CSharp"));
+    }
+
+    [Fact]
+    public void Explicitly_referenced_dll_is_seen_only_through_overrideReferences()
+    {
+        var p = new InventoryBuilder()
+            .Plugin("Assets/Plugins/Newtonsoft.Json.dll", Metas.Plugin(Metas.AnyPlatformData(), explicitlyReferenced: true))
+            .Asmdef("Assets/Plain/Plain.asmdef", "Plain")
+            .Asmdef("Assets/Uses/Uses.asmdef", "Uses", "\"overrideReferences\": true, \"precompiledReferences\": [\"newtonsoft.json.dll\"]")
+            .Asmdef("Assets/Listed/Listed.asmdef", "Listed", "\"overrideReferences\": false, \"precompiledReferences\": [\"Newtonsoft.Json.dll\"]")
+            .Scripts("Assets/A.cs");
+        var g = p.Editor();
+        Assert.Equal(["Assets/Plugins/Newtonsoft.Json.dll"], g.Find("Uses")!.PrecompiledReferences);
+        Assert.Empty(g.Find("Plain")!.PrecompiledReferences);
+        Assert.Empty(g.Find("Listed")!.PrecompiledReferences);
+        Assert.Empty(g.Find("Assembly-CSharp")!.PrecompiledReferences);
+        Assert.Empty(g.Diagnostics);
+    }
+
+    [Fact]
+    public void OverrideReferences_sees_only_listed_dlls()
+    {
+        var g = new InventoryBuilder()
+            .Plugin("Assets/Plugins/A.dll")
+            .Plugin("Assets/Plugins/B.dll")
+            .Asmdef("Assets/Mod/Mod.asmdef", "Mod", "\"overrideReferences\": true, \"precompiledReferences\": [\"B.dll\"]")
+            .Asmdef("Assets/None/None.asmdef", "None", "\"overrideReferences\": true")
+            .Asmdef("Assets/All/All.asmdef", "All")
+            .Editor();
+        Assert.Equal(["Assets/Plugins/B.dll"], g.Find("Mod")!.PrecompiledReferences);
+        Assert.Empty(g.Find("None")!.PrecompiledReferences);
+        Assert.Equal(["Assets/Plugins/A.dll", "Assets/Plugins/B.dll"], g.Find("All")!.PrecompiledReferences);
+    }
+
+    [Fact]
+    public void Listed_dll_that_is_incompatible_with_the_cell_is_not_referenced_and_not_an_error()
+    {
+        var g = new InventoryBuilder()
+            .Plugin("Assets/Plugins/Win.dll", Metas.Plugin(Metas.ExplicitPlatformData(("Standalone", "Win64"))))
+            .Asmdef("Assets/Mod/Mod.asmdef", "Mod", "\"overrideReferences\": true, \"precompiledReferences\": [\"Win.dll\"]")
+            .Player(BuildPlatform.Android);
+        Assert.Empty(g.Find("Mod")!.PrecompiledReferences);
+        Assert.Empty(g.Diagnostics);
+    }
+
+    [Fact]
+    public void Missing_precompiled_reference_is_UCL1004_error()
+    {
+        var g = new InventoryBuilder()
+            .Plugin("Assets/Plugins/Present.dll")
+            .Asmdef("Assets/Mod/Mod.asmdef", "Mod", "\"overrideReferences\": true, \"precompiledReferences\": [\"Present.dll\", \"Absent.dll\"]")
+            .Editor();
+        var d = Assert.Single(g.Diagnostics);
+        Assert.Equal(ProblemIds.MissingPrecompiledReference, d.Id);
+        Assert.Equal("UCL1004", d.Id);
+        Assert.Equal(Severity.Error, d.Severity);
+        Assert.Equal("Mod", d.Assembly);
+        Assert.Equal("Assets/Mod/Mod.asmdef", d.File);
+        Assert.Contains("'Absent.dll'", d.Message, StringComparison.Ordinal);
+        Assert.Equal(["Assets/Plugins/Present.dll"], g.Find("Mod")!.PrecompiledReferences);
+    }
+
+    [Fact]
+    public void Plugin_define_constraints()
+    {
+        var p = WithPlugin(Metas.Plugin(Metas.AnyPlatformData(), defineConstraints: ["UNITY_ANDROID || UNITY_IOS", "!UNITY_EDITOR"]));
+        Assert.True(Referenced(p.Player(BuildPlatform.Android), "Assembly-CSharp"));
+        Assert.True(Referenced(p.Player(BuildPlatform.iOS), "Mod"));
+        Assert.False(Referenced(p.Player(BuildPlatform.WebGL), "Assembly-CSharp"));
+        Assert.False(Referenced(p.Editor(BuildPlatform.Android), "Assembly-CSharp"));
+    }
+
+    [Fact]
+    public void Plugin_define_constraints_see_project_symbols()
+    {
+        var p = WithPlugin(Metas.Plugin(Metas.AnyPlatformData(), defineConstraints: ["STEAM"]))
+            .Settings(ProjectSettingsParserTests.Unity6Asset);
+        Assert.True(Referenced(p.Player(BuildPlatform.StandaloneWindows64), "Assembly-CSharp"));
+        Assert.False(Referenced(p.Player(BuildPlatform.Android), "Assembly-CSharp"));
+    }
+
+    [Fact]
+    public void D60_plugin_define_constraint_UNITY_INCLUDE_TESTS()
+    {
+        // com.unity.ext.nunit ships nunit.framework.dll with Auto Reference off and defineConstraints UNITY_INCLUDE_TESTS.
+        const string NUnit = "Packages/com.unity.ext.nunit/net40/unity-custom/nunit.framework.dll";
+        var p = new InventoryBuilder()
+            .Package("com.unity.test-framework", "1.4.5")
+            .Package("com.unity.ext.nunit", "2.0.3")
+            .Plugin(NUnit, Metas.Plugin(Metas.AnyPlatformData(), explicitlyReferenced: true, defineConstraints: ["UNITY_INCLUDE_TESTS"]))
+            .Asmdef("Assets/Tests/Tests.asmdef", "Tests",
+                "\"optionalUnityReferences\": [\"TestAssemblies\"], \"overrideReferences\": true, \"precompiledReferences\": [\"nunit.framework.dll\"]");
+        var g = p.Editor();
+        Assert.Equal([NUnit], g.Find("Tests")!.PrecompiledReferences);
+        Assert.Empty(g.Diagnostics);
+    }
+
+    [Fact]
+    public void Precompiled_references_include_rsp_references_sorted_and_distinct()
+    {
+        var g = new InventoryBuilder()
+            .Plugin("Assets/Plugins/Z.dll")
+            .Rsp("Assets/csc.rsp", "-r:Assets/Libs/A.dll -r:Assets/Plugins/Z.dll")
+            .Scripts("Assets/A.cs")
+            .Editor();
+        Assert.Equal(["Assets/Libs/A.dll", "Assets/Plugins/Z.dll"], g.Find("Assembly-CSharp")!.PrecompiledReferences);
+    }
+
+    [Fact]
+    public void Package_plugins_work_like_asset_plugins()
+    {
+        var g = new InventoryBuilder()
+            .Package("com.foo", "1.0.0")
+            .Plugin("Packages/com.foo/Plugins/Foo.Native.dll", Metas.Plugin(Metas.AnyPlatformData("Editor")))
+            .Scripts("Assets/A.cs")
+            .Player(BuildPlatform.WebGL);
+        Assert.Equal(["Packages/com.foo/Plugins/Foo.Native.dll"], g.Find("Assembly-CSharp")!.PrecompiledReferences);
+    }
+}

@@ -34,6 +34,7 @@ for rid in "${rids[@]}"; do
   dotnet publish src/Ucl.Cli -c Release -r "$rid" --self-contained true \
     -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
     -p:DebugType=none -p:Version="$version" -p:PackAsTool=false \
+    -p:PublishDocumentationFile=false -p:PublishReferencesDocumentationFiles=false \
     -o "$out/ucl-$rid" >/dev/null
   cp LICENSE NOTICE THIRD_PARTY_NOTICES.md "$out/ucl-$rid/"
 done
