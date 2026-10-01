@@ -33,22 +33,25 @@ dotnet run --project tests/Ucl.StubBuilder -c Release --no-build -- artifacts/st
 
 rm -rf coverage
 mkdir -p coverage
+# MSBuild on Windows needs C:/ paths, not Git Bash's /c/ form.
+native() { if command -v cygpath >/dev/null 2>&1; then cygpath -m "$1"; else printf '%s' "$1"; fi; }
+cov=$(native "$PWD/coverage")
 
 step "unit tests: Ucl.Core (coverage gate: 90% line)"
 dotnet test tests/Ucl.Core.Tests -c Release --no-build \
-  /p:CollectCoverage=true /p:Include='[Ucl.Core]*' /p:Threshold=90 /p:ThresholdType=line \
-  /p:CoverletOutput="$PWD/coverage/core.json"
+  -p:CollectCoverage=true -p:Include='[Ucl.Core]*' -p:Threshold=90 -p:ThresholdType=line \
+  -p:CoverletOutput="$cov/core.json"
 
 step "discovery tests"
 dotnet test tests/Ucl.Discovery.Tests -c Release --no-build \
-  /p:CollectCoverage=true /p:Include='[Ucl.*]*' /p:Exclude='[Ucl.*.Tests]*' \
-  /p:CoverletOutput="$PWD/coverage/discovery.json" /p:MergeWith="$PWD/coverage/core.json"
+  -p:CollectCoverage=true -p:Include='[Ucl.*]*' -p:Exclude='[Ucl.*.Tests]*' \
+  -p:CoverletOutput="$cov/discovery.json" -p:MergeWith="$cov/core.json"
 
 step "integration tests: fixtures, read-only, determinism, architecture (coverage gate: 75% line overall)"
 dotnet test tests/Ucl.Integration.Tests -c Release --no-build \
-  /p:CollectCoverage=true /p:Include='[Ucl.*]*%2c[ucl]*' /p:Exclude='[Ucl.*.Tests]*%2c[Ucl.StubBuilder]*' \
-  /p:MergeWith="$PWD/coverage/discovery.json" /p:CoverletOutput="$PWD/coverage/" \
-  /p:CoverletOutputFormat='json%2ccobertura' /p:Threshold=75 /p:ThresholdType=line /p:ThresholdStat=total
+  -p:CollectCoverage=true -p:Include='[Ucl.*]*%2c[ucl]*' -p:Exclude='[Ucl.*.Tests]*%2c[Ucl.StubBuilder]*' \
+  -p:MergeWith="$cov/discovery.json" -p:CoverletOutput="$cov/" \
+  -p:CoverletOutputFormat='json%2ccobertura' -p:Threshold=75 -p:ThresholdType=line -p:ThresholdStat=total
 
 if [ -d verify ]; then
   step "verify: independent define table and assembly graph"
