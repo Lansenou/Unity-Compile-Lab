@@ -23,6 +23,21 @@ public class GraphReferenceTests
     }
 
     [Fact]
+    public void Runtime_predefined_assemblies_never_reference_Editor_only_asmdefs()
+    {
+        var g = new InventoryBuilder()
+            .Asmdef("Assets/Tools/Tools.asmdef", "Tools", "\"includePlatforms\": [\"Editor\"]")
+            .Asmdef("Assets/Lib/Lib.asmdef", "Lib")
+            .Scripts("Assets/Main.cs", "Assets/Plugins/P.cs", "Assets/Editor/E.cs", "Assets/Plugins/Editor/PE.cs")
+            .Editor();
+
+        Assert.Equal(["Lib"], g.Find("Assembly-CSharp-firstpass")!.References);
+        Assert.Equal(["Assembly-CSharp-firstpass", "Lib"], g.Find("Assembly-CSharp")!.References);
+        Assert.Contains("Tools", g.Find("Assembly-CSharp-Editor")!.References);
+        Assert.Contains("Tools", g.Find("Assembly-CSharp-Editor-firstpass")!.References);
+    }
+
+    [Fact]
     public void GUID_reference_without_matching_meta_is_UCL1001()
     {
         var g = new InventoryBuilder()

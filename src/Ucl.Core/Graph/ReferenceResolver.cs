@@ -48,7 +48,9 @@ internal static class ReferenceResolver
         {
             if (drafts.TryGetValue(name, out var draft))
             {
-                draft.References.AddRange(autoReferenced);
+                // Runtime assemblies never see Editor-only assemblies, even in the Editor: that is what keeps a
+                // player build from depending on editor code.
+                draft.References.AddRange(SpecialFolders.IsEditorPredefined(name) ? autoReferenced : autoReferenced.Where(a => !drafts[a].IsEditorOnly));
                 draft.References.AddRange(phases.Where(drafts.ContainsKey));
             }
         }

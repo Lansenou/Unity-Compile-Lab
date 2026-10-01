@@ -7,7 +7,7 @@ module owns. Unity's own rules (with sources) are in [defines.md](defines.md) an
 ## Modules
 
 Dependencies point inward. `Ucl.Core` depends on the BCL only; an architecture test
-(`tests/Ucl.Core.Tests/ArchitectureTests.cs`) reflects over assembly references and fails on any other edge.
+(`tests/Ucl.Core.Tests/ArchitectureTests.cs` for Core, `tests/Ucl.Integration.Tests/ArchitectureTests.cs` for every module) reflects over assembly references and fails on any other edge.
 
 ```
 Ucl.Cli ──> Ucl.Reporting ──┐
@@ -27,7 +27,9 @@ Ucl.Compilation ──> Ucl.Discovery (file system port only), Microsoft.CodeAna
 ## Data flow of `ucl check`
 
 1. **Discover.** `ProjectLocator` checks `Assets/`, `Packages/`, `ProjectSettings/` and reads
-   `ProjectVersion.txt`. `PackageResolver` resolves every package in `manifest.json` and
+   `ProjectVersion.txt`. The cell's Unity version (`--unity-version`, default the project's) must be a Unity 6
+   version, else `UCL3002`; `--unity-version 6000.x` or `--editor` deliberately lets an older project be
+   checked against Unity 6. `PackageResolver` resolves every package in `manifest.json` and
    `packages-lock.json` (section "Packages" below). `ProjectScanner` walks `Assets/` and each package root
    once and produces a `ProjectInventory`: `.cs` files, `.asmdef`, `.asmref`, `.dll` with their `.meta`,
    `csc.rsp` files, `.editorconfig`/`.globalconfig`, and a GUID index from every `.meta` it saw. Paths are
@@ -57,7 +59,8 @@ Ucl.Compilation ──> Ucl.Discovery (file system port only), Microsoft.CodeAna
   ends with `~`, is `cvs`, or has the `.tmp` extension.
 * **References.** asmdef `references` resolve by name, or by `GUID:<32 hex>` through the `.meta` index. An
   unresolved name is warning `UCL1001` and is dropped (Unity warns and compiles without it). Predefined
-  assemblies reference every `autoReferenced` asmdef that is compiled in the cell, earlier predefined
+  assemblies reference every `autoReferenced` asmdef that is compiled in the cell (the runtime ones,
+  `Assembly-CSharp` and `Assembly-CSharp-firstpass`, only those that are not Editor-only), earlier predefined
   phases, and every auto-referenced precompiled DLL. asmdefs never see predefined assemblies.
 * **Cell membership.** An asmdef is compiled in a cell when its platforms match (editor target: the
   `Editor` platform only; player target: the build platform; see [platforms.md](platforms.md)) and its
@@ -96,7 +99,8 @@ severity overrides to both compiler and analyzer diagnostics.
 when present, `Packages/packages-lock.json` (the resolved version, `source`, `dependencies`, `url`). For
 each package it tries, in order:
 
-1. embedded: a folder `Packages/<dir>/` whose `package.json` has that `name`;
+1. embedded: a folder `Packages/<dir>/` whose `package.json` has that `name`. As in Unity, every such folder
+   is a package even when `manifest.json` does not list it;
 2. local: `file:` paths, relative to `Packages/`;
 3. `Library/PackageCache/<name>@<hash or version>/` (Unity 6 uses a hash suffix; both are accepted, the
    lock-file version decides);
@@ -134,7 +138,10 @@ home folder), `IProcessRunner` (git for `--changed`), `IHttpClient` (fetch), `IC
 
 ## Files over 400 lines
 
-None yet. Any file that grows past 400 lines must be listed here with its reason.
+Any file that grows past 400 lines must be listed here with its reason.
+
+* `verify/Verify.cs`: the independent checker is deliberately one file so that it is easy to read in full
+  and obviously shares no code with `src/`.
 
 ## Verification layers
 
