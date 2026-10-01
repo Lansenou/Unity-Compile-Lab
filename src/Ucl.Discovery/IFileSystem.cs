@@ -15,6 +15,9 @@ public interface IFileSystem
     /// <summary>Reads a file's bytes.</summary>
     byte[] ReadAllBytes(string path);
 
+    /// <summary>Reads at most the first <paramref name="maxBytes"/> bytes of a file (fewer when the file is shorter).</summary>
+    byte[] ReadPrefix(string path, int maxBytes);
+
     /// <summary>Names (not paths) of the files directly in <paramref name="directory"/>, ordinal order.</summary>
     IReadOnlyList<string> ListFiles(string directory);
 

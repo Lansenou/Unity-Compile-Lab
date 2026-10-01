@@ -128,7 +128,11 @@ public sealed class ProjectLoaderTests : IDisposable
             .Write("Project/Assets/Plugins/Lib.dll.meta", "PluginImporter:")
             .Write("Project/Assets/Plugins/NoMeta.DLL")
             .Write("Project/Assets/Rules.ruleset")
-            .Write("Project/Assets/x.globalconfig");
+            .Write("Project/Assets/x.globalconfig")
+            .Write("Project/Assets/Plugins/x86_64/native.dll", "MZ");
+        var managed = File.ReadAllBytes(typeof(ProjectLoader).Assembly.Location);
+        File.WriteAllBytes(tree["Project/Assets/Plugins/Lib.dll"], managed);
+        File.WriteAllBytes(tree["Project/Assets/Plugins/NoMeta.DLL"], managed);
         var inv = Load(tree).Inventory!;
 
         Assert.Equal(["Assets/Upper.CS"], inv.Scripts);
@@ -139,6 +143,7 @@ public sealed class ProjectLoaderTests : IDisposable
         Assert.Null(asmref.MetaText);
         Assert.Equal(["Assets/Plugins/Lib.dll", "Assets/Plugins/NoMeta.DLL"], inv.Plugins.Select(p => p.Path));
         Assert.All(inv.Plugins, p => Assert.Equal(string.Empty, p.Text));
+        Assert.Equal(["Assets/Plugins/x86_64/native.dll"], inv.NativePlugins);
         Assert.Equal("PluginImporter:", inv.Plugins[0].MetaText);
         Assert.Equal(("Assets/csc.rsp", "-nowarn:0168"), (inv.ResponseFiles[0].Path, inv.ResponseFiles[0].Text));
         Assert.Equal(["Assets/Rules.ruleset"], inv.RuleSets);

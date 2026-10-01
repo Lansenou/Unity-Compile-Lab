@@ -23,6 +23,12 @@ public sealed record ProjectSettingsData
     /// <summary><c>apiCompatibilityLevel</c>: 6 is .NET Standard 2.1 (default), 3 is .NET Framework.</summary>
     public int ApiCompatibilityLevel { get; init; } = 6;
 
+    /// <summary>
+    /// <c>editorAssembliesCompatibilityLevel</c>: 1 Default (the same as 2), 2 .NET Framework (<c>NET_Unity_4_8</c>),
+    /// 3 .NET Standard. Applies to Editor-only assemblies (docs/defines.md, "API compatibility level").
+    /// </summary>
+    public int EditorAssembliesCompatibilityLevel { get; init; } = 1;
+
     /// <summary><c>activeInputHandler</c>: 0 legacy, 1 Input System, 2 both.</summary>
     public int ActiveInputHandler { get; init; }
 
@@ -35,4 +41,13 @@ public sealed record ProjectSettingsData
     /// <summary>True when the API compatibility level for <paramref name="group"/> is .NET Framework.</summary>
     public bool IsNetFramework(string group) =>
         (ApiCompatibilityPerGroup.TryGetValue(group, out var level) ? level : ApiCompatibilityLevel) == 3;
+
+    /// <summary>True when Editor-only assemblies compile against .NET Framework (every level except 3, .NET Standard).</summary>
+    public bool IsEditorNetFramework => EditorAssembliesCompatibilityLevel != 3;
+
+    /// <summary>
+    /// The API compatibility of one assembly: Editor-only assemblies follow <see cref="EditorAssembliesCompatibilityLevel"/>,
+    /// every other assembly the level of the cell's build target group.
+    /// </summary>
+    public bool IsNetFrameworkFor(string group, bool editorOnly) => editorOnly ? IsEditorNetFramework : IsNetFramework(group);
 }

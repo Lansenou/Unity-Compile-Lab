@@ -9,8 +9,9 @@
 #   skip      ...  with the reason (status not ok, no matching manifest cell, exit-3 cell, ...)
 # What is compared:
 #   * diagnostics: id, severity, file, line, column. Manifest UCLxxxx ids are ucl's own and are not
-#     compared, except a UCL1xxx reported on an .asmdef/.asmref file, which must match Unity's asmdef
-#     message there (id UNITY-ASMDEF, severity not compared).
+#     compared, except a UCL1xxx warning or error reported on an .asmdef/.asmref file, which must match
+#     Unity's asmdef message there (id UNITY-ASMDEF, severity not compared). Info-level UCL diagnostics
+#     (such as UCL1004) say that Unity is silent there and are never compared.
 #   * assemblies (when the oracle knows them): every manifest assembly exists, no "excluded" one does;
 #     with defines from Unity's Bee response files: definesInclude present, definesExclude absent,
 #     "defines" equal. Defines of an editor cell are compared only when it was recorded on the cell's
@@ -50,7 +51,7 @@ verdicts=$(jq -c --slurpfile m "$manifest" '
   def asmkey: "UNITY-ASMDEF \(.file)";
   def comparable_manifest:
     [ .[] | if (.id | startswith("UCL")) then
-              (if (.id | test("^UCL1")) and ((.file // "") | test("\\.(asmdef|asmref)$")) then asmkey else empty end)
+              (if (.id | test("^UCL1")) and .severity != "info" and ((.file // "") | test("\\.(asmdef|asmref)$")) then asmkey else empty end)
             else key end ];
   def comparable_oracle: [ .[] | if .id == "UNITY-ASMDEF" then asmkey else key end ];
   . as $r

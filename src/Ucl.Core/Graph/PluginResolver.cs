@@ -46,11 +46,16 @@ internal static class PluginResolver
             {
                 foreach (var file in data.PrecompiledReferences)
                 {
+                    // Unity looks the name up among the precompiled assemblies it knows and skips it silently when absent
+                    // (docs/architecture.md, "Precompiled DLLs"), so this is information, never an error.
                     var exists = all.Any(p => ProjectPaths.FileName(p.Path).Equals(file, StringComparison.OrdinalIgnoreCase));
                     if (!exists)
                     {
-                        diagnostics.Add(new Diagnostic(ProblemIds.MissingPrecompiledReference, Severity.Error, DiagnosticOrigin.Ucl, draft.Name, draft.Entry!.Path, 0, 0,
-                            $"Assembly '{draft.Name}' lists precompiled reference '{file}', which is not in the project"));
+                        var native = inventory.NativePlugins.Any(p => ProjectPaths.FileName(p).Equals(file, StringComparison.OrdinalIgnoreCase));
+                        diagnostics.Add(new Diagnostic(ProblemIds.MissingPrecompiledReference, Severity.Info, DiagnosticOrigin.Ucl, draft.Name, draft.Entry!.Path, 0, 0,
+                            native
+                                ? $"Assembly '{draft.Name}' lists precompiled reference '{file}', which is a native DLL; Unity does not reference it"
+                                : $"Assembly '{draft.Name}' lists precompiled reference '{file}', which is not in the project; Unity skips it without a message"));
                         continue;
                     }
 

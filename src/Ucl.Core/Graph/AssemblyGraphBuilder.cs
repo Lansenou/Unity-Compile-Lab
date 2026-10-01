@@ -76,7 +76,9 @@ public static class AssemblyGraphBuilder
         {
             var data = entry.Data;
             var rsp = rspByFolder.TryGetValue(entry.Folder, out var local) ? local : rspByFolder.GetValueOrDefault(GlobalRspFolder);
-            var defines = baseDefines.Copy();
+            var editorOnly = data.IncludePlatforms.Count == 1 && data.IncludePlatforms[0].Equals(PlatformInfo.EditorAsmdefName, StringComparison.OrdinalIgnoreCase);
+            var netFramework = settings.IsNetFrameworkFor(info.TargetGroup, editorOnly);
+            var defines = DefineTable.ForProfile(baseDefines, netFramework);
             foreach (var d in rsp.Options?.Defines ?? [])
             {
                 defines.Add(d, rsp.Path);
@@ -118,8 +120,7 @@ public static class AssemblyGraphBuilder
                 continue;
             }
 
-            var editorOnly = data.IncludePlatforms.Count == 1 && data.IncludePlatforms[0].Equals(PlatformInfo.EditorAsmdefName, StringComparison.OrdinalIgnoreCase);
-            drafts[data.Name] = new Draft(data.Name, AssemblyKind.Asmdef, entry, defines, rsp, data.AllowUnsafeCode, editorOnly);
+            drafts[data.Name] = new Draft(data.Name, AssemblyKind.Asmdef, entry, defines, rsp, data.AllowUnsafeCode, editorOnly, netFramework);
         }
 
         // Predefined assemblies exist only when they have scripts; player builds never contain the Editor ones.
@@ -132,13 +133,15 @@ public static class AssemblyGraphBuilder
                 continue;
             }
 
-            var defines = baseDefines.Copy();
+            var editorOnly = SpecialFolders.IsEditorPredefined(name);
+            var netFramework = settings.IsNetFrameworkFor(info.TargetGroup, editorOnly);
+            var defines = DefineTable.ForProfile(baseDefines, netFramework);
             foreach (var d in globalRsp.Options?.Defines ?? [])
             {
                 defines.Add(d, globalRsp.Path);
             }
 
-            drafts[name] = new Draft(name, AssemblyKind.Predefined, null, defines, globalRsp, settings.AllowUnsafeCode, SpecialFolders.IsEditorPredefined(name));
+            drafts[name] = new Draft(name, AssemblyKind.Predefined, null, defines, globalRsp, settings.AllowUnsafeCode, editorOnly, netFramework);
         }
 
         ReferenceResolver.Resolve(index, drafts, diagnostics);
@@ -239,6 +242,7 @@ public static class AssemblyGraphBuilder
             RuleSet = ruleSet,
             ResponseFile = draft.Rsp.Path,
             IsEditorOnly = draft.IsEditorOnly,
+            NetFramework = draft.NetFramework,
         };
     }
 }

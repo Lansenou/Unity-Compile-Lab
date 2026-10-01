@@ -20,7 +20,7 @@ internal static class CsprojWriter
     public static byte[] Project(AssemblyPlan plan, AssemblyGraph graph, ProjectContext project, IReadOnlyList<string> editorReferences)
     {
         var props = new XElement("PropertyGroup",
-            new XElement("TargetFramework", graph.NetFramework ? "net48" : "netstandard2.1"),
+            new XElement("TargetFramework", plan.NetFramework ? "net48" : "netstandard2.1"),
             new XElement("AssemblyName", plan.Name),
             new XElement("EnableDefaultItems", "false"),
             new XElement("EnableDefaultCompileItems", "false"),

@@ -18,8 +18,11 @@ public sealed record ProjectInventory
     /// <summary>asmref files with their meta.</summary>
     public IReadOnlyList<TextFile> Asmrefs { get; init; } = [];
 
-    /// <summary>DLLs (text empty) with their meta.</summary>
+    /// <summary>Managed DLLs (text empty) with their meta.</summary>
     public IReadOnlyList<TextFile> Plugins { get; init; } = [];
+
+    /// <summary>Unmanaged (native) DLLs: plugins Unity loads at run time and never passes to the compiler.</summary>
+    public IReadOnlyList<string> NativePlugins { get; init; } = [];
 
     /// <summary><c>csc.rsp</c> files.</summary>
     public IReadOnlyList<TextFile> ResponseFiles { get; init; } = [];

@@ -18,7 +18,7 @@ public static class StubBuilder
     public static IReadOnlyList<string> EditorVersions { get; } = ["6000.0.30f1", "6000.3.2f1"];
 
     /// <summary>Bump when the layout or compile settings change, so existing stamps are invalidated.</summary>
-    private const string BuilderVersion = "ucl-stubs/1";
+    private const string BuilderVersion = "ucl-stubs/2";
 
     private const string CoreModule = "UnityEngine.CoreModule";
 
@@ -77,6 +77,7 @@ public static class StubBuilder
         }
 
         var netstandard = MetadataReference.CreateFromFile(netstandardPath);
+        var profile = ProfileStubs.Build(Path.Combine(stubs, "profiles", "unity-4.8-api", "mscorlib"), netstandardPath, ParseOptions);
 
         // Editor modules: CoreModule first, every other module references it.
         var editorDir = Path.Combine(stubs, "editor");
@@ -103,7 +104,18 @@ public static class StubBuilder
             var reference = Path.Combine(data, "NetStandard", "ref", "2.1.0");
             Directory.CreateDirectory(reference);
             File.Copy(netstandardPath, Path.Combine(reference, "netstandard.dll"), overwrite: true);
-            Directory.CreateDirectory(Path.Combine(data, "NetStandard", "compat", "2.1.0", "shims", "netfx"));
+            var netfxShims = Path.Combine(data, "NetStandard", "compat", "2.1.0", "shims", "netfx");
+            Directory.CreateDirectory(netfxShims);
+            File.WriteAllBytes(Path.Combine(netfxShims, "mscorlib.dll"), profile.NetfxMscorlibShim);
+            var shims = Path.Combine(data, "NetStandard", "compat", "2.1.0", "shims", "netstandard");
+            Directory.CreateDirectory(shims);
+            File.WriteAllBytes(Path.Combine(shims, "System.Runtime.dll"), profile.NetStandardSystemRuntimeShim);
+
+            var netfx = Path.Combine(data, "UnityReferenceAssemblies", "unity-4.8-api");
+            Directory.CreateDirectory(Path.Combine(netfx, "Facades"));
+            File.WriteAllBytes(Path.Combine(netfx, "mscorlib.dll"), profile.Mscorlib);
+            File.WriteAllBytes(Path.Combine(netfx, "Facades", "netstandard.dll"), profile.NetStandardFacade);
+            File.WriteAllBytes(Path.Combine(netfx, "Facades", "System.Runtime.dll"), profile.SystemRuntimeFacade);
         }
 
         var dlls = Path.Combine(outDir, "dlls");
@@ -111,9 +123,21 @@ public static class StubBuilder
         foreach (var dir in SubDirectories(Path.Combine(stubs, "dlls")))
         {
             var name = Path.GetFileName(dir);
+            var ini = StubIni.Read(dir);
             var usesEngine = SourceFiles(dir).Any(f => File.ReadAllText(f).Contains("UnityEngine", StringComparison.Ordinal));
-            MetadataReference[] references = usesEngine ? [netstandard, coreReference] : [netstandard];
-            File.WriteAllBytes(Path.Combine(dlls, name + ".dll"), Compile(name, dir, references));
+            MetadataReference baseReference = ini.Profile switch
+            {
+                "netstandard2.0" => MetadataReference.CreateFromImage(profile.NetStandard20Contract),
+                "System.Runtime" => MetadataReference.CreateFromImage(profile.SystemRuntimeContract),
+                _ => netstandard,
+            };
+            MetadataReference[] references = usesEngine ? [baseReference, coreReference] : [baseReference];
+            File.WriteAllBytes(Path.Combine(dlls, name + ".dll"), Compile(name, dir, references, ini.Version));
+        }
+
+        foreach (var dir in SubDirectories(Path.Combine(stubs, "native")))
+        {
+            File.WriteAllBytes(Path.Combine(dlls, Path.GetFileName(dir) + ".dll"), NativeImage.Build());
         }
 
         foreach (var dir in SubDirectories(Path.Combine(stubs, "analyzers")))
@@ -155,12 +179,12 @@ public static class StubBuilder
         throw new InvalidOperationException($"stub {name} does not compile:{Environment.NewLine}{errors}");
     }
 
-    private static byte[] Compile(string name, string dir, IEnumerable<MetadataReference> references) =>
-        TryCompile(name, dir, references, out var image, out var errors)
+    private static byte[] Compile(string name, string dir, IEnumerable<MetadataReference> references, string? version = null) =>
+        TryCompile(name, dir, references, out var image, out var errors, version)
             ? image!
             : throw new InvalidOperationException($"stub {name} does not compile:{Environment.NewLine}{errors}");
 
-    private static bool TryCompile(string name, string dir, IEnumerable<MetadataReference> references, out byte[]? image, out string errors)
+    private static bool TryCompile(string name, string dir, IEnumerable<MetadataReference> references, out byte[]? image, out string errors, string? version = null)
     {
         var trees = SourceFiles(dir)
             .Select(f => CSharpSyntaxTree.ParseText(
@@ -172,6 +196,11 @@ public static class StubBuilder
         if (trees.Count == 0)
         {
             throw new InvalidOperationException($"stub {name} has no sources in {dir}");
+        }
+
+        if (version is not null)
+        {
+            trees.Add(CSharpSyntaxTree.ParseText($"[assembly: System.Reflection.AssemblyVersion(\"{version}\")]", ParseOptions, path: $"{name}/AssemblyVersion.cs", encoding: Encoding.UTF8));
         }
 
         var options = new CSharpCompilationOptions(

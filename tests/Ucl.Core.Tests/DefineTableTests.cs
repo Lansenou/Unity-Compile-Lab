@@ -253,6 +253,47 @@ public class DefineTableTests
     }
 
     [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(4)]
+    [InlineData(5)]
+    [InlineData(6)]
+    public void A03_only_level_3_is_NET_Framework(int level)
+    {
+        var settings = new ProjectSettingsData { ApiCompatibilityLevel = level };
+        Assert.False(settings.IsNetFramework("Standalone"));
+        Assert.True(new ProjectSettingsData { ApiCompatibilityLevel = 3 }.IsNetFramework("Standalone"));
+    }
+
+    [Theory]
+    [InlineData(1, true)]
+    [InlineData(2, true)]
+    [InlineData(3, false)]
+    public void A02_A04_D33_D34_editor_only_assemblies_follow_editorAssembliesCompatibilityLevel(int level, bool netFramework)
+    {
+        var settings = new ProjectSettingsData { EditorAssembliesCompatibilityLevel = level };
+        Assert.Equal(netFramework, settings.IsNetFrameworkFor("Standalone", editorOnly: true));
+        Assert.False(settings.IsNetFrameworkFor("Standalone", editorOnly: false));
+        var d = DefineTable.ForProfile(Compute(Cells.Editor(), settings), settings.IsNetFrameworkFor("Standalone", editorOnly: true));
+        Assert.Equal(netFramework, d.Contains("NET_4_6"));
+        Assert.Equal(netFramework, d.Contains("NET_UNITY_4_8"));
+        Assert.Equal(!netFramework, d.Contains("NETSTANDARD2_1"));
+        Assert.Equal(netFramework ? "D34" : "D33", d.Reasons[netFramework ? "NET_UNITY_4_8" : "NET_STANDARD"]);
+    }
+
+    [Fact]
+    public void D33_D34_profile_switch_keeps_other_rows_and_project_symbols()
+    {
+        var settings = ProjectSettingsParser.Parse("PlayerSettings:\n  scriptingDefineSymbols:\n    Standalone: NET_STANDARD;MY_GAME\n");
+        var cell = Compute(Cells.Editor(), settings);
+        var netfx = DefineTable.ForProfile(cell, netFramework: true);
+        Assert.True(netfx.Contains("UNITY_EDITOR"));
+        Assert.True(netfx.Contains("MY_GAME"));
+        Assert.True(netfx.Contains("NET_4_6"));
+        Assert.Equal(cell.Symbols, DefineTable.ForProfile(netfx, netFramework: false).Symbols);
+    }
+
+    [Theory]
     [InlineData(0, true, false)]
     [InlineData(1, false, true)]
     [InlineData(2, true, true)]

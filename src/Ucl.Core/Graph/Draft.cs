@@ -11,7 +11,8 @@ namespace Ucl.Core.Graph;
 /// <param name="Rsp">Response file applied (path null when none).</param>
 /// <param name="AllowUnsafe">Unsafe code allowed before response-file options.</param>
 /// <param name="IsEditorOnly">Only exists in the Editor.</param>
-internal sealed record Draft(string Name, AssemblyKind Kind, AsmdefEntry? Entry, DefineSet Defines, (string? Path, RspOptions? Options) Rsp, bool AllowUnsafe, bool IsEditorOnly)
+/// <param name="NetFramework">Compiles against the .NET Framework profile rather than .NET Standard 2.1.</param>
+internal sealed record Draft(string Name, AssemblyKind Kind, AsmdefEntry? Entry, DefineSet Defines, (string? Path, RspOptions? Options) Rsp, bool AllowUnsafe, bool IsEditorOnly, bool NetFramework)
 {
     /// <summary>Referenced assembly names compiled in the cell.</summary>
     public List<string> References { get; } = [];

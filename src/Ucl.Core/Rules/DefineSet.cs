@@ -34,6 +34,15 @@ public sealed class DefineSet
         }
     }
 
+    /// <summary>Removes every symbol whose reason is <paramref name="reason"/>.</summary>
+    public void RemoveWithReason(string reason)
+    {
+        foreach (var symbol in _reasons.Where(r => r.Value == reason).Select(r => r.Key).ToList())
+        {
+            _reasons.Remove(symbol);
+        }
+    }
+
     /// <summary>Returns a copy that can be extended without changing this set.</summary>
     public DefineSet Copy() => new(_reasons);
 

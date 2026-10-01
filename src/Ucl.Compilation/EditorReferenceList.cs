@@ -26,6 +26,6 @@ public sealed class EditorReferenceList
     {
         ArgumentNullException.ThrowIfNull(graph);
         ArgumentNullException.ThrowIfNull(plan);
-        return catalog.EditorReferences(graph, plan.Engine).Select(r => r.Path).ToList();
+        return catalog.EditorReferences(graph, plan).Select(r => r.Path).ToList();
     }
 }

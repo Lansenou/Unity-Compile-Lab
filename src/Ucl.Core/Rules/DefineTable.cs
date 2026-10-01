@@ -108,18 +108,7 @@ public static class DefineTable
 
         d.Add("CSHARP_7_3_OR_NEWER", "D30");
         d.Add(BackendOf(cell, settings) == ScriptingBackend.IL2CPP ? "ENABLE_IL2CPP" : "ENABLE_MONO", BackendOf(cell, settings) == ScriptingBackend.IL2CPP ? "D32" : "D31");
-        if (settings.IsNetFramework(info.TargetGroup))
-        {
-            d.Add("NET_4_6", "D34");
-            d.Add("NET_UNITY_4_8", "D34");
-        }
-        else
-        {
-            foreach (var s in new[] { "NET_STANDARD_2_0", "NET_STANDARD_2_1", "NET_STANDARD", "NETSTANDARD2_1", "NETSTANDARD" })
-            {
-                d.Add(s, "D33");
-            }
-        }
+        AddProfile(d, settings.IsNetFramework(info.TargetGroup));
 
         if (settings.ActiveInputHandler is 0 or 2)
         {
@@ -161,6 +150,35 @@ public static class DefineTable
         }
 
         return d;
+    }
+
+    /// <summary>
+    /// The defines of one assembly: <paramref name="cellDefines"/> (computed for the build target group's API
+    /// compatibility level) with the profile rows D33/D34 replaced when the assembly compiles against the other profile.
+    /// </summary>
+    public static DefineSet ForProfile(DefineSet cellDefines, bool netFramework)
+    {
+        var d = cellDefines.Copy();
+        d.RemoveWithReason("D33");
+        d.RemoveWithReason("D34");
+        AddProfile(d, netFramework);
+        return d;
+    }
+
+    private static void AddProfile(DefineSet d, bool netFramework)
+    {
+        if (netFramework)
+        {
+            d.Add("NET_4_6", "D34");
+            d.Add("NET_UNITY_4_8", "D34");
+        }
+        else
+        {
+            foreach (var s in new[] { "NET_STANDARD_2_0", "NET_STANDARD_2_1", "NET_STANDARD", "NETSTANDARD2_1", "NETSTANDARD" })
+            {
+                d.Add(s, "D33");
+            }
+        }
     }
 
     private static void Standalone(DefineSet d, string os, string row)

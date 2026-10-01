@@ -204,4 +204,44 @@ public class GraphPlatformTests
         Assert.Null(g.Find("Assembly-CSharp"));
         Assert.False(new InventoryBuilder().Player().NetFramework);
     }
+
+    [Fact]
+    public void A01_A02_editor_only_assemblies_use_the_editor_assemblies_level_and_others_the_group_level()
+    {
+        var b = new InventoryBuilder()
+            .Scripts("Assets/Game.cs", "Assets/Editor/Menu.cs", "Assets/Tools/Tool.cs", "Assets/Shared/Shared.cs")
+            .Asmdef("Assets/Tools/Tools.asmdef", "Tools", "\"includePlatforms\": [\"Editor\"]")
+            .Asmdef("Assets/Shared/Shared.asmdef", "Shared");
+
+        // Defaults: the group is .NET Standard, Editor-only assemblies .NET Framework (Default = NET_Unity_4_8).
+        var g = b.Editor();
+        Assert.False(g.Find("Assembly-CSharp")!.NetFramework);
+        Assert.False(g.Find("Shared")!.NetFramework);
+        Assert.True(g.Find("Assembly-CSharp-Editor")!.NetFramework);
+        Assert.True(g.Find("Tools")!.NetFramework);
+        Assert.True(g.Find("Tools")!.Defines.Contains("NET_UNITY_4_8"));
+        Assert.True(g.Find("Shared")!.Defines.Contains("NETSTANDARD"));
+
+        // The real project: Standalone 3, editor 2: everything .NET Framework, in editor and player cells.
+        b.Settings("PlayerSettings:\n  apiCompatibilityLevelPerPlatform:\n    Standalone: 3\n  editorAssembliesCompatibilityLevel: 2\n  apiCompatibilityLevel: 6\n");
+        Assert.All(b.Editor().Assemblies, a => Assert.True(a.NetFramework, a.Name));
+        Assert.All(b.Player().Assemblies, a => Assert.True(a.NetFramework, a.Name));
+        Assert.All(b.Player(BuildPlatform.Android).Assemblies, a => Assert.False(a.NetFramework, a.Name));
+
+        // Editor level 3 (.NET Standard) moves Editor-only assemblies to .NET Standard.
+        b.Settings("PlayerSettings:\n  editorAssembliesCompatibilityLevel: 3\n");
+        Assert.All(b.Editor().Assemblies, a => Assert.False(a.NetFramework, a.Name));
+    }
+
+    [Fact]
+    public void Define_constraints_see_the_assembly_profile()
+    {
+        var g = new InventoryBuilder()
+            .Scripts("Assets/Tools/Tool.cs", "Assets/Shared/Shared.cs")
+            .Asmdef("Assets/Tools/Tools.asmdef", "Tools", "\"includePlatforms\": [\"Editor\"], \"defineConstraints\": [\"NET_4_6\"]")
+            .Asmdef("Assets/Shared/Shared.asmdef", "Shared", "\"defineConstraints\": [\"NET_4_6\"]")
+            .Editor();
+        Assert.NotNull(g.Find("Tools"));
+        Assert.Null(g.Find("Shared"));
+    }
 }

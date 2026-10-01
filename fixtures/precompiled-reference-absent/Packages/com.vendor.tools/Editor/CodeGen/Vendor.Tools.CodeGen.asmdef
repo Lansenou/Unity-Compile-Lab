@@ -1,0 +1,19 @@
+{
+    "name": "Vendor.Tools.CodeGen",
+    "rootNamespace": "Vendor.Tools.CodeGen",
+    "references": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Unity.IL2CPP.dll",
+        "Vendor.Math.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -39,7 +39,7 @@ Every cell starts as `oracle: pending`; see [oracle.md](oracle.md).
 | 17 | `version-defines-miss` | version outside range, symbol absent | R2, R5 |
 | 18 | `version-defines-unity` | `Unity` resource against the editor version | R5 |
 | 19 | `override-references-dll` | `overrideReferences` with the listed DLL | R2 |
-| 20 | `override-references-missing` | listed DLL absent: UCL1004 | R2 |
+| 20 | `override-references-missing` | listed DLL absent: UCL1004 info, skipped as Unity does; the code needing it fails | R2 |
 | 21 | `no-engine-references` | `noEngineReferences`: MonoBehaviour is CS0246 | R2 |
 | 22 | `unsafe-allowed` | `allowUnsafeCode: true` compiles unsafe code | R6 |
 | 23 | `unsafe-refused` | unsafe code without the flag is CS0227 | R6 |
@@ -76,3 +76,8 @@ Every cell starts as `oracle: pending`; see [oracle.md](oracle.md).
 | 54 | `duplicate-assembly-name` | two asmdefs with one name: UCL3005 | R2, R10 |
 | 55 | `test-assembly` | `UNITY_INCLUDE_TESTS` constraint with the test framework package | R2, R5 |
 | 56 | `editor-asmdef-from-runtime` | runtime asmdef references an Editor-only asmdef: dropped in player | R2, R7 |
+| 57 | `api-compat-netfx` | G1: per-group API level 3 and editor level 2 with wrapped ProjectSettings lines; System.Memory/System.Buffers NuGet DLLs | R4, R5 |
+| 58 | `plugin-native` | G2: a native x86-64 DLL is never a reference (no CS0009) | R2 |
+| 59 | `precompiled-reference-absent` | G3: a package code-gen asmdef lists a DLL that does not exist: info, not an error | R2, R3 |
+| 60 | `facade-system-runtime` | G4: a DLL built against System.Runtime resolves through the 4.8 facades and the NetStandard shims | R4 |
+| 61 | `realistic-netfx-nuget` | G1-G4 together, shaped like the maintainer's real project; clean in every Standalone cell | R2-R5 |

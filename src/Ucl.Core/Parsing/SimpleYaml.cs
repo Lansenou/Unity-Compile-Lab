@@ -12,6 +12,11 @@ public static class SimpleYaml
     public static YamlNode Parse(string text)
     {
         var lines = new List<(int Indent, string Content)>();
+
+        // Column of the last line's key (or item) when that line carried a scalar value, else -1. Unity wraps long
+        // values (flow mappings such as "{fileID: 0, guid: ...,\n    type: 3}", long strings) onto deeper-indented
+        // continuation lines; a deeper line after a line that already has a value can only be such a continuation.
+        var valueColumn = -1;
         foreach (var raw in text.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n'))
         {
             var trimmed = raw.TrimEnd();
@@ -21,7 +26,15 @@ public static class SimpleYaml
                 continue;
             }
 
-            lines.Add((trimmed.Length - content.Length, content));
+            var indent = trimmed.Length - content.Length;
+            if (valueColumn >= 0 && indent > valueColumn && lines.Count > 0)
+            {
+                lines[^1] = (lines[^1].Indent, lines[^1].Content + " " + content);
+                continue;
+            }
+
+            lines.Add((indent, content));
+            valueColumn = ValueColumn(indent, content);
         }
 
         var entries = new List<KeyValuePair<string, YamlNode>>();
@@ -50,6 +63,24 @@ public static class SimpleYaml
     }
 
     private static bool IsItem(string content) => content == "-" || content.StartsWith("- ", StringComparison.Ordinal);
+
+    // The column a continuation line must be deeper than, or -1 when the line opens a block (no scalar value).
+    private static int ValueColumn(int indent, string content)
+    {
+        while (IsItem(content))
+        {
+            var rest = content.Length > 1 ? content[2..].TrimStart() : string.Empty;
+            indent += content.Length - rest.Length;
+            content = rest;
+            if (content.Length == 0)
+            {
+                return -1;
+            }
+        }
+
+        var split = SplitKey(content);
+        return split is null || split.Value.Value.Length > 0 ? indent : -1;
+    }
 
     private static YamlNode ParseSequence(List<(int Indent, string Content)> lines, ref int i, int indent)
     {

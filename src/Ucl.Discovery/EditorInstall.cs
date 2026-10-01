@@ -20,9 +20,12 @@ public sealed record EditorInstall
     /// <summary><c>UnityEditor*.dll</c> in <c>Managed/UnityEngine/</c>; sorted.</summary>
     public IReadOnlyList<string> EditorAssemblies { get; init; } = [];
 
-    /// <summary>.NET Standard 2.1 reference assemblies (<c>NetStandard/ref/2.1.0</c> and <c>NetStandard/compat/2.1.0/shims/netfx</c>).</summary>
+    /// <summary>.NET Standard 2.1 reference assemblies (<see cref="Ucl.Core.Rules.ReferenceProfiles"/>: <c>netstandard.dll</c>, the shims and extensions).</summary>
     public IReadOnlyList<string> NetStandardReferences { get; init; } = [];
 
-    /// <summary>.NET Framework 4.8 reference assemblies (<c>UnityReferenceAssemblies/unity-4.8-api</c> and its <c>Facades</c>).</summary>
+    /// <summary><c>NetStandard/EditorExtensions</c> DLLs, referenced by Editor-only assemblies compiled against .NET Standard.</summary>
+    public IReadOnlyList<string> NetStandardEditorExtensions { get; init; } = [];
+
+    /// <summary>.NET Framework 4.8 reference assemblies (<c>unity-4.8-api</c>: the listed core libraries and every facade).</summary>
     public IReadOnlyList<string> NetFrameworkReferences { get; init; } = [];
 }

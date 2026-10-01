@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!129 &1
+PlayerSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 28
+  productGUID: 7a8b9c0d1e2f30415263748596a7b8c9
+  AndroidProfiler: 0
+  companyName: DefaultCompany
+  productName: realistic-netfx-nuget
+  defaultCursor: {fileID: 0}
+  m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
+  m_SplashScreenLogos: []
+  iOSLaunchScreenType: 0
+  iOSLaunchScreenPortrait: {fileID: 2800000, guid: 0a1b2c3d4e5f60718293a4b5c6d7e8f9,
+    type: 3}
+  iOSLaunchScreenLandscape: {fileID: 2800000, guid: 0a1b2c3d4e5f60718293a4b5c6d7e8f9,
+    type: 3}
+  iOSLaunchScreenBackgroundColor:
+    serializedVersion: 2
+    rgba: 0
+  metroApplicationDescription: A deliberately long description that the Editor wraps onto a
+    continuation line, as it does for any long scalar value
+  m_BuildTargetPlatformIcons:
+  - m_BuildTarget: Android
+    m_Icons:
+    - m_Textures: []
+      m_Width: 432
+      m_Height: 432
+      m_Kind: 2
+      m_SubKind: 
+  bundleVersion: 0.1.0
+  scriptingDefineSymbols: {}
+  additionalCompilerArguments: {}
+  scriptingBackend: {}
+  il2cppCompilerConfiguration: {}
+  managedStrippingLevel: {}
+  incrementalIl2cppBuild: {}
+  suppressCommonWarnings: 1
+  allowUnsafeCode: 0
+  useDeterministicCompilation: 1
+  additionalIl2CppArgs: 
+  scriptingRuntimeVersion: 1
+  gcIncremental: 1
+  gcWBarrierValidation: 0
+  apiCompatibilityLevelPerPlatform:
+    Standalone: 3
+  editorAssembliesCompatibilityLevel: 2
+  m_RenderingPath: 1
+  m_MobileRenderingPath: 1
+  metroPackageName: realistic-netfx-nuget
+  vrEditorSettings: {}
+  cloudServicesEnabled: {}
+  apiCompatibilityLevel: 6
+  activeInputHandler: 0
+  windowsGamepadBackendHint: 0
+  cloudProjectId: 
+  framebufferDepthMemorylessMode: 0
+  qualitySettingsNames: []
+  projectName: 
+  organizationId: 
+  cloudEnabled: 0
+  legacyClampBlendShapeWeights: 0
+  hmiLoadingImage: {fileID: 0}
+  platformRequiresReadableAssets: 0
+  virtualTexturingSupportEnabled: 0
+  insecureHttpOption: 0

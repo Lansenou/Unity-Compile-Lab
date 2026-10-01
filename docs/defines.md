@@ -21,6 +21,15 @@ Sources (Unity 6 manual, retrieved 2026-10-01):
 * [CSC] https://docs.unity3d.com/6000.1/Documentation/Manual/csharp-compiler.html
 * [NET] https://docs.unity3d.com/6000.0/Documentation/Manual/dotnet-profile-support.html
 * [SCW] https://docs.unity3d.com/6000.2/Documentation/ScriptReference/PlayerSettings-suppressCommonWarnings.html
+* [ACL] https://docs.unity3d.com/6000.3/Documentation/ScriptReference/ApiCompatibilityLevel.html
+* [EACL] https://docs.unity3d.com/6000.3/Documentation/ScriptReference/EditorAssembliesCompatibilityLevel.html
+* [UCR] Unity C# reference source, https://github.com/Unity-Technologies/UnityCsReference (master, read
+  2026-10-01; Unity Reference-Only License: read for facts, nothing copied): `Editor/Mono/PlayerSettings.bindings.cs`
+  (enum values), `Editor/Mono/Scripting/ScriptCompilation/EditorBuildRules.cs` and `EditorCompilation.cs` (which
+  assemblies use which level), `MonoLibraryHelpers.cs` and `Editor/Mono/Utils/NetStandardFinder.cs` (reference
+  folders)
+* [REAL] the compiler command lines (`Library/Bee/artifacts/*.rsp`) of a real 6000.3.19f1 project on Windows,
+  reported by the maintainer on 2026-10-02
 
 ## Inputs
 
@@ -66,8 +75,8 @@ build target, which is the cell's `--platform`.
 | D30 | `CSHARP_7_3_OR_NEWER` | always | doc | [SYM] |
 | D31 | `ENABLE_MONO` | backend mono | doc | [SYM] |
 | D32 | `ENABLE_IL2CPP` | backend il2cpp | doc | [SYM] |
-| D33 | `NET_STANDARD_2_0`, `NET_STANDARD_2_1`, `NET_STANDARD`, `NETSTANDARD2_1`, `NETSTANDARD` | API compatibility .NET Standard 2.1 (value 6, the default) | doc | [SYM], [NET] |
-| D34 | `NET_4_6`, `NET_UNITY_4_8` | API compatibility .NET Framework (value 3) | doc (`NET_4_6`), observed (`NET_UNITY_4_8`) | [SYM] |
+| D33 | `NET_STANDARD_2_0`, `NET_STANDARD_2_1`, `NET_STANDARD`, `NETSTANDARD2_1`, `NETSTANDARD` | the assembly's API compatibility is .NET Standard 2.1 (see "API compatibility level") | doc | [SYM], [NET] |
+| D34 | `NET_4_6`, `NET_UNITY_4_8` | the assembly's API compatibility is .NET Framework (see "API compatibility level") | doc (`NET_4_6`), observed (`NET_UNITY_4_8`, [REAL]) | [SYM], [REAL] |
 | D35 | `ENABLE_LEGACY_INPUT_MANAGER` | `activeInputHandler` 0 or 2 (absent means 0) | doc | [SYM] |
 | D36 | `ENABLE_INPUT_SYSTEM` | `activeInputHandler` 1 or 2 | doc | [SYM] |
 | D37 | `DEVELOPMENT_BUILD` | target player with `--development` | doc | [SYM] |
@@ -77,6 +86,26 @@ build target, which is the cell's `--platform`.
 Scripting backend: `scriptingBackend` in `ProjectSettings.asset` per build target group (0 Mono, 1 IL2CPP),
 overridden by `--backend`. Defaults when absent: Standalone Mono; Android IL2CPP; iOS and WebGL IL2CPP
 (the only backend those platforms support). Editor cells use the platform's backend (observed).
+
+## API compatibility level
+
+The level is per assembly, not per cell. It picks both the D33/D34 symbols and the .NET reference assemblies.
+
+| Id | Rule | Status | Source |
+|---|---|---|---|
+| A01 | `apiCompatibilityLevelPerPlatform[<group>]` of the cell's build target group (`apiCompatibilityLevel` when the group has no entry; default 6) is the level of every assembly that is not Editor-only, in editor and player cells alike | doc (enum), [UCR] (which assemblies) | [ACL], [UCR] |
+| A02 | Editor-only assemblies (asmdef `includePlatforms` exactly `["Editor"]`, `Assembly-CSharp-Editor`, `Assembly-CSharp-Editor-firstpass`) use `editorAssembliesCompatibilityLevel` instead (default 1) | doc (enum), [UCR] (which assemblies) | [EACL], [UCR] |
+| A03 | `ApiCompatibilityLevel` values: 3 `NET_Unity_4_8` (alias `NET_4_6`), 6 `NET_Standard` (alias `NET_Standard_2_0`); 1, 2, 4, 5 are obsolete and treated as 6 | doc (names), [UCR] (numbers) | [ACL], [UCR] |
+| A04 | `EditorAssembliesCompatibilityLevel` values: 1 `Default` ("equivalent to `NET_Unity_4_8`"), 2 `NET_Unity_4_8`, 3 `NET_Standard` | doc (names, Default), [UCR] (numbers) | [EACL], [UCR] |
+| A05 | .NET Framework references: from `Editor/Data/UnityReferenceAssemblies/unity-4.8-api/` the 17 libraries `mscorlib`, `System`, `System.Core`, `System.Runtime.Serialization`, `System.Xml`, `System.Xml.Linq`, `System.Numerics`, `System.Numerics.Vectors`, `System.Net.Http`, `System.IO.Compression`, `Microsoft.CSharp`, `System.Data`, `System.Data.DataSetExtensions`, `System.Drawing`, `System.IO.Compression.FileSystem`, `System.ComponentModel.Composition`, `System.Transactions` (when present), plus every DLL in `unity-4.8-api/Facades/` | observed (125 references from that folder for one assembly, [REAL]) | [UCR], [REAL] |
+| A06 | .NET Standard references: `NetStandard/ref/2.1.0/netstandard.dll`, then every DLL in `NetStandard/compat/2.1.0/shims/netstandard/`, `NetStandard/Extensions/2.0.0/` and `NetStandard/compat/2.1.0/shims/netfx/`; Editor-only assemblies also `NetStandard/EditorExtensions/` | [UCR] | [UCR] |
+
+With the defaults (level 6, editor level 1) runtime assemblies compile against .NET Standard 2.1 and Editor-only
+assemblies against .NET Framework, also in editor cells. A project with `Standalone: 3` and editor level 2 (the
+maintainer's project) compiles everything against `unity-4.8-api` in Standalone cells, where `Span<T>` comes only
+from a project's `System.Memory.dll`; fixture `api-compat-netfx` covers both and `realistic-netfx-nuget` the
+combination. The stub editor's `unity-4.8-api` (`fixtures/_stubs/profiles/`) has an `mscorlib.dll` without
+`Span<T>`, `Facades/netstandard.dll` 2.0.0.0 and `Facades/System.Runtime.dll`, matching what [REAL] reports.
 
 ## Project symbols
 

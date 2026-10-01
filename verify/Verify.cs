@@ -24,6 +24,9 @@ var fixturesDir = Path.GetFullPath(rest[0]);
 var manifestPath = Path.Combine(fixturesDir, "manifest.json");
 var manifest = JsonNode.Parse(File.ReadAllText(manifestPath))!;
 var temp = Path.Combine(Path.GetTempPath(), "ucl-verify-" + Guid.NewGuid().ToString("N")[..8]);
+// Planning reads a plugin's PE headers (managed or native), so fixtures get the real stub DLLs (scripts/check.sh builds
+// them into artifacts/stubs before verify runs).
+var stubDlls = Path.Combine(fixturesDir, "..", "artifacts", "stubs", "dlls");
 var diffs = new List<string>();
 var cells = 0;
 try
@@ -33,10 +36,18 @@ try
         var name = (string)fixture!["name"]!;
         var project = Path.Combine(temp, name, "project");
         CopyDir(Path.Combine(fixturesDir, name), project);
-        foreach (var to in (fixture["materialize"]?.AsArray() ?? new JsonArray()).Select(m => Path.Combine(project, (string)m!["to"]!)))
+        foreach (var m in fixture["materialize"]?.AsArray() ?? new JsonArray())
         {
+            var to = Path.Combine(project, (string)m!["to"]!);
+            var from = Path.Combine(stubDlls, (string)m["dll"]! + ".dll");
+            if (!File.Exists(from))
+            {
+                Console.Error.WriteLine($"verify: {from} is missing; build the stubs first (dotnet run --project tests/Ucl.StubBuilder)");
+                return 2;
+            }
+
             Directory.CreateDirectory(Path.GetDirectoryName(to)!);
-            File.WriteAllBytes(to, []); // graph planning only needs the plugin path to exist: an empty placeholder
+            File.Copy(from, to, overwrite: true);
         }
 
         foreach (var cellNode in fixture["cells"]!.AsArray())
@@ -280,9 +291,11 @@ internal static class Planner
         global.Add("CSHARP_7_3_OR_NEWER");
         var backend = cell.Backend ?? ForGroup("scriptingBackend").FirstOrDefault() switch { "0" => "mono", "1" => "il2cpp", _ => plat.Group == "Standalone" ? "mono" : "il2cpp" };
         global.Add(backend == "mono" ? "ENABLE_MONO" : "ENABLE_IL2CPP");
+        // D33/D34: the group's API level for every assembly except Editor-only ones, which use editorAssembliesCompatibilityLevel
+        // (1 Default and 2 are .NET Framework, 3 .NET Standard). The profile symbols are added per assembly below.
         var api = ForGroup("apiCompatibilityLevelPerPlatform").FirstOrDefault() ?? Yaml.Scalar(ps, "apiCompatibilityLevel") ?? "6";
-        if (api == "6") global.UnionWith(["NET_STANDARD_2_0", "NET_STANDARD_2_1", "NET_STANDARD", "NETSTANDARD2_1", "NETSTANDARD"]);
-        if (api == "3") global.UnionWith(["NET_4_6", "NET_UNITY_4_8"]);
+        var editorApi = (Yaml.Scalar(ps, "editorAssembliesCompatibilityLevel") ?? "1") == "3" ? "6" : "3";
+        string[] Profile(bool editorOnly) => (editorOnly ? editorApi : api) == "3" ? ["NET_4_6", "NET_UNITY_4_8"] : ["NET_STANDARD_2_0", "NET_STANDARD_2_1", "NET_STANDARD", "NETSTANDARD2_1", "NETSTANDARD"];
         var input = Yaml.Scalar(ps, "activeInputHandler") ?? "0";
         if (input is "0" or "2") global.Add("ENABLE_LEGACY_INPUT_MANAGER");
         if (input is "1" or "2") global.Add("ENABLE_INPUT_SYSTEM");
@@ -297,9 +310,10 @@ internal static class Planner
         // D52 response files: an asmdef's own csc.rsp replaces Assets/csc.rsp.
         HashSet<string> Rsp(string path) => files.TryGetValue(path, out var p) ? [.. File.ReadAllLines(p).SelectMany(RspDefines)] : [];
         var globalRsp = Rsp("Assets/csc.rsp");
-        HashSet<string> DefinesOf(AsmDef? a)
+        HashSet<string> DefinesOf(AsmDef? a, bool editorPredefined = false)
         {
             var d = new HashSet<string>(global, StringComparer.Ordinal);
+            d.UnionWith(Profile(a is null ? editorPredefined : a.Include is ["Editor"]));
             if (a is null) { d.UnionWith(globalRsp); return d; }
             d.UnionWith(files.ContainsKey(a.Dir + "/csc.rsp") ? Rsp(a.Dir + "/csc.rsp") : globalRsp);
             foreach (var (res, expr, define) in a.VersionDefines) // D53
@@ -346,7 +360,7 @@ internal static class Planner
             var earlier = p switch { EditorFirstpass or Main => new[] { Firstpass }, MainEditor => [Firstpass, EditorFirstpass, Main], _ => [] };
             plan.Assemblies[p] = new Asm
             {
-                Defines = DefinesOf(null),
+                Defines = DefinesOf(null, p.Contains("Editor", StringComparison.Ordinal)),
                 // Runtime phases never see Editor-only asmdefs (includePlatforms exactly ["Editor"]).
                 References = [.. compiled.Values.Where(a => a.AutoReferenced && (p.Contains("Editor", StringComparison.Ordinal) || !(a.Include.Length == 1 && a.Include[0] == "Editor")))
                     .Select(a => a.Name).Concat(earlier.Where(plan.Assemblies.ContainsKey))],
@@ -357,13 +371,15 @@ internal static class Planner
         var plugins = new List<Plugin>();
         foreach (var rel in files.Keys.Where(f => f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) && files.ContainsKey(f + ".meta")))
         {
+            if (!HasCliHeader(files[rel])) continue; // a native plugin is never a reference
             var meta = ReadLines(files[rel + ".meta"]);
             plugins.Add(new Plugin(rel, Yaml.List(meta, "labels").Contains("RoslynAnalyzer"), Yaml.Scalar(meta, "isExplicitlyReferenced") == "1",
                 [.. Yaml.List(meta, "defineConstraints")], PluginPlatforms(meta)));
         }
 
         var metaKey = cell.Editor ? "Editor" : plat.Meta;
-        var usable = plugins.Where(p => !p.Analyzer && p.EnabledFor(metaKey) && Holds(p.Constraints, global)).ToList();
+        var pluginDefines = new HashSet<string>(global.Concat(Profile(false)), StringComparer.Ordinal); // the group's profile
+        var usable = plugins.Where(p => !p.Analyzer && p.EnabledFor(metaKey) && Holds(p.Constraints, pluginDefines)).ToList();
         foreach (var (n, asm) in plan.Assemblies)
         {
             var a = compiled.GetValueOrDefault(n);
@@ -381,6 +397,19 @@ internal static class Planner
                 if (applies) asm.Analyzers.Add(analyzer.Path);
             }
         }
+    }
+
+    /// <summary>PE/COFF: the CLI header is data directory 14 of the optional header; a native DLL leaves it empty.</summary>
+    private static bool HasCliHeader(string path)
+    {
+        var b = File.ReadAllBytes(path);
+        if (b.Length < 0x40 || b[0] != 'M' || b[1] != 'Z') return false;
+        var pe = BitConverter.ToInt32(b, 0x3C);
+        if (pe + 24 + 2 > b.Length || b[pe] != 'P' || b[pe + 1] != 'E') return false;
+        var opt = pe + 24;
+        var dirs = opt + (BitConverter.ToUInt16(b, opt) == 0x20B ? 112 : 96);
+        var cli = dirs + 14 * 8;
+        return cli + 8 <= b.Length && BitConverter.ToInt32(b, cli + 4) > 0;
     }
 
     /// <summary>The nearest ancestor folder (within Assets/ or the package root) that has an owner.</summary>

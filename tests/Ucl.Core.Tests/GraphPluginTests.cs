@@ -1,4 +1,6 @@
+using Ucl.Core.Graph;
 using Ucl.Core.Model;
+using Ucl.Core.Rules;
 
 namespace Ucl.Core.Tests;
 
@@ -126,8 +128,9 @@ public class GraphPluginTests
     }
 
     [Fact]
-    public void Missing_precompiled_reference_is_UCL1004_error()
+    public void Missing_precompiled_reference_is_UCL1004_info_and_skipped()
     {
+        // Unity skips a listed name it cannot find without a message; the assembly still compiles (G3).
         var g = new InventoryBuilder()
             .Plugin("Assets/Plugins/Present.dll")
             .Asmdef("Assets/Mod/Mod.asmdef", "Mod", "\"overrideReferences\": true, \"precompiledReferences\": [\"Present.dll\", \"Absent.dll\"]")
@@ -135,11 +138,28 @@ public class GraphPluginTests
         var d = Assert.Single(g.Diagnostics);
         Assert.Equal(ProblemIds.MissingPrecompiledReference, d.Id);
         Assert.Equal("UCL1004", d.Id);
-        Assert.Equal(Severity.Error, d.Severity);
+        Assert.Equal(Severity.Info, d.Severity);
         Assert.Equal("Mod", d.Assembly);
         Assert.Equal("Assets/Mod/Mod.asmdef", d.File);
         Assert.Contains("'Absent.dll'", d.Message, StringComparison.Ordinal);
+        Assert.Contains("not in the project", d.Message, StringComparison.Ordinal);
         Assert.Equal(["Assets/Plugins/Present.dll"], g.Find("Mod")!.PrecompiledReferences);
+        Assert.Equal(0, ExitCodes.Compute([], g.Diagnostics));
+    }
+
+    [Fact]
+    public void Native_plugins_are_never_references()
+    {
+        var b = new InventoryBuilder()
+            .Scripts("Assets/A.cs", "Assets/Mod/M.cs")
+            .Asmdef("Assets/Mod/Mod.asmdef", "Mod", "\"overrideReferences\": true, \"precompiledReferences\": [\"native.dll\"]");
+        var inventory = b.Build() with { NativePlugins = ["Assets/Plugins/x86_64/native.dll"] };
+        var g = AssemblyGraphBuilder.Build(inventory, Cells.Editor());
+        Assert.Empty(g.Find("Assembly-CSharp")!.PrecompiledReferences);
+        Assert.Empty(g.Find("Mod")!.PrecompiledReferences);
+        var d = Assert.Single(g.Diagnostics);
+        Assert.Equal(Severity.Info, d.Severity);
+        Assert.Contains("native DLL", d.Message, StringComparison.Ordinal);
     }
 
     [Fact]

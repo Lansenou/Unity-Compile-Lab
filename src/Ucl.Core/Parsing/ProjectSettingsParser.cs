@@ -28,6 +28,7 @@ public static class ProjectSettingsParser
                 (IReadOnlyList<string>)(n.Items?.Select(i => i.Scalar ?? string.Empty).Where(s => s.Length > 0).ToList() ?? [])),
             ApiCompatibilityPerGroup = GroupMap(player["apiCompatibilityLevelPerPlatform"], n => Int(n.Scalar, 6)),
             ApiCompatibilityLevel = Int(player.Get("apiCompatibilityLevel"), 6),
+            EditorAssembliesCompatibilityLevel = Int(player.Get("editorAssembliesCompatibilityLevel"), 1),
             ActiveInputHandler = Int(player.Get("activeInputHandler"), 0),
             AllowUnsafeCode = player.Get("allowUnsafeCode") == "1",
             SuppressCommonWarnings = player.Get("suppressCommonWarnings") != "0",

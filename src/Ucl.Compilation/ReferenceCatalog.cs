@@ -32,10 +32,14 @@ internal sealed class ReferenceCatalog
     }
 
     /// <summary>Editor and profile DLLs for an assembly: (display string, absolute path), sorted by display.</summary>
-    public IReadOnlyList<(string Display, string Path)> EditorReferences(AssemblyGraph graph, EngineReferences engine)
+    public IReadOnlyList<(string Display, string Path)> EditorReferences(AssemblyGraph graph, AssemblyPlan plan)
     {
+        var engine = plan.Engine;
         var result = new List<(string, string)>();
-        foreach (var p in graph.NetFramework ? _editor.NetFrameworkReferences : _editor.NetStandardReferences)
+        var profile = plan.NetFramework
+            ? _editor.NetFrameworkReferences
+            : plan.IsEditorOnly ? [.. _editor.NetStandardReferences, .. _editor.NetStandardEditorExtensions] : _editor.NetStandardReferences;
+        foreach (var p in profile)
         {
             result.Add(($"profile:{Relative(p)}", p));
         }

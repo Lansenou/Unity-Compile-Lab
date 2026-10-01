@@ -64,6 +64,34 @@ public sealed class EditorLocatorTests : IDisposable
     }
 
     [Fact]
+    public void A05_A06_profile_reference_sets_follow_Unity_folders()
+    {
+        WindowsLinuxInstall("home/Unity/Hub/Editor/6000.0.30f1");
+        var data = "home/Unity/Hub/Editor/6000.0.30f1/Editor/Data";
+        tree.Write($"{data}/UnityReferenceAssemblies/unity-4.8-api/System.Core.dll")
+            .Write($"{data}/UnityReferenceAssemblies/unity-4.8-api/System.Web.dll")
+            .Write($"{data}/UnityReferenceAssemblies/unity-4.8-api/Facades/netstandard.dll")
+            .Write($"{data}/NetStandard/compat/2.1.0/shims/netstandard/System.Runtime.dll")
+            .Write($"{data}/NetStandard/Extensions/2.0.0/System.Memory.dll")
+            .Write($"{data}/NetStandard/EditorExtensions/Editor.Ext.dll");
+        var install = Locator(Env()).Locate(V30, null).Value!;
+        string P(string relative) => tree[$"{data}/{relative}"];
+
+        // A05: the listed core libraries (System.Web is not one) and every facade.
+        Assert.Equal(
+            [P("UnityReferenceAssemblies/unity-4.8-api/Facades/System.Runtime.dll"), P("UnityReferenceAssemblies/unity-4.8-api/Facades/netstandard.dll"),
+             P("UnityReferenceAssemblies/unity-4.8-api/System.Core.dll"), P("UnityReferenceAssemblies/unity-4.8-api/mscorlib.dll")],
+            install.NetFrameworkReferences);
+
+        // A06: netstandard.dll, both shim folders and the extensions; EditorExtensions only for Editor-only assemblies.
+        Assert.Equal(
+            [P("NetStandard/Extensions/2.0.0/System.Memory.dll"), P("NetStandard/compat/2.1.0/shims/netfx/mscorlib.dll"),
+             P("NetStandard/compat/2.1.0/shims/netstandard/System.Runtime.dll"), P("NetStandard/ref/2.1.0/netstandard.dll")],
+            install.NetStandardReferences);
+        Assert.Equal([P("NetStandard/EditorExtensions/Editor.Ext.dll")], install.NetStandardEditorExtensions);
+    }
+
+    [Fact]
     public void WindowsHubDefaultUnderProgramFiles()
     {
         WindowsLinuxInstall("Program Files/Unity/Hub/Editor/6000.0.30f1", exe: true);

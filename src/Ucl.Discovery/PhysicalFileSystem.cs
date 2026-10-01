@@ -43,6 +43,15 @@ public sealed class PhysicalFileSystem : IFileSystem
     public byte[] ReadAllBytes(string path) => File.ReadAllBytes(path);
 
     /// <inheritdoc/>
+    public byte[] ReadPrefix(string path, int maxBytes)
+    {
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        var buffer = new byte[(int)Math.Min(maxBytes, stream.Length)];
+        stream.ReadExactly(buffer);
+        return buffer;
+    }
+
+    /// <inheritdoc/>
     public IReadOnlyList<string> ListFiles(string directory) =>
         Directory.Exists(directory)
             ? Directory.EnumerateFiles(directory).Select(p => Path.GetFileName(p)).Order(StringComparer.Ordinal).ToList()

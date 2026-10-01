@@ -70,4 +70,7 @@ public sealed record AssemblyPlan
 
     /// <summary>True for assemblies that only exist in the Editor.</summary>
     public bool IsEditorOnly { get; init; }
+
+    /// <summary>API compatibility of this assembly: true for .NET Framework (<c>unity-4.8-api</c>), false for .NET Standard 2.1.</summary>
+    public bool NetFramework { get; init; }
 }

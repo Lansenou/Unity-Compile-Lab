@@ -14,6 +14,7 @@ internal sealed class ProjectScanner
     private readonly List<TextFile> asmdefs = [];
     private readonly List<TextFile> asmrefs = [];
     private readonly List<TextFile> plugins = [];
+    private readonly List<string> nativePlugins = [];
     private readonly List<TextFile> responseFiles = [];
     private readonly List<string> ruleSets = [];
     private readonly List<string> analyzerConfigs = [];
@@ -77,6 +78,7 @@ internal sealed class ProjectScanner
         Asmdefs = Sorted(asmdefs),
         Asmrefs = Sorted(asmrefs),
         Plugins = Sorted(plugins),
+        NativePlugins = Sorted(nativePlugins),
         ResponseFiles = Sorted(responseFiles),
         RuleSets = Sorted(ruleSets),
         AnalyzerConfigs = Sorted(analyzerConfigs),
@@ -107,7 +109,16 @@ internal sealed class ProjectScanner
                 asmrefs.Add(new TextFile(logical, fs.ReadAllText(physical), Meta(physical)));
                 break;
             case ".dll":
-                plugins.Add(new TextFile(logical, string.Empty, Meta(physical)));
+                // Unity never passes an unmanaged DLL to the compiler; only a PE image with a CLI header is a reference.
+                if (PluginBinary.IsManaged(fs.ReadPrefix(physical, PluginBinary.HeaderBytes)))
+                {
+                    plugins.Add(new TextFile(logical, string.Empty, Meta(physical)));
+                }
+                else
+                {
+                    nativePlugins.Add(logical);
+                }
+
                 break;
             case ".ruleset":
                 ruleSets.Add(logical);

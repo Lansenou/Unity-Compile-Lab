@@ -141,6 +141,41 @@ public class ProjectSettingsParserTests
     }
 
     [Fact]
+    public void Reads_api_levels_after_wrapped_values()
+    {
+        // The shape of a real Unity 6 asset: wrapped flow mappings and long values before the API keys.
+        const string Asset = """
+            %YAML 1.1
+            %TAG !u! tag:unity3d.com,2011:
+            --- !u!129 &1
+            PlayerSettings:
+              iOSLaunchScreenPortrait: {fileID: 2800000, guid: 0a1b2c3d4e5f60718293a4b5c6d7e8f9,
+                type: 3}
+              metroApplicationDescription: A long description that wraps onto a
+                continuation line
+              m_BuildTargetPlatformIcons:
+              - m_BuildTarget: Android
+                m_Icons:
+                - m_Textures: []
+                  m_Width: 432
+              apiCompatibilityLevelPerPlatform:
+                Standalone: 3
+              editorAssembliesCompatibilityLevel: 2
+              apiCompatibilityLevel: 6
+              activeInputHandler: 1
+            """;
+        var s = ProjectSettingsParser.Parse(Asset);
+        Assert.Equal(3, s.ApiCompatibilityPerGroup["Standalone"]);
+        Assert.Equal(2, s.EditorAssembliesCompatibilityLevel);
+        Assert.Equal(6, s.ApiCompatibilityLevel);
+        Assert.Equal(1, s.ActiveInputHandler);
+        Assert.True(s.IsNetFramework("Standalone"));
+        Assert.False(s.IsNetFramework("Android"));
+        Assert.True(s.IsEditorNetFramework);
+        Assert.Equal(1, ProjectSettingsData.Default.EditorAssembliesCompatibilityLevel);
+    }
+
+    [Fact]
     public void Defaults_when_empty()
     {
         var s = ProjectSettingsParser.Parse(string.Empty);

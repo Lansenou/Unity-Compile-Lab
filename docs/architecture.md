@@ -68,12 +68,17 @@ Ucl.Compilation ──> Ucl.Discovery (file system port only), Microsoft.CodeAna
   is dropped silently, as Unity does; the resulting compile errors are the user's signal. Player cells
   never contain Editor assemblies or `Editor` folders.
 * **Cycles** are error `UCL1002` on every assembly in the cycle; those assemblies are not compiled.
-* **Precompiled DLLs.** A `.dll` with a `.meta` is a plugin. It is a reference when its plugin import
+* **Precompiled DLLs.** A `.dll` whose PE headers have no CLI header (data directory 14) is a native plugin:
+  Unity loads it at run time and never passes it to the compiler, whatever its path, name or `.meta` say.
+  Discovery reads the first 4 KiB of every DLL to decide (`PluginBinary`). A managed `.dll` with a `.meta` is a plugin. It is a reference when its plugin import
   settings are compatible with the cell (Any Platform with excludes, or explicit per-platform enable), its
   plugin `defineConstraints` hold, and it is not labelled `RoslynAnalyzer`. `Auto Reference` off
   (`isExplicitlyReferenced: 1`) means only asmdefs that list it in `precompiledReferences` (with
-  `overrideReferences`) see it. An asmdef with `overrideReferences: true` sees only the DLLs it lists; a
-  listed DLL that does not exist is error `UCL1004`.
+  `overrideReferences`) see it. An asmdef with `overrideReferences: true` sees only the DLLs it lists. Unity
+  looks a listed name up among the precompiled assemblies it knows and skips it without a message when it
+  is absent (UnityCsReference `EditorBuildRules`, the `ExplicitPrecompiledReferences` lookup); `ucl` does the
+  same and reports `UCL1004` as info only, so it never changes the exit code. Packages' code-gen asmdefs list
+  `Unity.IL2CPP.dll` and similar names this way.
 * **Analyzers.** A DLL labelled `RoslynAnalyzer` is an analyzer and source generator, never a reference.
   Scope: if its folder (or an ancestor) holds an asmdef, it applies to that assembly and to every assembly
   that references it directly; otherwise it applies to all predefined assemblies.

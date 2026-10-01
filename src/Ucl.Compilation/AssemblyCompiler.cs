@@ -47,7 +47,7 @@ internal sealed class AssemblyCompiler
             hash.Add("source", logical, _hasher.HashFile(physical));
         }
 
-        var referencePaths = new List<(string Display, string Path)>(_catalog.EditorReferences(graph, plan.Engine));
+        var referencePaths = new List<(string Display, string Path)>(_catalog.EditorReferences(graph, plan));
         foreach (var dll in plan.PrecompiledReferences)
         {
             var path = _project.ToPhysical(dll);

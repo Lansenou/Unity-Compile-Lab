@@ -88,9 +88,26 @@ public class SimpleYamlTests
         Assert.Null(root["deeper"]);
         Assert.Null(root["deeper2"]);
 
-        var nested = SimpleYaml.Parse("    orphan: 1\n      deeper: 2\na: 3\n");
-        Assert.Equal("1", nested.Get("orphan"));
+        var nested = SimpleYaml.Parse("    orphan:\n        deeper: 2\n      deeper2: 3\na: 3\n");
+        Assert.Equal("2", nested["orphan"]?.Get("deeper"));
+        Assert.Null(nested["orphan"]?["deeper2"]);
         Assert.Equal("3", nested.Get("a"));
+    }
+
+    [Fact]
+    public void Deeper_lines_after_a_value_continue_it()
+    {
+        // Unity wraps long flow mappings and scalars onto deeper-indented lines (ProjectSettings.asset).
+        var root = SimpleYaml.Parse(
+            "PlayerSettings:\n  icon: {fileID: 2800000, guid: 0a1b,\n    type: 3}\n  text: one\n    two\n      three\n"
+            + "  list:\n  - item: a\n      wrapped\n    other: b\n  - plain\n     cont\n  after: 1\n");
+        var player = root["PlayerSettings"]!;
+        Assert.Equal("{fileID: 2800000, guid: 0a1b, type: 3}", player.Get("icon"));
+        Assert.Equal("one two three", player.Get("text"));
+        Assert.Equal("a wrapped", player["list"]!.Items![0].Get("item"));
+        Assert.Equal("b", player["list"]!.Items![0].Get("other"));
+        Assert.Equal("plain cont", player["list"]!.Items![1].Scalar);
+        Assert.Equal("1", player.Get("after"));
     }
 
     [Fact]

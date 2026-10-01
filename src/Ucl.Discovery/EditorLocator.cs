@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Ucl.Core.Model;
+using Ucl.Core.Rules;
 
 namespace Ucl.Discovery;
 
@@ -164,11 +165,12 @@ public sealed class EditorLocator(IFileSystem fs, IEnvironment env)
                 .ToList(),
             EditorAssemblies = engineFiles.Where(f => Path.GetFileName(f).StartsWith("UnityEditor", StringComparison.Ordinal)).ToList(),
             NetStandardReferences = Sorted(
-                Dlls(Path.Combine(data, "NetStandard", "ref", "2.1.0")),
-                Dlls(Path.Combine(data, "NetStandard", "compat", "2.1.0", "shims", "netfx"))),
+                Existing(data, [ReferenceProfiles.NetStandardReference]),
+                [.. ReferenceProfiles.NetStandardFolders.SelectMany(f => Dlls(Under(data, f)))]),
+            NetStandardEditorExtensions = Dlls(Under(data, ReferenceProfiles.NetStandardEditorExtensionsFolder)),
             NetFrameworkReferences = Sorted(
-                Dlls(Path.Combine(data, "UnityReferenceAssemblies", "unity-4.8-api")),
-                Dlls(Path.Combine(data, "UnityReferenceAssemblies", "unity-4.8-api", "Facades"))),
+                Existing(data, ReferenceProfiles.NetFrameworkLibraries.Select(n => $"{ReferenceProfiles.NetFrameworkFolder}/{n}")),
+                Dlls(Under(data, ReferenceProfiles.NetFrameworkFacadesFolder))),
         };
     }
 
@@ -230,6 +232,11 @@ public sealed class EditorLocator(IFileSystem fs, IEnvironment env)
             .Select(n => Path.Combine(folder, n))
             .Order(StringComparer.Ordinal)
             .ToList();
+
+    private static string Under(string data, string relative) => Path.Combine(data, relative.Replace('/', Path.DirectorySeparatorChar));
+
+    private List<string> Existing(string data, IEnumerable<string> relatives) =>
+        relatives.Select(r => Under(data, r)).Where(fs.FileExists).ToList();
 
     private static List<string> Sorted(List<string> a, List<string> b) => a.Concat(b).Order(StringComparer.Ordinal).ToList();
 }

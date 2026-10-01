@@ -24,7 +24,7 @@ public sealed record AssemblyGraph
     /// <summary>Enabled built-in module names (<c>physics</c> for <c>com.unity.modules.physics</c>), sorted.</summary>
     public IReadOnlyList<string> EnabledModules { get; init; } = [];
 
-    /// <summary>API compatibility of the cell: true for .NET Framework, false for .NET Standard 2.1.</summary>
+    /// <summary>API compatibility of the cell's non-Editor assemblies (the build target group's level): true for .NET Framework. Each <see cref="AssemblyPlan.NetFramework"/> is authoritative.</summary>
     public bool NetFramework { get; init; }
 
     /// <summary><c>ucl</c> diagnostics (UCL1xxx) found while planning.</summary>
