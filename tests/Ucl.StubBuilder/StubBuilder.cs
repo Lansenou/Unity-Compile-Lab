@@ -1,0 +1,275 @@
+using System.Collections.Immutable;
+using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
+namespace Ucl.StubBuilder;
+
+/// <summary>
+/// Compiles <c>fixtures/_stubs</c> into fake Unity editor installs and plugin/analyzer DLLs
+/// (docs/fixtures.md). Deterministic; a no-op when the stamp over the stub sources matches.
+/// </summary>
+public static class StubBuilder
+{
+    /// <summary>Editor versions laid out under <c>editors/</c>; all get identical bytes.</summary>
+    public static IReadOnlyList<string> EditorVersions { get; } = ["6000.0.30f1", "6000.3.2f1"];
+
+    /// <summary>Bump when the layout or compile settings change, so existing stamps are invalidated.</summary>
+    private const string BuilderVersion = "ucl-stubs/1";
+
+    private const string CoreModule = "UnityEngine.CoreModule";
+
+    private static readonly CSharpParseOptions ParseOptions = new(LanguageVersion.CSharp9, DocumentationMode.None);
+
+    /// <summary>Builds every stub into <paramref name="outDir"/> unless its <c>stamp.txt</c> is current. Returns <paramref name="outDir"/>.</summary>
+    public static string Build(string repoRoot, string outDir)
+    {
+        var stubs = Path.Combine(Path.GetFullPath(repoRoot), "fixtures", "_stubs");
+        if (!Directory.Exists(stubs))
+        {
+            throw new DirectoryNotFoundException($"stub sources not found: {stubs}");
+        }
+
+        outDir = Path.GetFullPath(outDir);
+        var stamp = ComputeStamp(stubs);
+        var stampPath = Path.Combine(outDir, "stamp.txt");
+        if (ReadStamp(stampPath) == stamp)
+        {
+            return outDir;
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(outDir)!);
+        using (AcquireLock(outDir + ".lock"))
+        {
+            if (ReadStamp(stampPath) == stamp)
+            {
+                return outDir;
+            }
+
+            var staging = outDir + ".staging";
+            if (Directory.Exists(staging))
+            {
+                Directory.Delete(staging, recursive: true);
+            }
+
+            BuildInto(stubs, staging);
+            File.WriteAllText(Path.Combine(staging, "stamp.txt"), stamp + "\n");
+            if (Directory.Exists(outDir))
+            {
+                Directory.Delete(outDir, recursive: true);
+            }
+
+            Directory.Move(staging, outDir);
+        }
+
+        return outDir;
+    }
+
+    private static void BuildInto(string stubs, string outDir)
+    {
+        var netstandardPath = Path.Combine(AppContext.BaseDirectory, "netstandard.dll");
+        if (!File.Exists(netstandardPath))
+        {
+            throw new FileNotFoundException("netstandard.dll was not copied next to Ucl.StubBuilder", netstandardPath);
+        }
+
+        var netstandard = MetadataReference.CreateFromFile(netstandardPath);
+
+        // Editor modules: CoreModule first, every other module references it.
+        var editorDir = Path.Combine(stubs, "editor");
+        var modules = new SortedDictionary<string, byte[]>(StringComparer.Ordinal);
+        var core = Compile(CoreModule, Path.Combine(editorDir, CoreModule), [netstandard]);
+        modules[CoreModule] = core;
+        var coreReference = MetadataReference.CreateFromImage(core);
+        foreach (var dir in SubDirectories(editorDir).Where(d => Path.GetFileName(d) != CoreModule))
+        {
+            var name = Path.GetFileName(dir);
+            modules[name] = Compile(name, dir, [netstandard, coreReference]);
+        }
+
+        foreach (var version in EditorVersions)
+        {
+            var data = Path.Combine(outDir, "editors", version, "Editor", "Data");
+            var managed = Path.Combine(data, "Managed", "UnityEngine");
+            Directory.CreateDirectory(managed);
+            foreach (var (name, image) in modules)
+            {
+                File.WriteAllBytes(Path.Combine(managed, name + ".dll"), image);
+            }
+
+            var reference = Path.Combine(data, "NetStandard", "ref", "2.1.0");
+            Directory.CreateDirectory(reference);
+            File.Copy(netstandardPath, Path.Combine(reference, "netstandard.dll"), overwrite: true);
+            Directory.CreateDirectory(Path.Combine(data, "NetStandard", "compat", "2.1.0", "shims", "netfx"));
+        }
+
+        var dlls = Path.Combine(outDir, "dlls");
+        Directory.CreateDirectory(dlls);
+        foreach (var dir in SubDirectories(Path.Combine(stubs, "dlls")))
+        {
+            var name = Path.GetFileName(dir);
+            var usesEngine = SourceFiles(dir).Any(f => File.ReadAllText(f).Contains("UnityEngine", StringComparison.Ordinal));
+            MetadataReference[] references = usesEngine ? [netstandard, coreReference] : [netstandard];
+            File.WriteAllBytes(Path.Combine(dlls, name + ".dll"), Compile(name, dir, references));
+        }
+
+        foreach (var dir in SubDirectories(Path.Combine(stubs, "analyzers")))
+        {
+            var name = Path.GetFileName(dir);
+            File.WriteAllBytes(Path.Combine(dlls, name + ".dll"), CompileAnalyzer(name, dir, netstandard));
+        }
+    }
+
+    // Analyzers compile against netstandard.dll and the Roslyn DLLs this process loaded. On a .NET 10 host those are
+    // the net10.0 Roslyn builds, which reference System.Runtime rather than netstandard (CS0012), so that attempt
+    // fails and the runtime's own managed assemblies are referenced instead. The resulting analyzer targets the
+    // running .NET, which is what ucl loads it into.
+    private static byte[] CompileAnalyzer(string name, string dir, MetadataReference netstandard)
+    {
+        var roslyn = new[]
+        {
+            typeof(Compilation).Assembly.Location,
+            typeof(CSharpCompilation).Assembly.Location,
+            typeof(ImmutableArray).Assembly.Location,
+        }.Distinct(StringComparer.Ordinal).Select(p => (MetadataReference)MetadataReference.CreateFromFile(p)).ToList();
+
+        if (TryCompile(name, dir, [netstandard, .. roslyn], out var image, out _))
+        {
+            return image!;
+        }
+
+        var runtime = RuntimeEnvironment.GetRuntimeDirectory();
+        var runtimeReferences = Directory.EnumerateFiles(runtime, "*.dll")
+            .Order(StringComparer.Ordinal)
+            .Where(IsManaged)
+            .Where(p => !roslyn.OfType<PortableExecutableReference>().Any(r => Path.GetFileName(r.FilePath) == Path.GetFileName(p)))
+            .Select(p => (MetadataReference)MetadataReference.CreateFromFile(p));
+        if (TryCompile(name, dir, [.. runtimeReferences, .. roslyn], out image, out var errors))
+        {
+            return image!;
+        }
+
+        throw new InvalidOperationException($"stub {name} does not compile:{Environment.NewLine}{errors}");
+    }
+
+    private static byte[] Compile(string name, string dir, IEnumerable<MetadataReference> references) =>
+        TryCompile(name, dir, references, out var image, out var errors)
+            ? image!
+            : throw new InvalidOperationException($"stub {name} does not compile:{Environment.NewLine}{errors}");
+
+    private static bool TryCompile(string name, string dir, IEnumerable<MetadataReference> references, out byte[]? image, out string errors)
+    {
+        var trees = SourceFiles(dir)
+            .Select(f => CSharpSyntaxTree.ParseText(
+                File.ReadAllText(f),
+                ParseOptions,
+                path: $"{name}/{Path.GetRelativePath(dir, f).Replace('\\', '/')}",
+                encoding: Encoding.UTF8))
+            .ToList();
+        if (trees.Count == 0)
+        {
+            throw new InvalidOperationException($"stub {name} has no sources in {dir}");
+        }
+
+        var options = new CSharpCompilationOptions(
+            OutputKind.DynamicallyLinkedLibrary,
+            optimizationLevel: OptimizationLevel.Release,
+            deterministic: true,
+            nullableContextOptions: NullableContextOptions.Disable,
+            generalDiagnosticOption: ReportDiagnostic.Default,
+            warningLevel: 4);
+        var compilation = CSharpCompilation.Create(name, trees, references, options);
+        using var pe = new MemoryStream();
+        var result = compilation.Emit(pe); // no PDB stream: no PDB
+        if (!result.Success)
+        {
+            image = null;
+            errors = string.Join(Environment.NewLine, result.Diagnostics
+                .Where(d => d.Severity == DiagnosticSeverity.Error)
+                .Select(d => d.ToString()));
+            return false;
+        }
+
+        image = pe.ToArray();
+        errors = string.Empty;
+        return true;
+    }
+
+    private static string ComputeStamp(string stubs)
+    {
+        using var sha = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        sha.AppendData(Encoding.UTF8.GetBytes(BuilderVersion + "\n"));
+        var files = Directory.EnumerateFiles(stubs, "*", SearchOption.AllDirectories)
+            .Select(f => (Full: f, Relative: Path.GetRelativePath(stubs, f).Replace('\\', '/')))
+            .Where(f => !IsBuildOutput(f.Relative))
+            .OrderBy(f => f.Relative, StringComparer.Ordinal);
+        foreach (var (full, relative) in files)
+        {
+            sha.AppendData(Encoding.UTF8.GetBytes(relative + "\n"));
+            var content = File.ReadAllBytes(full);
+            sha.AppendData(Encoding.UTF8.GetBytes(content.Length + "\n"));
+            sha.AppendData(content);
+        }
+
+        // The Roslyn and runtime versions change the analyzer output too.
+        sha.AppendData(Encoding.UTF8.GetBytes($"{typeof(Compilation).Assembly.GetName().Version} {Environment.Version}\n"));
+        return Convert.ToHexStringLower(sha.GetHashAndReset());
+    }
+
+    private static bool IsBuildOutput(string relative) =>
+        relative.Split('/').Any(p => p is "bin" or "obj");
+
+    private static IEnumerable<string> SubDirectories(string dir) =>
+        Directory.Exists(dir) ? Directory.EnumerateDirectories(dir).Order(StringComparer.Ordinal) : [];
+
+    private static IEnumerable<string> SourceFiles(string dir) =>
+        Directory.EnumerateFiles(dir, "*.cs", SearchOption.AllDirectories)
+            .Where(f => !IsBuildOutput(Path.GetRelativePath(dir, f).Replace('\\', '/')))
+            .Order(StringComparer.Ordinal);
+
+    private static string? ReadStamp(string path)
+    {
+        try
+        {
+            return File.Exists(path) ? File.ReadAllText(path).Trim() : null;
+        }
+        catch (IOException)
+        {
+            return null;
+        }
+    }
+
+    private static bool IsManaged(string path)
+    {
+        try
+        {
+            using var stream = File.OpenRead(path);
+            using var reader = new PEReader(stream);
+            return reader.HasMetadata;
+        }
+        catch (BadImageFormatException)
+        {
+            return false;
+        }
+    }
+
+    // Several test processes may build the same folder at once; a lock file serialises them.
+    private static FileStream AcquireLock(string path)
+    {
+        var deadline = DateTime.UtcNow.AddMinutes(5);
+        while (true)
+        {
+            try
+            {
+                return new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, FileOptions.DeleteOnClose);
+            }
+            catch (IOException) when (DateTime.UtcNow < deadline)
+            {
+                Thread.Sleep(200);
+            }
+        }
+    }
+}

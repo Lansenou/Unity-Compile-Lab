@@ -1,0 +1,91 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-maint" at "2026-09-30T14:02:09.4410842Z"
+Built from '6000.0/staging' branch; Version is '6000.0.30f1 (62b05ba0686a) revision 6467674'; Using compiler version '192829333'; Build Type 'Release'
+OS: 'Ubuntu 22.04.4 LTS (Jammy Jellyfish) Linux 6.5.0-41-generic' Language: 'en' Physical Memory: 31941 MB
+BatchMode: 1, IsHumanControllingUs: false, StartBugReporterOnCrash: false, Is64bit: true, IsPro: true
+
+COMMAND LINE ARGUMENTS:
+/home/maint/Unity/Hub/Editor/6000.0.30f1/Editor/Unity
+-batchmode
+-nographics
+-quit
+-projectPath
+/tmp/ucl-oracle.Qm3xT1/project
+-buildTarget
+Win64
+-logFile
+/tmp/ucl-oracle.Qm3xT1/editor.log
+
+Successfully changed project path to: /tmp/ucl-oracle.Qm3xT1/project
+/tmp/ucl-oracle.Qm3xT1/project
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-main-allocator-block-size=16777216"
+Player connection [139925367740224]  Target information:
+
+[Package Manager] Server::Start -- Port 34021 was selected
+[Package Manager] Done resolving packages in 1.84 seconds
+[Package Manager] 
+Registered in 0.000418 seconds.
+Refreshing native plugins compatible for Editor in 0.98 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 6000.0.30f1 (62b05ba0686a)
+[Subsystems] Discovering subsystems at path /home/maint/Unity/Hub/Editor/6000.0.30f1/Editor/Data/Resources/UnitySubsystems
+Mono path[0] = '/home/maint/Unity/Hub/Editor/6000.0.30f1/Editor/Data/Managed'
+Mono config path = '/home/maint/Unity/Hub/Editor/6000.0.30f1/Editor/Data/MonoBleedingEdge/etc'
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+- Loaded All Assemblies, in  0.412 seconds
+- Finished resetting the current domain, in  0.003 seconds
+Application.AssetDatabase Initial Refresh Start
+Start importing Assets/Scripts/Player.cs using Guid(5b0a3c7e2f6d4a1b9c8e7d6f5a4b3c2d) Importer(-1,00000000000000000000000000000000)  -> (artifact id: '0d6c58c1d5b9e5f9a8e2b4c3d1f0a9b8') in 0.0124 seconds
+[ScriptCompilation] Requested script compilation because: Assetdatabase observed changes in script compilation related files
+Rebuilding DAG because FileSignature timestamp changed: Library/Bee/1900b0aE-inputdata.json
+*** Tundra requires additional run (0.08 seconds), 0 items updated, 380 evaluated
+Starting: /home/maint/Unity/Hub/Editor/6000.0.30f1/Editor/Data/bee_backend --profile="Library/Bee/backend_profiler1.traceevents" --stdin-canary --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --dagfilejson="Library/Bee/1900b0aE.dag.json" ScriptAssemblies
+WorkingDir: /tmp/ucl-oracle.Qm3xT1/project
+Assembly has reference to non-existent assembly 'Missing.Thing' (Assets/Game/Game.Core.asmdef)
+[ 12/ 24  1s] Csc Library/Bee/artifacts/1900b0aE.dag/Game.Core.dll (+2 others)
+[ 13/ 24  2s] Csc Library/Bee/artifacts/1900b0aE.dag/Sample.Spawner.dll (+2 others)
+## Script Compilation Error for: Csc Library/Bee/artifacts/1900b0aE.dag/Sample.Spawner.dll (+2 others)
+## CmdLine: "/home/maint/Unity/Hub/Editor/6000.0.30f1/Editor/Data/DotNetSdkRoslyn/dotnet" exec "/home/maint/Unity/Hub/Editor/6000.0.30f1/Editor/Data/DotNetSdkRoslyn/csc.dll" /nostdlib /noconfig /shared "@Library/Bee/artifacts/1900b0aE.dag/Sample.Spawner.rsp"
+## Output:
+Packages/com.ucl.sample/Runtime/Spawner.cs(7,17): error CS0246: The type or namespace name 'EnemyPool' could not be found (are you missing a using directive or an assembly reference?)
+[ 18/ 24  3s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll (+2 others)
+## Script Compilation Error for: Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll (+2 others)
+## CmdLine: "/home/maint/Unity/Hub/Editor/6000.0.30f1/Editor/Data/DotNetSdkRoslyn/dotnet" exec "/home/maint/Unity/Hub/Editor/6000.0.30f1/Editor/Data/DotNetSdkRoslyn/csc.dll" /nostdlib /noconfig /shared "@Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.rsp"
+## Output:
+/tmp/ucl-oracle.Qm3xT1/project/Assets/Scripts/Health.cs(12,30): warning CS0168: The variable 'e' is declared but never used
+Assets/Scripts/Player.cs(9,9): error CS0103: The name 'transfrom' does not exist in the current context
+*** Tundra build failed (3.47 seconds), 14 items updated, 24 evaluated
+Assembly has reference to non-existent assembly 'Missing.Thing' (Assets/Game/Game.Core.asmdef)
+
+(Filename: Assets/Game/Game.Core.asmdef Line: 0)
+
+Packages/com.ucl.sample/Runtime/Spawner.cs(7,17): error CS0246: The type or namespace name 'EnemyPool' could not be found (are you missing a using directive or an assembly reference?)
+
+(Filename: Packages/com.ucl.sample/Runtime/Spawner.cs Line: 7)
+
+/tmp/ucl-oracle.Qm3xT1/project/Assets/Scripts/Health.cs(12,30): warning CS0168: The variable 'e' is declared but never used
+
+(Filename: /tmp/ucl-oracle.Qm3xT1/project/Assets/Scripts/Health.cs Line: 12)
+
+Assets/Scripts/Player.cs(9,9): error CS0103: The name 'transfrom' does not exist in the current context
+
+(Filename: Assets/Scripts/Player.cs Line: 9)
+
+Assets/Scripts/Player.cs(9,9): error CS0103: The name 'transfrom' does not exist in the current context
+
+(Filename: Assets/Scripts/Player.cs Line: 9)
+
+AssetDatabase: script compilation time: 3.512304s
+Compilation failed
+UnityEditor.Scripting.ScriptCompilation.EditorCompilationInterface:TickCompilationPipeline (UnityEditor.Scripting.ScriptCompilation.EditorScriptCompilationOptions,UnityEditor.BuildTargetGroup,UnityEditor.BuildTarget,int,string[],bool)
+
+Asset Pipeline Refresh (id=4c1e2a7b9d3f4e6a8b0c2d4e6f8a0b1c): Total: 5.214 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+Application.AssetDatabase Initial Refresh End
+Scripts have compiler errors.
+
+(Filename: ./Runtime/Utilities/Argv.cpp Line: 376)
+
+Exiting without the bug reporter. Application will terminate with return code 1

@@ -1,0 +1,16 @@
+{
+    "name": "Game.Settings",
+    "rootNamespace": "Game.Settings",
+    "references": [
+        "Game.Audio"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

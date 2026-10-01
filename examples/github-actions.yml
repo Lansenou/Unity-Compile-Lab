@@ -1,0 +1,33 @@
+# GitHub Actions job for a Unity 6 project repository.
+#
+# ucl needs the managed DLLs of a Unity 6 editor install, but never starts Unity and needs no licence
+# activation. Installing the editor on a machine is still subject to Unity's terms (see the ucl repository's
+# docs/licensing.md), so this job targets a self-hosted runner where Unity 6 is already installed, for
+# example through Unity Hub, and labelled "unity6".
+name: compile-check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ucl:
+    runs-on: [self-hosted, unity6]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ucl
+        run: dotnet tool update --global UnityCompileLab.Tool || dotnet tool install --global UnityCompileLab.Tool
+      - name: Check the environment
+        run: ucl doctor .
+      - name: Compile editor and players
+        run: >
+          ucl check . --target editor --target player
+          --platform StandaloneWindows64 --platform Android
+          --format sarif --output ucl.sarif
+      - name: Upload diagnostics to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ucl.sarif

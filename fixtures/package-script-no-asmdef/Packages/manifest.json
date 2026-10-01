@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "com.unity.modules.physics": "1.0.0",
+    "com.example.loose-utils": "1.0.0"
+  }
+}

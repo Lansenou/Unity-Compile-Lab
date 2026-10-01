@@ -1,0 +1,10 @@
+{
+  "name": "com.example.dialogue",
+  "version": "0.3.0",
+  "displayName": "Example Dialogue",
+  "description": "Branching NPC dialogue.",
+  "unity": "6000.0",
+  "dependencies": {
+    "com.unity.modules.physics": "1.0.0"
+  }
+}

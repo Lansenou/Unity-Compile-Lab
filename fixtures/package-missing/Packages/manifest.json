@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "com.unity.modules.physics": "1.0.0",
+    "com.example.save-system": "2.1.0"
+  }
+}

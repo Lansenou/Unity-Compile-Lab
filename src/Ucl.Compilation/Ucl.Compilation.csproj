@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Ucl.Compilation</RootNamespace>
+    <!-- RS2008 asks analyzer projects for release tracking; ucl only creates one host-side descriptor (UCL1030). -->
+    <NoWarn>$(NoWarn);RS2008</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Ucl.Core/Ucl.Core.csproj" />
+    <ProjectReference Include="../Ucl.Discovery/Ucl.Discovery.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+  </ItemGroup>
+</Project>

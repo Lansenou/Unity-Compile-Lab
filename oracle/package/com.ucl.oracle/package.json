@@ -1,0 +1,7 @@
+{
+  "name": "com.ucl.oracle",
+  "version": "1.0.0",
+  "displayName": "ucl oracle",
+  "description": "Injected by oracle/record.sh and oracle/record.ps1 into a temporary copy of a fixture. Compiles the player scripts and logs the result. Never part of a fixture.",
+  "unity": "6000.0"
+}

@@ -1,0 +1,25 @@
+{
+    "name": "Game.Rendering",
+    "rootNamespace": "Game.Rendering",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "Unity",
+            "expression": "6000.3",
+            "define": "GAME_UNITY_6_3_APIS"
+        },
+        {
+            "name": "Unity",
+            "expression": "[6000.0,6000.1)",
+            "define": "GAME_UNITY_6_0_LTS"
+        }
+    ],
+    "noEngineReferences": false
+}

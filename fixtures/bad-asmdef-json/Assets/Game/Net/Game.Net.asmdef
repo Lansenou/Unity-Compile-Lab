@@ -1,0 +1,9 @@
+{
+    "name": "Game.Net",
+    "rootNamespace": "Game.Net",
+    "references": [
+        "Game.Core",
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "autoReferenced": true
+}

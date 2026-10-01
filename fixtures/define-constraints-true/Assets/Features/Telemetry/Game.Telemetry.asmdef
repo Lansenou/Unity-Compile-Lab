@@ -1,0 +1,16 @@
+{
+    "name": "Game.Telemetry",
+    "rootNamespace": "Game.Telemetry",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "ENABLE_TELEMETRY"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

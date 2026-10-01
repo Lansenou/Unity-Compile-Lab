@@ -1,0 +1,8 @@
+{
+  "name": "com.example.inventory",
+  "version": "2.3.1",
+  "displayName": "Example Inventory",
+  "description": "Grid inventory for RPGs.",
+  "unity": "6000.0",
+  "dependencies": {}
+}

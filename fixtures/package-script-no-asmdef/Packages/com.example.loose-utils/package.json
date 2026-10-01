@@ -1,0 +1,7 @@
+{
+  "name": "com.example.loose-utils",
+  "version": "1.0.0",
+  "displayName": "Loose Utils",
+  "unity": "6000.0",
+  "description": "A package whose script has no assembly definition."
+}

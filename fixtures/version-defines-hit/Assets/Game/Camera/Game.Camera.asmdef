@@ -1,0 +1,20 @@
+{
+    "name": "Game.Camera",
+    "rootNamespace": "Game.Camera",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.modules.physics",
+            "expression": "1.0.0",
+            "define": "GAME_CAMERA_PHYSICS"
+        }
+    ],
+    "noEngineReferences": false
+}

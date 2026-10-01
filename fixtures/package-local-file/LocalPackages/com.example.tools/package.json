@@ -1,0 +1,8 @@
+{
+  "name": "com.example.tools",
+  "version": "1.0.0",
+  "displayName": "Example Tools",
+  "description": "Studio-wide gameplay utilities shared between projects.",
+  "unity": "6000.0",
+  "dependencies": {}
+}

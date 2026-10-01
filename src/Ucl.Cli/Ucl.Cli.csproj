@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Ucl.Cli</RootNamespace>
+    <AssemblyName>ucl</AssemblyName>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>ucl</ToolCommandName>
+    <PackageId>UnityCompileLab.Tool</PackageId>
+    <Description>Unity-free C# compile check for Unity 6 projects: Roslyn with Unity's assembly, define and platform rules.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Ucl.Core/Ucl.Core.csproj" />
+    <ProjectReference Include="../Ucl.Discovery/Ucl.Discovery.csproj" />
+    <ProjectReference Include="../Ucl.Compilation/Ucl.Compilation.csproj" />
+    <ProjectReference Include="../Ucl.Reporting/Ucl.Reporting.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" Condition="Exists('../../README.md')" />
+  </ItemGroup>
+</Project>

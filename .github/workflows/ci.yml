@@ -1,0 +1,129 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main, 'claude/**']
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('ci-{0}', github.ref) || format('ci-{0}-{1}', github.ref, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DOTNET_NOLOGO: 1
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+jobs:
+  # Full gate: format, build, unit and integration tests, coverage, verify, read-only test, mutation check.
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+      - run: dotnet --info
+      - run: scripts/check.sh --mutation
+      - name: Benchmark (R11 targets)
+        run: scripts/bench.sh
+      - name: Smoke test the release binary
+        run: |
+          scripts/build-release.sh "dev-${GITHUB_SHA::12}" dist linux-x64
+          scripts/smoke.sh dist/ucl-linux-x64/ucl
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
+  # The documented local path on Windows: Git Bash, core.autocrlf=true (the Git for Windows default).
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Set core.autocrlf=true before checkout
+        run: git config --global core.autocrlf true
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Assert the autocrlf checkout left text files with LF
+        run: |
+          if git ls-files -z --eol | tr '\0' '\n' | grep -E '^i/lf +w/crlf'; then
+            echo "working-tree files converted to CRLF"; exit 1
+          fi
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+      - run: scripts/check.sh
+
+  # Smoke test on Apple silicon: build, run the CLI on fixtures.
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+      - name: Build release binary and smoke test it
+        run: |
+          scripts/build-release.sh "dev-${GITHUB_SHA::12}" dist osx-arm64
+          scripts/smoke.sh dist/ucl-osx-arm64/ucl
+
+  # On a v* tag pushed by a maintainer, after all gates: build the four single-file binaries and the
+  # global tool package, and attach them to a GitHub release. The only job with write permission.
+  # Publishing to NuGet is not automated (no API key is configured); see docs/status.md.
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [linux, windows, macos]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Build release artifacts
+        run: scripts/build-release.sh "$GITHUB_REF_NAME" dist
+      - name: Verify checksums
+        run: (cd dist && sha256sum --check SHA256SUMS)
+      - name: Create the GitHub release (never replaces an existing one)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "release $GITHUB_REF_NAME already exists; not touching it"; exit 0
+          fi
+          notes=$(awk -v v="${GITHUB_REF_NAME#v}" '$0 ~ "^## \\[" v "\\]" {p=1; next} /^## \[/ {p=0} p' CHANGELOG.md)
+          gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --notes "${notes:-See CHANGELOG.md}"
