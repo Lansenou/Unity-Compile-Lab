@@ -108,10 +108,37 @@ internal sealed class InventoryBuilder
         return this;
     }
 
+    /// <summary>Leaves asmdefs without scripts as they are (by default each gets a placeholder script, since Unity skips
+    /// script-less asmdefs).</summary>
+    public InventoryBuilder WithoutPlaceholderScripts()
+    {
+        _placeholders = false;
+        return this;
+    }
+
+    private bool _placeholders = true;
+
+    private List<string> AllScripts()
+    {
+        var scripts = new List<string>(_scripts);
+        if (_placeholders)
+        {
+            foreach (var folder in _asmdefs.Select(a => a.Path[..Math.Max(0, a.Path.LastIndexOf('/'))]))
+            {
+                if (!_scripts.Any(s => s.StartsWith(folder + "/", StringComparison.Ordinal)))
+                {
+                    scripts.Add($"{folder}/Placeholder.cs");
+                }
+            }
+        }
+
+        return scripts;
+    }
+
     public ProjectInventory Build() => new()
     {
         ProjectVersion = _version,
-        Scripts = [.. _scripts],
+        Scripts = [.. AllScripts()],
         Asmdefs = [.. _asmdefs],
         Asmrefs = [.. _asmrefs],
         Plugins = [.. _plugins],
@@ -128,7 +155,7 @@ internal sealed class InventoryBuilder
     public ProjectInventory BuildReversed() => new()
     {
         ProjectVersion = _version,
-        Scripts = Rev(_scripts),
+        Scripts = Rev(AllScripts()),
         Asmdefs = Rev(_asmdefs),
         Asmrefs = Rev(_asmrefs),
         Plugins = Rev(_plugins),

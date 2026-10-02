@@ -7,6 +7,26 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ## [Unreleased]
 
+Session 4: the 0.7.0 private rerun (docs/real-project-fixes.md, "Session 4").
+
+### Added
+
+* `UCL1006` (info): an asmdef with no scripts is skipped, as Unity compiles no assembly for it.
+* Built-in symbols: E16 (`ENABLE_UNITY_COLLECTIONS_CHECKS` in player cells compiled against the editor's engine
+  build), E17 (`ENABLE_PROFILER_ASSISTANT_INTEGRATION`, editor cells from 6000.3.19), D61
+  (`UNITY_TESTS_FRAMEWORK` wherever `UNITY_INCLUDE_TESTS` applies).
+
+### Changed
+
+* Editor cells reference the editor's `Managed/UnityEngine/` engine modules whatever the active platform is,
+  plus only the platform modules it lacks; player cells use the platform's copy. One DLL per file name.
+* `ENABLE_AUDIO_SCRIPTABLE_PIPELINE` only on 6000.3 before 6000.3.19.
+
+### Fixed
+
+* `versionDefines` with resource `Unity` accept bounds with a release suffix (`2022.2.14f1`) instead of
+  rejecting them with `UCL1021`.
+
 ## [0.7.0]
 
 Session 3: real-project compile parity. The six root causes of the second real-project run

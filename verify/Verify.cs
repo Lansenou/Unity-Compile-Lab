@@ -375,7 +375,8 @@ internal static class Planner
             var platformOk = a.Include.Length > 0 ? a.Include.Contains(platformName) : !a.Exclude.Contains(platformName);
             var test = a.Constraints.Contains("UNITY_INCLUDE_TESTS");
             var testsOk = cell.Editor || cell.IncludeTests || !(test || a.Constraints.Contains("UNITY_TESTS_FRAMEWORK"));
-            if (platformOk && testsOk && Holds(a.Constraints, defines[a.Name]) && (!test || Testable(a))) compiled[a.Name] = a;
+            // An asmdef with no scripts is no assembly at all.
+            if (sources.ContainsKey(a.Name) && platformOk && testsOk && Holds(a.Constraints, defines[a.Name]) && (!test || Testable(a))) compiled[a.Name] = a;
             else plan.Excluded.Add(a.Name);
             if (a.Include is ["Editor"]) defines[a.Name].Add("UNITY_EDITOR_ONLY_COMPILATION");
         }

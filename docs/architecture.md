@@ -66,7 +66,9 @@ Nothing is compiled or written. Details: [oracle.md](oracle.md#bee-oracle-ucl-be
   If there is none, it goes to a predefined assembly by its path: under `Assets/Plugins/`,
   `Assets/Standard Assets/` or `Assets/Pro Standard Assets/` it is firstpass; inside any folder named
   `Editor` it is an Editor assembly; combining both gives `Assembly-CSharp-Editor-firstpass`. A script in a
-  package with no asmdef is not compiled (Unity warns; `ucl` reports `UCL1010` as a warning).
+  package with no asmdef is not compiled (Unity warns; `ucl` reports `UCL1010` as a warning). An asmdef
+  that owns no script (its own or an asmref's) is no assembly at all: it is not compiled, its references
+  are not resolved, and `ucl` reports `UCL1006` (info; fixture `asmdef-no-scripts`).
 * **Hidden assets.** Like the Asset Database, the scan skips files and folders whose name starts with `.`,
   ends with `~`, is `cvs`, or has the `.tmp` extension.
 * **References.** asmdef `references` resolve by name, or by `GUID:<32 hex>` through the `.meta` index. An

@@ -93,10 +93,14 @@ public class GraphOwnershipTests
     }
 
     [Fact]
-    public void Asmdef_without_scripts_is_still_compiled()
+    public void Asmdef_without_scripts_is_skipped_with_UCL1006()
     {
-        var g = new InventoryBuilder().Asmdef("Assets/Empty/Empty.asmdef", "Empty").Editor();
-        Assert.Empty(Assert.Single(g.Assemblies).Sources);
+        var g = new InventoryBuilder().WithoutPlaceholderScripts()
+            .Asmdef("Assets/Empty/Empty.asmdef", "Empty", "\"references\": [\"GUID:00000000000000000000000000000000\"]").Editor();
+        Assert.Empty(g.Assemblies);
+        Assert.Equal("no scripts", g.Excluded["Empty"]);
+        var d = Assert.Single(g.Diagnostics);
+        Assert.Equal((ProblemIds.ScriptlessAssembly, Severity.Info), (d.Id, d.Severity));
     }
 
     [Fact]
@@ -137,7 +141,7 @@ public class GraphOwnershipTests
     [Fact]
     public void Asmref_by_GUID()
     {
-        var g = new InventoryBuilder()
+        var g = new InventoryBuilder().WithoutPlaceholderScripts()
             .Asmdef("Packages/com.foo/Runtime/Foo.asmdef", "Foo", guid: GuidA)
             .Asmref("Assets/FooExt/Foo.asmref", "GUID:" + GuidA.ToUpperInvariant())
             .Scripts("Assets/FooExt/X.cs")

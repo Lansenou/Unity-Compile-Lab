@@ -18,6 +18,9 @@ public static class ProblemIds
     /// <summary>A precompiled DLL left out because another DLL with its file name wins (info: Unity keeps one per name).</summary>
     public const string ShadowedPrecompiledReference = "UCL1005";
 
+    /// <summary>An asmdef with no scripts; Unity compiles no assembly for it (info).</summary>
+    public const string ScriptlessAssembly = "UCL1006";
+
     /// <summary>Script in a package outside any asmdef; Unity does not compile it (warning).</summary>
     public const string PackageScriptWithoutAsmdef = "UCL1010";
 

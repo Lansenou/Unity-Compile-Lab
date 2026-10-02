@@ -76,6 +76,15 @@ public static class AssemblyGraphBuilder
         foreach (var entry in index.Asmdefs)
         {
             var data = entry.Data;
+            if (!sources.ContainsKey(data.Name))
+            {
+                // Unity compiles no assembly for an asmdef without scripts (its own or an asmref's), and never resolves its references.
+                diagnostics.Add(new Diagnostic(ProblemIds.ScriptlessAssembly, Severity.Info, DiagnosticOrigin.Ucl, data.Name, entry.Path, 0, 0,
+                    $"Assembly '{data.Name}' has no scripts; Unity compiles no assembly for it"));
+                excluded[data.Name] = "no scripts";
+                continue;
+            }
+
             var rsp = rspByFolder.TryGetValue(entry.Folder, out var local) ? local : rspByFolder.GetValueOrDefault(GlobalRspFolder);
             var editorOnly = data.IncludePlatforms.Count == 1 && data.IncludePlatforms[0].Equals(PlatformInfo.EditorAsmdefName, StringComparison.OrdinalIgnoreCase);
             var netFramework = settings.IsNetFrameworkFor(info.TargetGroup, editorOnly);
