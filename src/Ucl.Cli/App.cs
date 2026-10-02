@@ -17,6 +17,11 @@ public static class App
     {
         try
         {
+            if (args is [Ucl.Testing.TestHost.Command, var request])
+            {
+                return Ucl.Testing.TestHost.Serve(request);
+            }
+
             var parsed = ArgParser.Parse(args);
             if (!parsed.Ok)
             {

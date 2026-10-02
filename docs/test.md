@@ -38,12 +38,29 @@ Editor-only assemblies, ...). `UNITY_INCLUDE_TESTS` holds when `com.unity.test-f
 * Test assemblies and their dependencies are emitted as full images (IL included) and cached under their own
   inputs hash (`image full`), so a warm run recompiles nothing.
 
-## Test host: NUnit's framework API, in process
+## Test host: NUnit's framework API, in a child process
 
 `ucl` runs NUnit 3.14.0's own framework API (`NUnitTestAssemblyRunner` with `DefaultTestAssemblyBuilder`), the
-layer NUnitLite drives, inside the `ucl` process. Why this and not the NUnit engine or NUnitLite:
+layer NUnitLite drives, in a child process: the test host, which is `ucl` itself started with the hidden
+command `__test-host <request.json>` (a .NET tool or `ucl.dll` runs under `dotnet`). Why a child process:
 
-* **One process, no adapter.** The engine (and `dotnet test`) need an agent process, a runtimeconfig per test
+* **A test can end a process.** Outside Unity an engine type with a finalizer (`CommandBuffer`, from the
+  0.8.50 private run) can be constructed, its constructor fails in the engine call, and its finalizer later runs
+  on a native object that never existed: `Finalize` calls `Dispose(false)`, whose binding throws
+  `NullReferenceException` on the GC finalizer thread. That is an unhandled exception, which ends the process.
+* **Results are written as they happen.** The host writes every discovered case, each case as it starts and
+  each result to a results file, one JSON line each, flushed as written. When the host dies, the parent keeps
+  the completed cases, classifies the case in flight from the host's error output (`needs-unity` when the
+  stack has a `UnityEngine.` or `UnityEditor.` frame, else `failed`; reason "test host crashed during this
+  case: ..."), records the crash (`hostCrashes` in `ucl-test/1`: the last case reported before it, the case in
+  flight, the error text) and starts a new host that skips every case already reported. A host that dies
+  before reaching any case ends the run; the cases it never ran are `failed` ("not run: the test host crashed
+  before this case"). The crash may come from an earlier case (a finalizer runs whenever the GC does), so the
+  report names both cases.
+
+Why NUnit's framework API and not the NUnit engine or NUnitLite:
+
+* **No adapter.** The engine (and `dotnet test`) need an agent process, a runtimeconfig per test
   assembly and a test adapter; the test assemblies here are in-memory images of a Unity project, not .NET
   projects with a `deps.json`. The framework API loads them directly.
 * **Classification needs the test tree.** Discovery returns NUnit's own test objects (with `MethodInfo`), so
@@ -70,8 +87,11 @@ source text:
 | `skipped` | `[Explicit]` (never selected by name here), NUnit `Skipped` without the Ignored label, `Inconclusive` (`Assume`, `Assert.Inconclusive`). |
 | `ignored` | `[Ignore]`: NUnit `Skipped` with label `Ignored`. |
 | `passed` | NUnit `Passed` or `Warning`. |
+| `needs-unity`, never run | The method, or a project method it calls (followed through the IL of the compiled project assemblies), constructs an engine type (`UnityEngine*`/`UnityEditor*` assembly) that declares a finalizer, itself or in a base type: its finalizer would end the test host (previous section). A construction the IL does not show (`new T()` in a generic, reflection) is not seen; the child host covers it. |
 | `needs-unity` | NUnit `Failed` (or error) whose failure names an engine-call exception as `Type : message`, directly, as an inner exception (`----> Type : ...`) or after a setup prefix (`OneTimeSetUp: Type : ...`): `System.Security.SecurityException` (CoreCLR: "ECall methods must be packaged into a system module", an `InternalCall` outside the runtime), `System.MissingMethodException` (Mono's form of a missing internal call), `System.EntryPointNotFoundException` and `System.DllNotFoundException` (native bindings, `__Internal`), `UnityEngine.UnityException`, or a `System.TypeLoadException` naming `UnityEngine`/`UnityEditor`. |
 | `failed` | Every other failure: a real failure, which makes the exit code 1. |
+
+The case running when the test host dies is classified from the crash text (previous section).
 
 A `[SetUp]`/`[OneTimeSetUp]` that calls the engine fails its cases with the setup prefix: they are
 `needs-unity` too.

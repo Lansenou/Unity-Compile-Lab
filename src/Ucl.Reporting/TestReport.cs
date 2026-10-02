@@ -86,6 +86,21 @@ public static class TestReport
             }
         }
 
+        foreach (var crash in report.HostCrashes)
+        {
+            sb.Append("test host crashed after ").Append(crash.After ?? "(no case)");
+            if (crash.During is { } during)
+            {
+                sb.Append(", during ").Append(during);
+            }
+
+            sb.Append("; a new host ran the rest:\n");
+            foreach (var line in crash.Text.Split('\n'))
+            {
+                sb.Append("    ").Append(line.TrimEnd()).Append('\n');
+            }
+        }
+
         sb.Append("result: ").Append(report.Cases.Count).Append(" cases: ").Append(Counts(report.Cases)).Append(", exit ").Append(report.ExitCode).Append('\n');
         return sb.ToString();
     }
@@ -148,6 +163,17 @@ public static class TestReport
             foreach (var a in report.Assemblies)
             {
                 w.WriteStringValue(a);
+            }
+
+            w.WriteEndArray();
+            w.WriteStartArray("hostCrashes");
+            foreach (var crash in report.HostCrashes)
+            {
+                w.WriteStartObject();
+                w.WriteString("after", crash.After);
+                w.WriteString("during", crash.During);
+                w.WriteString("text", crash.Text);
+                w.WriteEndObject();
             }
 
             w.WriteEndArray();

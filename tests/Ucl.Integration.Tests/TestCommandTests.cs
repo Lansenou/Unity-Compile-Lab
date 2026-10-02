@@ -150,4 +150,26 @@ public sealed class TestCommandTests
         Assert.Equal(0, exit);
         Assert.EndsWith("result: 0 cases: 0 passed, 0 failed, 0 skipped, 0 ignored, 0 needs-unity, 0 unity-only, exit 0\n", stdout, StringComparison.Ordinal);
     }
+
+    /// <summary>
+    /// A finalizer that throws on the GC thread ends the test host process: the completed cases are kept, the case in
+    /// flight is classified from the crash text, the rest run in a new host, and the crash is reported.
+    /// </summary>
+    [Fact]
+    public void A_crashing_test_host_keeps_every_case_and_reports_the_crash()
+    {
+        using var temp = new TempDir();
+        var (project, env, expected) = Setup(temp, "test-host-crash");
+        var (exit, stdout, stderr) = Test(env, project, "--format", "json");
+        Assert.True(exit == expected.ExitCode, stdout + stderr);
+        Assert.Equal(expected.Cases.Select(c => (c.Assembly, c.Name, c.Category)), Cases(stdout));
+        var crash = Assert.Single(JsonDocument.Parse(stdout).RootElement.GetProperty("hostCrashes").EnumerateArray());
+        Assert.Equal("Game.Tests.RenderTests.C_pooled_command_buffer", crash.GetProperty("after").GetString());
+        Assert.Equal("Game.Tests.RenderTests.D_collects_garbage", crash.GetProperty("during").GetString());
+        Assert.Contains("at UnityEngine.Rendering.CommandBuffer.Finalize()", crash.GetProperty("text").GetString(), StringComparison.Ordinal);
+
+        var text = Test(env, project).Stdout;
+        Assert.Contains("test host crashed after Game.Tests.RenderTests.C_pooled_command_buffer", text, StringComparison.Ordinal);
+        Assert.Contains("  needs-unity Game.Tests.RenderTests.B_creates_a_command_buffer: constructs UnityEngine.Rendering.CommandBuffer", text, StringComparison.Ordinal);
+    }
 }

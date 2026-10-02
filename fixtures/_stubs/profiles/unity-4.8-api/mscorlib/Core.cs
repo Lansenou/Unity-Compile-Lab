@@ -40,7 +40,14 @@ namespace System
         object GetFormat(Type formatType);
     }
     public struct Decimal { }
-    public struct IntPtr { }
+    public struct IntPtr
+    {
+        public static readonly IntPtr Zero;
+        public static bool operator ==(IntPtr a, IntPtr b) => false;
+        public static bool operator !=(IntPtr a, IntPtr b) => false;
+        public override bool Equals(object obj) => false;
+        public override int GetHashCode() => 0;
+    }
     public struct UIntPtr { }
     public struct Nullable<T> where T : struct
     {
@@ -123,6 +130,24 @@ namespace System
     {
         public NotSupportedException() { }
         public NotSupportedException(string message) { }
+    }
+
+    public class NullReferenceException : SystemException
+    {
+        public NullReferenceException() { }
+        public NullReferenceException(string message) { }
+    }
+
+    public static class GC
+    {
+        public static void Collect() { }
+        public static void WaitForPendingFinalizers() { }
+        public static void SuppressFinalize(object obj) { }
+    }
+
+    public static class Activator
+    {
+        public static T CreateInstance<T>() => default;
     }
 
     public interface IDisposable

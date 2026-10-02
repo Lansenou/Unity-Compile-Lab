@@ -11,7 +11,7 @@ namespace Ucl.Cli;
 
 /// <summary>
 /// <c>ucl test</c>: compiles the test assemblies of the editor cell the way the Editor does (full images), runs their
-/// NUnit cases under .NET and classifies every case (docs/test.md). Test assemblies are the assemblies compiled
+/// NUnit cases under .NET in a child test host and classifies every case (docs/test.md). Test assemblies are the assemblies compiled
 /// against <c>nunit.framework.dll</c>.
 /// </summary>
 internal static class TestCommand
@@ -91,12 +91,13 @@ internal static class TestCommand
             files.TryAdd(Path.GetFileNameWithoutExtension(path), path);
         }
 
-        var run = NUnitHost.Run(
-            [.. testPlans.Select(p => new TestAssemblyImage(p.Name, images[p.Name], PlayMode: !p.IsEditorOnly))],
+        var run = TestHost.Run(
+            [.. testPlans.Select(p => new TestAssemblyImage(p.Name, PlayMode: !p.IsEditorOnly))],
             images,
             files,
-            filter);
-        return report with { Cases = run.Cases };
+            options.Filter,
+            TestHostLauncher.Launch);
+        return report with { Cases = run.Cases, HostCrashes = run.Crashes };
     }
 
     private const string TestFramework = "nunit.framework.dll";

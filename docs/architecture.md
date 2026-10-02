@@ -24,7 +24,7 @@ Ucl.Compilation ──> Ucl.Discovery (file system port only), Microsoft.CodeAna
 | `Ucl.Discovery` | a project path, environment variables, `IFileSystem` | `ProjectInventory`, `EditorInstall`, resolved packages | walking `Assets/` and package roots with Unity's hidden-asset rules, `.meta` GUID index, package resolution order, editor install discovery | any rule about what the files mean |
 | `Ucl.Compilation` | `AssemblyGraph`, `EditorInstall`, `IFileSystem` | per-assembly `CompileResult` (diagnostics, inputs hash, metadata image) | Roslyn options, reference resolution to files, analyzers and generators, the incremental cache, parallel scheduling | deciding which assemblies or defines exist |
 | `Ucl.Reporting` | `RunResult` | text, JSON (`schema/result.schema.json`), SARIF 2.1.0 | stable ordering, relative paths, the JSON schema | exit codes (Core decides) |
-| `Ucl.Testing` | full images of test assemblies, DLL paths | one classified result per discovered test case | loading in an isolated context, NUnit discovery and run, unity-only detection from metadata and IL (docs/test.md) | compiling, the classification rules themselves (Core `TestClassifier`) |
+| `Ucl.Testing` | full images of test assemblies, DLL paths | one classified result per discovered test case | the child test host and its results protocol, loading in an isolated context, NUnit discovery and run, unity-only and engine-finalizer detection from metadata and IL (docs/test.md) | compiling, the classification rules themselves (Core `TestClassifier`) |
 | `Ucl.Cli` | argv | stdout, stderr, exit code | argument parsing, wiring, matrix expansion | logic beyond wiring |
 
 ## Data flow of `ucl check`

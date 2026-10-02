@@ -12,12 +12,72 @@ internal static class IlScanner
         .ToDictionary(o => o.Value);
 
     /// <summary>True when <paramref name="method"/>'s body calls a member declared on a type named <paramref name="typeFullName"/>.</summary>
-    public static bool Calls(MethodBase method, string typeFullName)
+    public static bool Calls(MethodBase method, string typeFullName) =>
+        Callees(method).Any(m => m.DeclaringType?.FullName == typeFullName);
+
+    /// <summary>
+    /// The first type matching <paramref name="match"/> whose constructor <paramref name="method"/> calls (newobj or a
+    /// base constructor call), directly or through the methods it calls in assemblies <paramref name="follow"/> accepts.
+    /// </summary>
+    public static Type? Constructs(MethodBase method, Func<Type, bool> match, Func<Assembly, bool> follow)
     {
-        var il = method.GetMethodBody()?.GetILAsByteArray();
-        if (il is null)
+        var seen = new HashSet<MethodBase>();
+        var pending = new Stack<MethodBase>([method]);
+        while (pending.Count > 0 && seen.Count < MaxMethods)
+        {
+            var current = pending.Pop();
+            if (!seen.Add(current))
+            {
+                continue;
+            }
+
+            foreach (var callee in Callees(current))
+            {
+                if (callee is ConstructorInfo { DeclaringType: { } type } && Safe(() => match(type)))
+                {
+                    return type;
+                }
+
+                if (callee.DeclaringType?.Assembly is { } assembly && follow(assembly))
+                {
+                    pending.Push(callee);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    // Bounds the walk through project code; a deeper chain is not claimed.
+    private const int MaxMethods = 2000;
+
+    private static bool Safe(Func<bool> test)
+    {
+        try
+        {
+            return test();
+        }
+        catch (Exception e) when (e is TypeLoadException or FileNotFoundException or FileLoadException)
         {
             return false;
+        }
+    }
+
+    private static IEnumerable<MethodBase> Callees(MethodBase method)
+    {
+        byte[]? il;
+        try
+        {
+            il = method.GetMethodBody()?.GetILAsByteArray();
+        }
+        catch (Exception e) when (e is InvalidOperationException or NotSupportedException or BadImageFormatException)
+        {
+            yield break;
+        }
+
+        if (il is null)
+        {
+            yield break;
         }
 
         var i = 0;
@@ -27,31 +87,27 @@ internal static class IlScanner
             i++;
             if (!OpCodesByValue.TryGetValue(value, out var op))
             {
-                return false; // not IL we understand: no claim
+                yield break; // not IL we understand: no claim
             }
 
-            if (op.OperandType == OperandType.InlineMethod && i + 4 <= il.Length)
+            if (op.OperandType == OperandType.InlineMethod && i + 4 <= il.Length && Resolve(method, BitConverter.ToInt32(il, i)) is { } callee)
             {
-                var token = BitConverter.ToInt32(il, i);
-                if (Resolve(method.Module, token) is { DeclaringType: { } declaring } && declaring.FullName == typeFullName)
-                {
-                    return true;
-                }
+                yield return callee;
             }
 
             i += OperandSize(op, il, i);
         }
-
-        return false;
     }
 
-    private static MethodBase? Resolve(Module module, int token)
+    private static MethodBase? Resolve(MethodBase method, int token)
     {
         try
         {
-            return module.ResolveMethod(token);
+            var typeArgs = method.DeclaringType is { IsGenericType: true } t ? t.GetGenericArguments() : null;
+            var methodArgs = method.IsGenericMethod ? method.GetGenericArguments() : null;
+            return method.Module.ResolveMethod(token, typeArgs, methodArgs);
         }
-        catch (Exception e) when (e is ArgumentException or BadImageFormatException or TypeLoadException or FileNotFoundException or MissingMethodException)
+        catch (Exception e) when (e is ArgumentException or BadImageFormatException or TypeLoadException or FileNotFoundException or FileLoadException or MissingMethodException)
         {
             return null;
         }
