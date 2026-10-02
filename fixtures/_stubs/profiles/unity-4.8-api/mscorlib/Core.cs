@@ -432,3 +432,11 @@ namespace System.Runtime.InteropServices
         public string EntryPoint;
     }
 }
+
+namespace System.IO
+{
+    public static class File
+    {
+        public static string ReadAllText(string path) => null;
+    }
+}
