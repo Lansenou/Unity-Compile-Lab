@@ -96,10 +96,11 @@ internal sealed class AssemblyCompiler
         if (_cache?.TryLoad(inputsHash) is { } hit)
         {
             return new AssemblyOutcome(
-                Result(plan, hit.Failed, inputsHash, displays, analyzerDisplays, hit.Diagnostics, clock.ElapsedMilliseconds, cached: true),
+                Result(plan, hit.Failed, inputsHash, displays, analyzerDisplays, [], clock.ElapsedMilliseconds, cached: true),
                 hit.Image is null ? null : MetadataReference.CreateFromImage(hit.Image),
                 hit.ImageHash,
-                hit.Image);
+                hit.Image,
+                Task.Run(hit.LoadDiagnostics));
         }
 
         var parseOptions = new CSharpParseOptions(

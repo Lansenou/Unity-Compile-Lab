@@ -33,6 +33,15 @@ printf '\n// edited\n' >> "$work/bench/Assets/Game/Runtime/R5/R5Type7.cs"
 run "one file changed (method body, Runtime layer)" 10
 sed -i.bak 's/public float Speed => speed;/public float Speed => speed; public int Added => 1;/' "$work/bench/Assets/Game/Core/A/AType3.cs"
 run "one file changed (public API, bottom of the graph)" 10
+# A warm run replays every cached diagnostic: 3,000 warnings in each assembly (about 100,000; the private
+# rerun's editor cell had 112,047).
+for d in $(find "$work/bench" -name '*.asmdef' -exec dirname {} \;); do
+  { echo "namespace Warnings { internal static class W$RANDOM { internal static void M() {"
+    for i in $(seq 3000); do echo "int v$i;"; done
+    echo "} } }"; } > "$d/Warnings.cs"
+done
+ucl check "$work/bench" --editor-os linux --cache-dir "$work/cache" > /dev/null 2>&1 || true
+run "warm, no change, about 100,000 cached warnings" 3
 echo
 echo "$(nproc 2>/dev/null || sysctl -n hw.ncpu) cores, $(uname -s), $(dotnet --version)"
 if [ "$failed" = 1 ]; then echo "a run exceeded its R11 target"; exit 1; fi

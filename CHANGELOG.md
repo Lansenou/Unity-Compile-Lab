@@ -13,6 +13,10 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
   Hidden or off at its effective severity is not run, as csc does without `-errorlog` (fixture
   `analyzer-info-severity`).
 
+* Warm runs load each cached assembly's diagnostics apart from its image, off the dependency chain (cache
+  format v2; old entries are rebuilt once). On the benchmark with about 100,000 cached warnings the warm run
+  goes from 1.53 s to 1.26 s; `scripts/bench.sh` has a row for it.
+
 * `ucl test` runs the tests in a child test host (the same program, started again). A test that ends the
   process (an engine type's finalizer throwing on the GC thread) no longer loses the run: the completed cases
   are kept, the case in flight is classified from the crash text, a new host runs the rest, and `ucl-test/1`

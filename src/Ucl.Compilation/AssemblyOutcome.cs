@@ -8,4 +8,6 @@ namespace Ucl.Compilation;
 /// <param name="Reference">Metadata-only image as a reference, or null when compilation failed or was skipped.</param>
 /// <param name="ImageHash">SHA-256 of the metadata-only image: the public surface dependents' inputs hash uses.</param>
 /// <param name="Image">The emitted image (full with <see cref="CompileSettings.FullImages"/>), or null.</param>
-internal sealed record AssemblyOutcome(AssemblyResult Result, MetadataReference? Reference, string ImageHash, byte[]? Image = null);
+/// <param name="PendingDiagnostics">A cache hit's diagnostics, still loading (<see cref="Result"/> has none yet), or null.</param>
+internal sealed record AssemblyOutcome(
+    AssemblyResult Result, MetadataReference? Reference, string ImageHash, byte[]? Image = null, Task<IReadOnlyList<Ucl.Core.Model.Diagnostic>>? PendingDiagnostics = null);

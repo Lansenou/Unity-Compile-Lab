@@ -80,7 +80,9 @@ public sealed class CompilationRunner
         Task.WaitAll(tasks.Values.ToArray());
         memo?.Save(hasher);
         var reported = graph.Assemblies.Where(p => only is null || only.Contains(p.Name)).ToList();
-        var assemblies = reported.Select(p => tasks[p.Name].Result.Result).ToList();
+        var assemblies = reported.Select(p => tasks[p.Name].Result is { PendingDiagnostics: { } pending } outcome
+            ? outcome.Result with { Diagnostics = pending.GetAwaiter().GetResult() }
+            : tasks[p.Name].Result.Result).ToList();
         var planning = graph.Diagnostics.Where(d => only is null || d.Assembly is null || only.Contains(d.Assembly));
         var diagnostics = DiagnosticOrder.Sort(planning.Concat(assemblies.SelectMany(a => a.Diagnostics)));
         var images = tasks
