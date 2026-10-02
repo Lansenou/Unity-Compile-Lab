@@ -104,6 +104,21 @@ public static class TestClassifier
         return false;
     }
 
+    /// <summary>First UnityEngine/UnityEditor type and member in a runtime stack trace; never infer one from the test name.</summary>
+    public static string? EngineMember(string? stackTrace)
+    {
+        foreach (var line in (stackTrace ?? string.Empty).Split('\n'))
+        {
+            var frame = line.Trim();
+            if (!frame.StartsWith("at ", StringComparison.Ordinal)) continue;
+            frame = frame[3..];
+            if (!frame.StartsWith("UnityEngine.", StringComparison.Ordinal) && !frame.StartsWith("UnityEditor.", StringComparison.Ordinal)) continue;
+            var arguments = frame.IndexOf('(');
+            if (arguments > 0) return frame[..arguments].TrimEnd();
+        }
+        return null;
+    }
+
     // "Type : message" where Type starts the line or follows a separator (space, '>' of "---->", ':').
     private static bool Named(string line, string type)
     {

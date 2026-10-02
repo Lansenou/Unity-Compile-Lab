@@ -77,7 +77,7 @@ public sealed class TestCommandTests
         var (exit, stdout, _) = Test(env, project);
         Assert.Equal(1, exit);
         Assert.Contains("Game.Tests.EditMode: 18 passed, 1 failed, 2 skipped, 1 ignored, 2 needs-unity, 4 unity-only\n", stdout, StringComparison.Ordinal);
-        Assert.Contains("  needs-unity Game.Tests.EngineTests.Spawning_needs_the_engine: System.Security.SecurityException : ECall methods must be packaged into a system module.\n", stdout, StringComparison.Ordinal);
+        Assert.Contains("  needs-unity Game.Tests.EngineTests.Spawning_needs_the_engine: System.Security.SecurityException : ECall methods must be packaged into a system module.; engine member: UnityEngine.Native.Unavailable\n", stdout, StringComparison.Ordinal);
         Assert.Contains("  failed      Game.Tests.OutcomeTests.Arithmetic_is_wrong_on_purpose: a real failure, not an engine call\n", stdout, StringComparison.Ordinal);
         Assert.DoesNotContain("Spending_less_than_the_balance_succeeds", stdout, StringComparison.Ordinal);
         Assert.EndsWith("result: 31 cases: 19 passed, 1 failed, 2 skipped, 1 ignored, 2 needs-unity, 6 unity-only, exit 1\n", stdout, StringComparison.Ordinal);
@@ -172,4 +172,43 @@ public sealed class TestCommandTests
         Assert.Contains("test host crashed after Game.Tests.RenderTests.C_pooled_command_buffer", text, StringComparison.Ordinal);
         Assert.Contains("  needs-unity Game.Tests.RenderTests.B_creates_a_command_buffer: constructs UnityEngine.Rendering.CommandBuffer", text, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void A_native_member_is_named_through_a_helper_and_ranked()
+    {
+        using var temp = new TempDir();
+        var (project, env, _) = Setup(temp);
+        var (exit, stdout, stderr) = Test(env, project, "--format", "json", "--filter", "EngineTests.Spawning");
+        Assert.True(exit == 0, stdout + stderr);
+        using var json = JsonDocument.Parse(stdout);
+        var test = Assert.Single(json.RootElement.GetProperty("cases").EnumerateArray());
+        Assert.Equal("UnityEngine.Native.Unavailable", test.GetProperty("engineMember").GetString());
+        Assert.Contains("UnityEngine.Native.Unavailable", test.GetProperty("reason").GetString(), StringComparison.Ordinal);
+        var rank = Assert.Single(json.RootElement.GetProperty("summary").GetProperty("needsUnityByMember").EnumerateArray());
+        Assert.Equal("UnityEngine.Native.Unavailable", rank.GetProperty("engineMember").GetString());
+        Assert.Equal(1, rank.GetProperty("cases").GetInt32());
+        var text = Test(env, project, "--filter", "EngineTests.Spawning").Stdout;
+        Assert.Contains("needs-unity by member (top 20)", text, StringComparison.Ordinal);
+        Assert.Contains("1  UnityEngine.Native.Unavailable", text, StringComparison.Ordinal);
+    }
+
+
+    [Fact]
+    public void Native_member_ranking_is_bounded_and_ordered_by_case_count()
+    {
+        var cases = new List<Ucl.Core.Testing.TestCaseResult>();
+        for (var member = 0; member < 25; member++)
+            for (var test = 0; test <= member; test++)
+                cases.Add(new("Probe", "Cases", $"Cases.Probe({member},{test})", Ucl.Core.Testing.TestCategory.NeedsUnity, "native call")
+                { EngineMember = $"UnityEngine.Probe.Native{member:D2}" });
+        var report = new Ucl.Core.Testing.TestRunReport { ToolVersion = "test", Cases = cases };
+        using var json = JsonDocument.Parse(Ucl.Reporting.TestReport.Json(report));
+        var ranks = json.RootElement.GetProperty("summary").GetProperty("needsUnityByMember").EnumerateArray().ToArray();
+        Assert.Equal(20, ranks.Length);
+        Assert.Equal("UnityEngine.Probe.Native24", ranks[0].GetProperty("engineMember").GetString());
+        Assert.Equal(25, ranks[0].GetProperty("cases").GetInt32());
+        Assert.Equal("UnityEngine.Probe.Native05", ranks[^1].GetProperty("engineMember").GetString());
+        Assert.Equal(6, ranks[^1].GetProperty("cases").GetInt32());
+    }
+
 }

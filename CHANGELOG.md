@@ -18,6 +18,10 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Changed
 
+* `ucl test` needs-unity reasons include the first UnityEngine/UnityEditor member from the runtime
+  exception stack. `ucl-test/1` adds nullable per-case `engineMember` and top-20 summary
+  `needsUnityByMember`; text reports the same count ranking. Missing frames remain explicitly unknown.
+
 * Analyzer timing JSON adds supported `ruleIds` and `timeScope: "analyzer"` to assembly and summary
   entries. Text timings show a descending-time assembly/analyzer/rule-ID table; README shows sortable
   CSV export. Rules share their analyzer's measured time; no individual rule costs are inferred.

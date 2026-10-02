@@ -113,6 +113,12 @@ its case and the replacement host skips that case and resumes the remainder. All
 dependency, then load an original replacement without that type: GetMethodBody throws TypeLoadException
 for both a test body and a helper reached during scanning. No external binaries are used.
 
+For native failures, the reason includes the first UnityEngine/UnityEditor type and member from
+NUnit's exception stack, including calls made through helpers. JSON exposes nullable `engineMember`
+and `summary.needsUnityByMember` (top 20); text prints the same descending-count ranking. Unknown
+frames stay unknown; the tool does not infer a native member from a test name. Use counts across
+projects to choose shim candidates, then require Unity-equivalence evidence before patching them.
+
 ## Zero-loss accounting
 
 The sum of the categories equals the number of cases NUnit discovers in the compiled assemblies (after
