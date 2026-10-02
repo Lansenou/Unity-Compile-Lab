@@ -6,11 +6,17 @@
 //
 //   verify <fixtures-dir> <ucl-command...>   compare every manifest cell with `ucl graph --format json`
 //   verify --write-defines <fixtures-dir>     write verify's own full define sets into fixtures/manifest.json
+//   verify --coverage <cobertura.xml> <minimum-line-percent>   enforce a coverage threshold
 using System.Diagnostics;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+
+if (args.Length > 0 && args[0] == "--coverage")
+{
+    return CoverageGate.Check(args[1..]);
+}
 
 var write = args.Length > 0 && args[0] == "--write-defines";
 var rest = write ? args[1..] : args;

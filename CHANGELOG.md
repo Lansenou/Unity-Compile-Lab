@@ -75,6 +75,9 @@ Session 4: the 0.7.0 private rerun (docs/real-project-fixes.md, "Session 4").
 
 ### Fixed
 
+* CI coverage uses the in-proc collector to prevent lost hit data when VSTest terminates its host.
+  The Core 90% and overall 75% line gates remain enforced; delayed-shutdown coverage is regression-tested.
+
 * Honour plugin Any-entry platform exclusions, including Exclude Editor for Assets plugins.
 
 * `versionDefines` with resource `Unity` accept bounds with a release suffix (`2022.2.14f1`) instead of

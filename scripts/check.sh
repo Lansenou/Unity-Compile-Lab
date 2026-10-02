@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Local and CI quality gate. CI runs exactly this script.
 # Needs the .NET 10 SDK and bash (Git Bash on Windows). Network is used only to
-# restore the pinned NuGet packages (Directory.Packages.props).
+# restore pinned NuGet packages and the local coverage report tool.
 #
 #   scripts/check.sh              full gate
 #   scripts/check.sh --mutation   also run the define-table mutation check
@@ -24,6 +24,8 @@ dotnet format Ucl.slnx --verify-no-changes --severity warn
 
 step "build (warnings are errors)"
 dotnet build Ucl.slnx -c Release -warnaserror
+dotnet build verify -c Release -warnaserror
+dotnet tool restore
 
 step "fixtures: SHA256SUMS"
 scripts/fixtures-sums.sh --check
@@ -33,25 +35,42 @@ dotnet run --project tests/Ucl.StubBuilder -c Release --no-build -- artifacts/st
 
 rm -rf coverage
 mkdir -p coverage
-# MSBuild on Windows needs C:/ paths, not Git Bash's /c/ form.
-native() { if command -v cygpath >/dev/null 2>&1; then cygpath -m "$1"; else printf '%s' "$1"; fi; }
-cov=$(native "$PWD/coverage")
+# The in-proc collector flushes before VSTest terminates its host. MSBuild's exit-time writer can lose hits.
+settings=tests/coverage.runsettings
+gate=verify/bin/Release/net10.0/verify.dll
+require_report() {
+  local reports=("$1"/*/coverage.cobertura.xml)
+  if [ "${#reports[@]}" -ne 1 ] || [ ! -s "${reports[0]}" ]; then
+    echo "coverage: expected one nonempty collector report under $1" >&2
+    exit 1
+  fi
+}
 
 step "unit tests: Ucl.Core (coverage gate: 90% line)"
 dotnet test tests/Ucl.Core.Tests -c Release --no-build \
-  -p:CollectCoverage=true -p:Include='[Ucl.Core]*' -p:Threshold=90 -p:ThresholdType=line \
-  -p:CoverletOutput="$cov/core.json"
+  --collect "XPlat Code Coverage" --settings "$settings" --results-directory coverage/core \
+  -- 'DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile=**/*.g.cs'
+require_report coverage/core
+
+dotnet tool run reportgenerator '-reports:coverage/core/**/coverage.cobertura.xml' \
+  -targetdir:coverage/core-merged '-reporttypes:Cobertura;JsonSummary'
+dotnet "$gate" --coverage coverage/core-merged/Cobertura.xml 90
 
 step "discovery tests"
 dotnet test tests/Ucl.Discovery.Tests -c Release --no-build \
-  -p:CollectCoverage=true -p:Include='[Ucl.*]*' -p:Exclude='[Ucl.*.Tests]*' \
-  -p:CoverletOutput="$cov/discovery.json" -p:MergeWith="$cov/core.json"
+  --collect "XPlat Code Coverage" --settings "$settings" --results-directory coverage/discovery
+require_report coverage/discovery
 
 step "integration tests: fixtures, read-only, determinism, architecture (coverage gate: 75% line overall)"
-dotnet test tests/Ucl.Integration.Tests -c Release --no-build \
-  -p:CollectCoverage=true -p:Include='[Ucl.*]*%2c[ucl]*' -p:Exclude='[Ucl.*.Tests]*%2c[Ucl.StubBuilder]*' \
-  -p:MergeWith="$cov/discovery.json" -p:CoverletOutput="$cov/" \
-  -p:CoverletOutputFormat='json%2ccobertura' -p:Threshold=75 -p:ThresholdType=line -p:ThresholdStat=total
+# Synthetic shutdown regression: coverage must survive an exit handler slower than VSTest's shutdown deadline.
+UCL_COVERAGE_SLOW_EXIT=1 dotnet test tests/Ucl.Integration.Tests -c Release --no-build \
+  --collect "XPlat Code Coverage" --settings "$settings" --results-directory coverage/integration
+require_report coverage/integration
+
+dotnet tool run reportgenerator \
+  '-reports:coverage/core/**/coverage.cobertura.xml;coverage/discovery/**/coverage.cobertura.xml;coverage/integration/**/coverage.cobertura.xml' \
+  -targetdir:coverage/merged '-reporttypes:Cobertura;JsonSummary'
+dotnet "$gate" --coverage coverage/merged/Cobertura.xml 75
 
 if [ -d verify ]; then
   step "verify: independent define table and assembly graph"
