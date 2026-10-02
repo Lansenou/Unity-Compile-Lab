@@ -22,7 +22,10 @@ they would have tagged:
 | `v0.7.0` | `1840155` |
 | `v0.8.0` | `2a051a6` |
 
-First automatic release: pending (filled in after the merge).
+First automatic release: [`v0.8.39`](https://github.com/Lansenou/Unity-Compile-Lab/releases/tag/v0.8.39),
+built from the merge commit `e71fa0b` of pull request 2 by CI run 39 after the three gates passed. Checked
+from this session: `sha256sum --check SHA256SUMS` passes for the Linux archive and its `ucl --version` prints
+`ucl v0.8.39`.
 
 ## Session 4 (2026-10-02): the 0.7.0 private rerun, `0.8.0`
 
