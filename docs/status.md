@@ -16,12 +16,17 @@ The original engine stub proves attribution through a project helper; unknown fr
 stay unknown. Working directory is merged in PR 28 after green Linux, Windows and macOS CI: an original relative Assets file-read fixture fails from
 the temporary directory before the fix and passes from the project root afterward. The parent
 directory stays unchanged; restarts use the same launcher. Full cultures are merged in PR 29 after green Linux, Windows and macOS CI: the original de-DE culture fixture fails with
-CultureNotFoundException in invariant mode before the fix and passes afterward. Missing log scope is classified needs-unity in PR 30: direct LogAssert calls and
+CultureNotFoundException in invariant mode before the fix and passes afterward. Missing log scope is merged in PR 30 after green Linux, Windows and macOS CI: direct LogAssert calls and
 the public framework missing-scope exception through a helper are covered. The helper
 fixture was failed before the fix; afterward it is needs-unity and the following case passes.
 Ordinary assertions/InvalidOperationException remain failed. No logging shim is installed.
-Readonly-static reflection (1) and allocation-window GC differences (4) are next, each with a red
-fixture first. A reported group of 25 static-constructor failures has no proven cause; do not guess.
+Readonly-static reflection is classified needs-unity in PR 31. A runtime-compiled original
+fixture triggers CoreCLR's actual initialized-static FieldAccessException; it was failed before
+the classifier and needs-unity afterward, with the following case still passing. Other
+FieldAccessException and assertions remain failed.
+The four allocation-window GC cases remain open: no exception type/message identifying a
+probe invalidation was supplied. That sanitized signal was requested; generic allocation
+assertions cannot safely be reclassified. The divergence is documented in docs/test.md. A reported group of 25 static-constructor failures has no proven cause; do not guess.
 
 No production Unity API shims are added. Logging needs expected/unexpected/missing-expectation
 parity tests; native Quaternion/Matrix math needs actual Unity CI comparison over 10,000 random

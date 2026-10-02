@@ -71,6 +71,31 @@ public sealed class TestHostLoadFailureTests
         Assert.Equal("Cases.A_scan", Assert.Single(run.Crashes).During);
     }
 
+
+    [Fact]
+    public void Readonly_static_reflection_is_a_runtime_divergence_and_later_cases_run()
+    {
+        var image = Emit("ReadonlyTests", """
+            using NUnit.Framework;
+            using System.Reflection;
+            public class Cases {
+                private static readonly int Value = 1;
+                [Test] public void A_initialized_readonly() {
+                    Assert.AreEqual(1, Value);
+                    typeof(Cases).GetField("Value", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, 2);
+                }
+                [Test] public void Z_after() { Assert.AreEqual(1, 1); }
+            }
+            """);
+        var run = TestHost.Run([new("ReadonlyTests", false)], new Dictionary<string, byte[]> { ["ReadonlyTests"] = image },
+            new Dictionary<string, string>(), null, Launch);
+        Assert.Empty(run.Crashes);
+        Assert.Equal(2, run.Discovered);
+        Assert.True(run.Cases[0].Category == TestCategory.NeedsUnity, run.Cases[0].Reason);
+        Assert.Contains("readonly", run.Cases[0].Reason, StringComparison.Ordinal);
+        Assert.Equal(TestCategory.Passed, run.Cases[1].Category);
+    }
+
     private static (int Exit, string Error) Launch(IReadOnlyList<string> args)
     {
         try { return (TestHost.Serve(args[0]), ""); }

@@ -185,6 +185,8 @@ public static class NUnitHost
             var state = result.ResultState;
             var category = TestClassifier.FromResult(state.Status.ToString(), state.Label, result.Message, result.StackTrace);
             var reason = category == TestCategory.Passed ? string.Empty : TestClassifier.FirstLine(result.Message);
+            if (category == TestCategory.NeedsUnity && TestClassifier.IsReadonlyStaticReflectionFailure(result.Message))
+                reason += "; CoreCLR readonly-static reflection divergence; run in Unity";
             var engineMember = category == TestCategory.NeedsUnity ? TestClassifier.EngineMember(result.StackTrace) : null;
             if (engineMember is not null) reason += $"; engine member: {engineMember}";
             events.Finished(Case(assembly, result.Test, category, reason, (long)(result.Duration * 1000)) with { EngineMember = engineMember });

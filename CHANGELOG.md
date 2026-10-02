@@ -9,6 +9,9 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Fixed
 
+* Classify CoreCLR's initialized readonly-static reflection restriction as needs-unity with
+  a runtime-divergence reason; unrelated field-access errors remain failed.
+
 * Report unavailable Unity log scopes as needs-unity, including helper calls; direct LogAssert
   calls now use that category instead of unity-only. PlayMode and UnityTest remain unity-only.
 
