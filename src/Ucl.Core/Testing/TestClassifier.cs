@@ -83,7 +83,7 @@ public static class TestClassifier
         "Passed" or "Warning" => TestCategory.Passed,
         "Skipped" when label == "Ignored" => TestCategory.Ignored,
         "Skipped" or "Inconclusive" => TestCategory.Skipped,
-        _ => (IsEngineFailure(message ?? string.Empty) || IsMissingLogScope(message, stackTrace)) ? TestCategory.NeedsUnity : TestCategory.Failed,
+        _ => (IsEngineFailure(message ?? string.Empty) || IsMissingLogScope(message, stackTrace) || IsReadonlyStaticReflectionFailure(message)) ? TestCategory.NeedsUnity : TestCategory.Failed,
     };
 
     /// <summary>
@@ -104,6 +104,12 @@ public static class TestClassifier
 
         return false;
     }
+
+    /// <summary>CoreCLR's explicit restriction on reflection writes after a readonly static field's type is initialized.</summary>
+    public static bool IsReadonlyStaticReflectionFailure(string? message) =>
+        (message ?? string.Empty).Split('\n').Any(line => Named(line, "System.FieldAccessException")
+            && line.Contains("Cannot set initonly static field", StringComparison.Ordinal)
+            && line.Contains("is initialized", StringComparison.Ordinal));
 
     /// <summary>The public test framework's missing-scope exception, with a framework stack frame; not a general assertion.</summary>
     public static bool IsMissingLogScope(string? message, string? stackTrace) =>

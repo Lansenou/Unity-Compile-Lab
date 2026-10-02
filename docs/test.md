@@ -174,9 +174,17 @@ differences that change outcomes:
 | `double.ToString()` | shortest round-trippable: `(0.1 + 0.2)` gives `0.30000000000000004` (.NET Core 3.0 change, "Floating-point parsing and formatting improvements in .NET Core 3.0") | 15 significant digits: `0.3` | `DivergenceTests.Double_ToString_is_shortest_round_trip` passes here, fails in the Editor |
 | `float.ToString()` | shortest round-trippable: `1f/3f` gives `0.33333334` | 7 significant digits: `0.3333333` | `DivergenceTests.Float_ToString_is_shortest_round_trip` |
 | `string.GetHashCode()` | randomised per process | stable across runs | none (do not assert hash values) |
+| Reflection write to an initialized readonly static field | `FieldAccessException`: CoreCLR prohibits this since .NET Core 3.0; the specific initonly-static exception becomes `needs-unity`, with a runtime-divergence reason | rerun in the Editor; no readonly-field emulation | `TestHostLoadFailureTests.Readonly_static_reflection_is_a_runtime_divergence_and_later_cases_run` |
+| Allocation probe interrupted by GC | different collector and allocation behavior can invalidate a probe; a generic allocation assertion is not proof of a runtime divergence | rerun under the Editor's runtime | sanitized exception/invalid-probe signal still needed; never treat such a measurement as a portability oracle |
 | Culture | `CultureInfo.CurrentCulture` from the machine (or invariant with `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT`), ICU data on Linux and macOS | the machine's culture, Mono's own data | none; use `InvariantCulture` in tests |
 | `Dictionary<,>` enumeration order | insertion order until a removal; a removed slot is reused by the next insert | the same algorithm (reference source) | none: not a divergence in practice, but order is unspecified in both |
 | Floating-point arithmetic | SSE2/AVX, IEEE 754 per operation | Mono JIT, also SSE2 on x64 | none known |
+
+The readonly restriction is documented in
+[FieldInfo.SetValue](https://learn.microsoft.com/dotnet/api/system.reflection.fieldinfo.setvalue#remarks).
+Only that explicit FieldAccessException is classified; other field-access errors and ordinary
+allocation assertions remain failures. The four reported GC-window cases need an identifiable
+invalid-probe signal before a safe classifier can be added.
 
 The fixture's divergence cases pass under `ucl test`, so their class is in the emitted Unity filter: exactly
 the risk described above, kept visible on purpose.

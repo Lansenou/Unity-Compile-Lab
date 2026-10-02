@@ -127,4 +127,12 @@ public class TestClassifierTests
     public void Missing_log_scopes_require_the_framework_exception_and_frame(string message, string stack, TestCategory expected) =>
         Assert.Equal(expected, TestClassifier.FromResult("Failed", "Error", message, stack));
 
+    [Theory]
+    [InlineData("System.FieldAccessException : Cannot set initonly static field 'Value' after type 'Cases' is initialized.", TestCategory.NeedsUnity)]
+    [InlineData("System.TypeInitializationException : initializer failed\n----> System.FieldAccessException : Cannot set initonly static field 'Value' after type 'Cases' is initialized.", TestCategory.NeedsUnity)]
+    [InlineData("System.FieldAccessException : a private field cannot be accessed", TestCategory.Failed)]
+    [InlineData("NUnit.Framework.AssertionException : Cannot set initonly static field after type is initialized", TestCategory.Failed)]
+    public void Readonly_static_reflection_is_narrowly_classified(string message, TestCategory expected) =>
+        Assert.Equal(expected, TestClassifier.FromResult("Failed", "Error", message));
+
 }
