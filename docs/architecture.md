@@ -134,7 +134,13 @@ Nothing is compiled or written. Details: [oracle.md](oracle.md#bee-oracle-ucl-be
   (UnityCsReference 6000.3 `CustomScriptAssembly.AssemblyFlags`: "Do not emit warnings for immutable
   (package) folders"), so `ucl` reports only their errors and skips the analyzers that cannot report an
   error there (fixture `analyzer-immutable-package`). How Bee turns the flag into compiler options is not
-  public; the observable effect, no warnings, is what `ucl` models.
+  public; the observable effect, no warnings, is what `ucl` models. Like csc without `-errorlog` (Bee's
+  command lines have none), `ucl` reports only warnings and errors, never Info or Hidden diagnostics, and does
+  not run an analyzer whose every diagnostic is Info, Hidden or off at its effective severity: by default,
+  under the rsp or ruleset options and under every global or per-file `.editorconfig` value (Roslyn
+  `CommonCompiler` severity filter, `AnalyzerManager.IsDiagnosticAnalyzerSuppressed`). A
+  `dotnet_analyzer_diagnostic.*` (category or all) severity makes every analyzer run; suppressors always run
+  (fixture `analyzer-info-severity`).
 * **Engine references.** `noEngineReferences: true` removes the editor's UnityEngine and UnityEditor DLLs.
   Built-in modules come from `com.unity.modules.*` packages: a module DLL whose name matches a
   `com.unity.modules.<x>` package is referenced only when that package is resolved; modules with no
