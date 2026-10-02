@@ -20,7 +20,7 @@ CultureNotFoundException in invariant mode before the fix and passes afterward. 
 the public framework missing-scope exception through a helper are covered. The helper
 fixture was failed before the fix; afterward it is needs-unity and the following case passes.
 Ordinary assertions/InvalidOperationException remain failed. No logging shim is installed.
-Readonly-static reflection is classified needs-unity in PR 31. A runtime-compiled original
+Readonly-static reflection is merged in PR 31 after green Linux, Windows and macOS CI. A runtime-compiled original
 fixture triggers CoreCLR's actual initialized-static FieldAccessException; it was failed before
 the classifier and needs-unity afterward, with the following case still passing. Other
 FieldAccessException and assertions remain failed.
@@ -31,6 +31,25 @@ assertions cannot safely be reclassified. The divergence is documented in docs/t
 No production Unity API shims are added. Logging needs expected/unexpected/missing-expectation
 parity tests; native Quaternion/Matrix math needs actual Unity CI comparison over 10,000 random
 inputs with per-member ULP bounds. Engine state and unpublished algorithms remain needs-unity.
+
+## Test scope documentation — PR 32
+
+README now puts “What ucl test can and cannot run” directly below the test command row;
+docs/test.md mirrors it at the top. The member-specific table was audited against pinned
+UnityCsReference 6000.3.25f1 and the public test-framework LogScope source. ClosestPowerOfTwo
+is managed; Bounds/Color whole-type claims are narrowed. Original ApiScopeTests back every
+row alongside WalletTests/EngineTests. The original quaternion stand-in's incorrect native
+identity/multiplication was proved red and corrected; no production native math shim is added.
+Actual CLI fixture summary: 45 cases, 25 passed, 1 intentionally failed, 2 skipped, 1 ignored,
+11 needs-unity, 5 unity-only. No project percentage is inferred. Sources/row-to-case mapping:
+[test-api-source-audit.md](test-api-source-audit.md). Coverage thresholds are unchanged.
+
+Open follow-ups: public proof plus real player bee-diff for the plugin filtering rule; the
+sanitized GC-window invalidation signal; a counts-only rerun with PR 27 member ranking;
+real licensed Unity CI and 10,000-input per-member ULP comparisons before native math shims.
+No ranking from the new report exists yet, so no shim order is guessed. True per-rule analyzer
+callback attribution remains unavailable in Roslyn's public telemetry API; PR 25 reports
+supported rule IDs alongside measured per-assembly analyzer time, explicitly shared.
 
 ## Player plugin follow-up from v0.8.85 (2026-10-02) — audit merged in PR 26, rule open
 

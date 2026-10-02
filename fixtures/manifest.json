@@ -32854,6 +32854,76 @@
         "cases": [
           {
             "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.ApiScopeTests.Managed_attributes_and_enums",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.ApiScopeTests.Managed_math",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.ApiScopeTests.Managed_matrix",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.ApiScopeTests.Managed_quaternion",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.ApiScopeTests.Managed_values",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.ApiScopeTests.Managed_vectors",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.ApiScopeTests.Native_editor_api",
+            "category": "needs-unity"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.ApiScopeTests.Native_logging",
+            "category": "needs-unity"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.ApiScopeTests.Native_matrix",
+            "category": "needs-unity"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.ApiScopeTests.Native_perlin",
+            "category": "needs-unity"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.ApiScopeTests.Native_physics",
+            "category": "needs-unity"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.ApiScopeTests.Native_quaternion",
+            "category": "needs-unity"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.ApiScopeTests.Native_scriptable_creation",
+            "category": "needs-unity"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.ApiScopeTests.Native_texture",
+            "category": "needs-unity"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
             "name": "Game.Tests.DefineGuardedTests.Editor_assemblies_use_the_net_framework_profile",
             "category": "passed"
           },

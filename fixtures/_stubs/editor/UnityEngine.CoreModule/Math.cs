@@ -93,7 +93,7 @@ namespace UnityEngine
         public float z;
         public float w;
 
-        public static Quaternion identity => throw Native.Unavailable();
+        public static Quaternion identity => new Quaternion { w = 1f };
 
         public Vector3 eulerAngles { get => throw Native.Unavailable(); set => throw Native.Unavailable(); }
 
@@ -103,9 +103,21 @@ namespace UnityEngine
 
         public static Quaternion Slerp(Quaternion a, Quaternion b, float t) => throw Native.Unavailable();
 
-        public static Vector3 operator *(Quaternion rotation, Vector3 point) => throw Native.Unavailable();
+        public static Vector3 operator *(Quaternion rotation, Vector3 point)
+        {
+            // Quaternion vector rotation, independently expressed with two cross products.
+            var imaginary = new Vector3(rotation.x, rotation.y, rotation.z);
+            var cross = Vector3.Cross(imaginary, point);
+            return point + (2f * rotation.w * cross) + (2f * Vector3.Cross(imaginary, cross));
+        }
 
-        public static Quaternion operator *(Quaternion lhs, Quaternion rhs) => throw Native.Unavailable();
+        public static Quaternion operator *(Quaternion lhs, Quaternion rhs)
+        {
+            var a = new Vector3(lhs.x, lhs.y, lhs.z);
+            var b = new Vector3(rhs.x, rhs.y, rhs.z);
+            var vector = (lhs.w * b) + (rhs.w * a) + Vector3.Cross(a, b);
+            return new Quaternion { x = vector.x, y = vector.y, z = vector.z, w = (lhs.w * rhs.w) - Vector3.Dot(a, b) };
+        }
     }
 
     /// <summary>Common math functions.</summary>
@@ -120,6 +132,17 @@ namespace UnityEngine
         public const float Deg2Rad = 0.0174532924f;
 
         public const float Rad2Deg = 57.29578f;
+
+        public static int ClosestPowerOfTwo(int value)
+        {
+            if (value <= 0) return 0;
+            var upper = 1;
+            while (upper < value && upper < 1073741824) upper *= 2;
+            var lower = upper / 2;
+            return value - lower < upper - value ? lower : upper;
+        }
+
+        public static float PerlinNoise(float x, float y) => throw Native.Unavailable();
 
         public static float Sin(float f) => (float)System.Math.Sin(f);
 

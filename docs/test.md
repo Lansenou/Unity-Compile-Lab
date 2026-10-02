@@ -1,8 +1,35 @@
 # `ucl test`: EditMode tests without Unity
 
+### What `ucl test` can and cannot run
+
+`ucl test` runs code paths that never call the Unity engine's native side. Creating or using an
+engine object, including through a helper, is `needs-unity` and must run in the Editor.
+PlayMode tests and `[UnityTest]` tests never run here (`unity-only`). Editor log scopes also need Unity.
+
+The share depends on the project: plain C# logic can run most tests; tests that build GameObjects,
+textures or meshes may run few. Run `ucl test` once and read its summary counts before relying on it.
+Examples below name members, not whole types; the audit checks Unity 6000.3 C# bodies and native bindings.
+
+| Runs under `ucl test` (managed code paths) | Needs Unity (native bindings or Editor log scope) |
+|---|---|
+| Plain C# / `System.*`: collections, LINQ, `Span<T>`, JSON, your classes, with their required references | Creating/using `GameObject`, `Component`, `MonoBehaviour`, `Transform` |
+| Vector2/3/4 arithmetic; Vector3 `Distance`, `Dot`, `Cross`, `Lerp` | `ScriptableObject.CreateInstance`, `Object.Instantiate` / `Destroy` |
+| Mathf `Clamp`, `Lerp`, `Approximately`, `Sin`, `ClosestPowerOfTwo` | Mathf `PerlinNoise`, gamma/linear color-space conversions |
+| Color/Color32 constructors; Color arithmetic; Rect/RectInt value operations; Bounds construction / `Intersects` | Texture2D, RenderTexture, Mesh, Material, Shader, Sprite creation/use; Bounds `Contains` / `ClosestPoint` / `SqrDistance` |
+| Quaternion `identity`, quaternion times vector | Quaternion `Euler`, `LookRotation`, `Slerp`, `Inverse`, `AngleAxis` |
+| Matrix4x4 multiply, `MultiplyPoint3x4` | Matrix4x4 `TRS`, `inverse`, `Perspective` |
+| Attributes (`SerializeField`, `Range`), enums, plain structs | `Debug.Log*`, `LogAssert`, Application / Time engine properties, `Resources.Load` |
+| | AssetDatabase, EditorPrefs, EditorUtility engine operations |
+| | NativeArray / UnsafeUtility allocation, Jobs scheduling, Burst compilation, Physics / Camera / Graphics engine operations |
+
+Keep logic in classes that take plain values, and keep engine calls at the edge. Tests of that
+logic can run in seconds without the Editor.
+The original `test-editmode` fixture reports **45 cases: 25 passed, 1 failed (intentional),
+2 skipped, 1 ignored, 11 needs-unity, 5 unity-only**; these counts are not a project estimate.
+See the [API source audit](test-api-source-audit.md) and its original stub-editor cases for each table row.
+
 `ucl test [<project>]` compiles a project's test assemblies the way the Editor does, runs every NUnit case that
-needs no live engine under .NET (CoreCLR), and says exactly which cases need Unity and why. Most EditMode
-suites have a large engine-free share; those cases run in seconds, without starting the Editor.
+needs no live engine under .NET (CoreCLR), and says exactly which cases need Unity and why. The runnable share depends on the project; the summary gives its actual counts.
 
 ```sh
 ucl test path/to/Project                                   # text: counts per assembly, every case that did not pass
