@@ -68,6 +68,21 @@ public class MetaParserTests
         Assert.True(p.IsCompatibleWith("Editor"));
     }
 
+    [Theory]
+    [InlineData("Any:")]
+    [InlineData(": Any")]
+    [InlineData("'': Any")]
+    public void Any_entry_settings_exclude_editor(string anyKey)
+    {
+        var text = $"PluginImporter:\n  platformData:\n  - first:\n      {anyKey}\n    second:\n      enabled: 1\n      settings:\n        Exclude Editor: 1\n"
+            + (anyKey == "Any:" ? string.Empty : "  - first:\n      Any:\n    second:\n      enabled: 1\n      settings: {}\n")
+            + "  - first:\n      Editor: Editor\n    second:\n      enabled: 0\n";
+        var plugin = MetaParser.Parse(text).Plugin!;
+        Assert.True(plugin.AnyPlatform);
+        Assert.False(plugin.IsCompatibleWith("Editor"));
+        Assert.True(plugin.IsCompatibleWith("Win64"));
+    }
+
     [Fact]
     public void Explicit_per_platform_enable()
     {

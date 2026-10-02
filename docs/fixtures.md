@@ -108,3 +108,7 @@ AnalyzerPipelineTests configures a temporary signal directory: the root analyzer
 generator to start. That test was red with serial analysis and proves dependency progress with one or
 four compile slots without a wall-clock speed assertion. A late-error variant checks cached diagnostics,
 final dependency cascades and that `ucl test` cannot receive failed or blocked speculative images.
+
+`plugin-exclude-editor`: an original managed plugin under Assets with Any Platform enabled and
+Exclude Editor in its Any-entry settings. The Editor cell excludes it (missing API diagnostics),
+while the player cell receives it. No System.Memory binary or package implementation is copied.

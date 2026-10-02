@@ -35,7 +35,9 @@ simply never match a supported cell. Setting both lists is `UCL3004` (bad asmdef
 From a plugin's `.meta` (`PluginImporter`):
 
 * `platformData` entry `Any` with `enabled: 1` means "Any Platform"; the entry keyed `: Any` holds
-  `Exclude <key>: 1` lines that remove platforms.
+  `Exclude <key>: 1` lines that remove platforms. The same settings can appear in `Any:`;
+  read both shapes, including a quoted empty key. `Exclude Editor: 1` removes Editor cells,
+  independently of the active player target (sources in docs/architecture.md).
 * Otherwise the plugin is compatible with each platform whose own entry has `enabled: 1`.
 * No `platformData` at all: compatible everywhere (Unity's default for a managed DLL).
 * `isExplicitlyReferenced: 1` is "Auto Reference" off; `validateReferences` is recorded but `ucl` does not

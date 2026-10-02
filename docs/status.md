@@ -3,6 +3,25 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
+## Session 9 (2026-10-02): plugin exclusions and profile conflicts
+
+Counts-only rerun of v0.8.72 (`07e8093`): 357 errors, 47/79 Editor assemblies skipped;
+player 17/32 skipped. Reported failures include CS0433 for memory types, CS0121 for AsSpan,
+CS1503 and CS1705 for a 4.2.1.0 dependency versus a referenced 4.2.0.1 copy. Timings from
+this run are not comparable because assemblies were skipped; a clean-project rerun is pending.
+No private project identity, location or package inventory is recorded.
+
+1. Editor plugin exclusion: synthetic `plugin-exclude-editor` and parser tests reproduce
+   ignored Exclude Editor settings under the Any entry. Sources and importer semantics are in
+   docs/architecture.md. The new Any-entry parser case and Editor fixture fail before the fix,
+   then pass after parsing exclusions from both supported entries. Validate References does not
+   grant compatibility. The ordinary player fixture receives the plugin; profile suppression
+   is a separate unresolved rule. Full gate: Core 614, Discovery 75, Integration 284; coverage
+   gates and independent verification of 205 cells pass. Merge requires three-platform CI.
+2. Player API-profile suppression: public-rule audit in progress. No assembly-name blacklist added.
+3. Duplicate dependency selection: public-rule audit in progress, related to the Session 8 open
+   precedence question. No package-versus-Assets or version selection change is inferred from CS1705.
+
 ## Session 8 (2026-10-02): references and analyzer execution
 
 Item 4a: fixed in PR 13 (merged after Linux, Windows and macOS CI). Reproduced with `package-plugin-auto-reference` (editor and player), using a synthetic package
