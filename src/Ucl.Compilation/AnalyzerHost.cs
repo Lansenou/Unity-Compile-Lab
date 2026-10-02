@@ -60,15 +60,84 @@ internal static class AnalyzerHost
             return compilation;
         }
 
+        // csc without -errorlog (Unity's Bee passes none) filters Hidden and Info diagnostics, and its driver does not run an
+        // analyzer whose every diagnostic would be filtered (Roslyn CommonCompiler, AnalyzerManager.IsDiagnosticAnalyzerSuppressed).
+        var categoryConfigured = CategorySeverityConfigured(optionsProvider, compilation.SyntaxTrees);
+        var running = analyzers.Where(a => categoryConfigured || !OnlyFiltered(a, compilation)).ToImmutableArray();
+        if (running.Length == 0)
+        {
+            sink.AddRange(compilation.GetDiagnostics().Select(d => (d, DiagnosticOrigin.Compiler)));
+            return compilation;
+        }
+
         var withAnalyzers = compilation.WithAnalyzers(
-            analyzers.ToImmutable(),
+            running,
             new CompilationWithAnalyzersOptions(new AnalyzerOptions(additional, optionsProvider), onAnalyzerException: null, concurrentAnalysis: true,
                 logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: false));
-        var ids = analyzers.SelectMany(a => a.SupportedDiagnostics).Select(d => d.Id).ToHashSet(StringComparer.Ordinal);
+        var ids = running.SelectMany(a => a.SupportedDiagnostics).Select(d => d.Id).ToHashSet(StringComparer.Ordinal);
         var all = withAnalyzers.GetAllDiagnosticsAsync().GetAwaiter().GetResult();
         sink.AddRange(all.Select(d => (d, ids.Contains(d.Id) && !d.Id.StartsWith("CS", StringComparison.Ordinal) ? DiagnosticOrigin.Analyzer : DiagnosticOrigin.Compiler)));
         return compilation;
     }
+
+    // True when every diagnostic of the analyzer is Hidden, Info or suppressed wherever it can be reported: by default, under
+    // the compilation's specific options (rsp, ruleset) and under every global or per-file .editorconfig value. Suppressors
+    // always run (they act on other analyzers' diagnostics).
+    private static bool OnlyFiltered(DiagnosticAnalyzer analyzer, Microsoft.CodeAnalysis.Compilation compilation)
+    {
+        if (analyzer is DiagnosticSuppressor)
+        {
+            return false;
+        }
+
+        var options = compilation.Options;
+        var trees = options.SyntaxTreeOptionsProvider;
+        foreach (var descriptor in analyzer.SupportedDiagnostics)
+        {
+            var values = new List<ReportDiagnostic>
+            {
+                options.SpecificDiagnosticOptions.TryGetValue(descriptor.Id, out var specific) ? specific
+                    : descriptor.IsEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress,
+            };
+            if (trees is not null)
+            {
+                if (trees.TryGetGlobalDiagnosticValue(descriptor.Id, CancellationToken.None, out var global))
+                {
+                    values.Add(global);
+                }
+
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    if (trees.TryGetDiagnosticValue(tree, descriptor.Id, CancellationToken.None, out var local))
+                    {
+                        values.Add(local);
+                    }
+                }
+            }
+
+            if (values.Any(v => Effective(v, descriptor) is ReportDiagnostic.Warn or ReportDiagnostic.Error))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static ReportDiagnostic Effective(ReportDiagnostic value, DiagnosticDescriptor descriptor) =>
+        value != ReportDiagnostic.Default ? value : descriptor.DefaultSeverity switch
+        {
+            DiagnosticSeverity.Error => ReportDiagnostic.Error,
+            DiagnosticSeverity.Warning => ReportDiagnostic.Warn,
+            DiagnosticSeverity.Info => ReportDiagnostic.Info,
+            _ => ReportDiagnostic.Hidden,
+        };
+
+    // Category-wide or all-analyzer severities (dotnet_analyzer_diagnostic.*) are resolved by the analyzer driver; with
+    // any of them every analyzer runs, and only its output is filtered.
+    private static bool CategorySeverityConfigured(AnalyzerConfigOptionsProvider provider, IEnumerable<SyntaxTree> trees) =>
+        provider.GlobalOptions.Keys.Concat(trees.SelectMany(t => provider.GetOptions(t).Keys))
+            .Any(k => k.StartsWith("dotnet_analyzer_diagnostic.", StringComparison.OrdinalIgnoreCase));
 
     private static bool CanReportError(DiagnosticAnalyzer analyzer, CompilationOptions options) =>
         analyzer.SupportedDiagnostics.Any(d => d.DefaultSeverity == DiagnosticSeverity.Error

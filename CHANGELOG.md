@@ -9,6 +9,10 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Changed
 
+* Compiler and analyzer Info diagnostics are no longer reported, and an analyzer whose every diagnostic is Info,
+  Hidden or off at its effective severity is not run, as csc does without `-errorlog` (fixture
+  `analyzer-info-severity`).
+
 * Warm runs load each cached assembly's diagnostics apart from its image, off the dependency chain (cache
   format v2; old entries are rebuilt once). On the benchmark with about 100,000 cached warnings the warm run
   goes from 1.53 s to 1.26 s; `scripts/bench.sh` has a row for it.
