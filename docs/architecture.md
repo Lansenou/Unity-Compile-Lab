@@ -123,7 +123,13 @@ Nothing is compiled or written. Details: [oracle.md](oracle.md#bee-oracle-ucl-be
   folder, or in a package folder without an asmdef, such as a NuGet package's
   `analyzers/dotnet/roslyn4.0/cs/`) applies to every assembly. The editor's own source generators
   (`Tools/BuildPipeline/Unity.SourceGenerators/*.dll`, `Tools/Unity.SourceGenerators/` before 6000.3) run
-  on every assembly (fixture `analyzer-reach`).
+  on every assembly (fixture `analyzer-reach`). Package assemblies get the same analyzers as Assets ones
+  (bee-diff on a real 6000.3 project: no analyzer differences). Assemblies of immutable packages (every
+  source but embedded and local `file:` ones) are compiled with `AssemblyFlags.SuppressCompilerWarnings`
+  (UnityCsReference 6000.3 `CustomScriptAssembly.AssemblyFlags`: "Do not emit warnings for immutable
+  (package) folders"), so `ucl` reports only their errors and skips the analyzers that cannot report an
+  error there (fixture `analyzer-immutable-package`). How Bee turns the flag into compiler options is not
+  public; the observable effect, no warnings, is what `ucl` models.
 * **Engine references.** `noEngineReferences: true` removes the editor's UnityEngine and UnityEditor DLLs.
   Built-in modules come from `com.unity.modules.*` packages: a module DLL whose name matches a
   `com.unity.modules.<x>` package is referenced only when that package is resolved; modules with no

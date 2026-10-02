@@ -140,6 +140,7 @@ internal sealed class AssemblyCompiler
 
         var diagnostics = raw
             .Where(r => r.Diagnostic.Severity != DiagnosticSeverity.Hidden && !r.Diagnostic.IsSuppressed)
+            .Where(r => !plan.SuppressWarnings || (r.Diagnostic.Severity == DiagnosticSeverity.Error && !r.Diagnostic.IsWarningAsError))
             .Select(r => Map(r.Diagnostic, r.Origin, plan))
             .Distinct()
             .ToList();

@@ -93,3 +93,4 @@ Every cell starts as `oracle: pending`; see [oracle.md](oracle.md).
 | 71 | `tests-framework-symbol` | session 4, item 3: `UNITY_TESTS_FRAMEWORK` (D61) in editor cells with `com.unity.test-framework` installed | R2, R5 |
 | 72 | `version-gated-symbols` | session 4, item 4: `versionDefines` bounds with Unity suffixes, a pre-release package range, E08 and E17 by editor patch (adds the 6000.3.19f1 stub editor) | R5 |
 | 73 | `asmdef-no-scripts` | session 4, item 5: an asmdef with no scripts is skipped with UCL1006 (info) | R2 |
+| 74 | `analyzer-immutable-package` | session 6, item 1: assemblies of immutable packages report no warnings (compiler or analyzer); embedded packages and Assets keep them | R8 |

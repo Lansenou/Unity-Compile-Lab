@@ -33,7 +33,9 @@ internal static class AnalyzerHost
         {
             var loaded = loader.Get(path);
             sink.AddRange(loaded.LoadFailures.Select(m => (Microsoft.CodeAnalysis.Diagnostic.Create(LoadFailed, Location.None, path, m), DiagnosticOrigin.Analyzer)));
-            analyzers.AddRange(loaded.Analyzers);
+            // In an assembly whose warnings are suppressed only analyzers that can report an error matter; skipping the rest is
+            // where most of the analyzer time of a project with many package assemblies goes.
+            analyzers.AddRange(plan.SuppressWarnings ? loaded.Analyzers.Where(a => CanReportError(a, compilation.Options)) : loaded.Analyzers);
             generators.AddRange(loaded.Generators);
         }
 
@@ -67,6 +69,10 @@ internal static class AnalyzerHost
         sink.AddRange(all.Select(d => (d, ids.Contains(d.Id) && !d.Id.StartsWith("CS", StringComparison.Ordinal) ? DiagnosticOrigin.Analyzer : DiagnosticOrigin.Compiler)));
         return compilation;
     }
+
+    private static bool CanReportError(DiagnosticAnalyzer analyzer, CompilationOptions options) =>
+        analyzer.SupportedDiagnostics.Any(d => d.DefaultSeverity == DiagnosticSeverity.Error
+            || options.SpecificDiagnosticOptions.GetValueOrDefault(d.Id) == ReportDiagnostic.Error);
 
     private static readonly DiagnosticDescriptor LoadFailed = new(
         "UCL1030", "Analyzer could not be loaded", "Analyzer '{0}' could not be loaded: {1}", "ucl", DiagnosticSeverity.Warning, isEnabledByDefault: true);

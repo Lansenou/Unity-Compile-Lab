@@ -126,6 +126,27 @@ public class GraphUnityRulesTests
     }
 
     [Fact]
+    public void Immutable_package_assemblies_suppress_warnings()
+    {
+        var g = new InventoryBuilder()
+            .Package("com.example.cached", "1.0.0")
+            .Package("com.example.embedded", "1.0.0", "embedded")
+            .Package("com.example.local", "1.0.0", "local")
+            .Asmdef("Packages/com.example.cached/Runtime/Cached.asmdef", "Cached")
+            .Asmdef("Packages/com.example.embedded/Runtime/Embedded.asmdef", "Embedded")
+            .Asmdef("Packages/com.example.local/Runtime/Local.asmdef", "Local")
+            .Asmdef("Assets/Game/Game.asmdef", "Game")
+            .Scripts("Packages/com.example.cached/Runtime/A.cs", "Packages/com.example.embedded/Runtime/B.cs",
+                "Packages/com.example.local/Runtime/C.cs", "Assets/Game/D.cs", "Assets/E.cs")
+            .Editor();
+        Assert.True(g.Find("Cached")!.SuppressWarnings);
+        Assert.False(g.Find("Embedded")!.SuppressWarnings);
+        Assert.False(g.Find("Local")!.SuppressWarnings);
+        Assert.False(g.Find("Game")!.SuppressWarnings);
+        Assert.False(g.Find("Assembly-CSharp")!.SuppressWarnings);
+    }
+
+    [Fact]
     public void Legacy_test_assemblies_reference_the_runners_and_only_nunit()
     {
         var g = TestFramework()

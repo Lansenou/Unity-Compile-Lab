@@ -202,7 +202,10 @@ public static class AssemblyGraphBuilder
         var plans = new Dictionary<string, AssemblyPlan>(StringComparer.Ordinal);
         foreach (var draft in drafts.Values)
         {
-            plans[draft.Name] = ToPlan(draft, sources.GetValueOrDefault(draft.Name) ?? [], plugins, playerArgs, settings, inventory, cell);
+            plans[draft.Name] = ToPlan(draft, sources.GetValueOrDefault(draft.Name) ?? [], plugins, playerArgs, settings, inventory, cell) with
+            {
+                SuppressWarnings = draft.Entry?.PackageName is { } owner && packages.TryGetValue(owner, out var package) && IsImmutable(package),
+            };
         }
 
         var order = GraphOrdering.TopologicalOrder(drafts.ToDictionary(d => d.Key, d => (IReadOnlyList<string>)d.Value.References, StringComparer.Ordinal));
@@ -219,6 +222,9 @@ public static class AssemblyGraphBuilder
             Problems = problems,
         };
     }
+
+    // Unity's immutable package folders (AssetDatabase.TryGetAssetFolderInfo): everything but embedded and local "file:" packages.
+    private static bool IsImmutable(ResolvedPackage package) => package.Source is not ("embedded" or "local");
 
     private static AssemblyPlan ToPlan(
         Draft draft,

@@ -9,6 +9,10 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Changed
 
+* Assemblies of immutable packages (registry, git, built-in) report only errors, as Unity compiles them with
+  `SuppressCompilerWarnings`; analyzers that cannot report an error are not run on them (fixture
+  `analyzer-immutable-package`). This removes most analyzer time on projects with many package assemblies.
+
 * Releases are automatic: each push to `main` that passes the three CI gates is released as
   `v0.<minor>.<run number>` (README, "Releases"). Pushed `v*` tags no longer trigger a release.
 * `ucl --version` and the tool version in `ucl-result/1`, `ucl-graph/1` and SARIF output now print the release

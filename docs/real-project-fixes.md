@@ -149,3 +149,15 @@ Counts from the maintainer (same project class, 0.7.0 `1840155`): `bee-diff` 80 
 Item 6 is measured, not closed: on the synthetic project analyzer cost is linear in diagnostics and about +60%
 over `--analyzers off` (7.5 s), so the private run's 637 s comes from something the bench lacks (large real
 analyzers or generators, or memory pressure). The checklist now asks for the cold time with `--analyzers off`.
+
+# Session 6: the 0.8.0 private rerun
+
+Counts from the maintainer (same project class, 0.8.0 `2a051a6`): `bee-diff` 79 assemblies, 0 agree, 1444
+differences (references 1370, defines 74, no analyzer differences); `check` editor 20 errors (root failure
+`UnityEditor.UI`, blocks 72); player StandaloneWindows64 exit 0, 32 assemblies, 203,661 warnings; cold player
+522 s with analyzers, 53.5 s with `--analyzers off` (23 warnings); cold editor 53.7 s / 6.9 s; warm 2.9 s. For
+scale, the Editor's own full recompile took 57.7 s.
+
+| Item | Rule (source) | Fixture | Red run (0.8.0) | Green |
+|---|---|---|---|---|
+| 1. analyzer cost on package assemblies | Package assemblies do get the Assets analyzers: the 6000.3 manual says root analyzers apply to predefined assemblies, but UnityCsReference `RoslynAnalyzers.SetAnalyzers` gives an unowned analyzer to every script assembly, and bee-diff reported no analyzer differences. What differs: immutable package assemblies carry `AssemblyFlags.SuppressCompilerWarnings` (UnityCsReference 6000.3 `CustomScriptAssembly`), so none of their warnings is reported. `ucl` now reports only errors there and skips analyzers that cannot report an error | `analyzer-immutable-package` | both cells: UFX001 and CS0219 warnings reported for the registry package `Example.Inventory` | only the Assets and embedded-package warnings remain |

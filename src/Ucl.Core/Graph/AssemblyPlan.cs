@@ -68,6 +68,12 @@ public sealed record AssemblyPlan
     /// <summary>Response file applied, or null.</summary>
     public string? ResponseFile { get; init; }
 
+    /// <summary>
+    /// True for assemblies of immutable packages (registry, git, built-in): Unity compiles them with
+    /// <c>AssemblyFlags.SuppressCompilerWarnings</c>, so only errors are reported (docs/architecture.md, "Analyzers").
+    /// </summary>
+    public bool SuppressWarnings { get; init; }
+
     /// <summary>True for assemblies that only exist in the Editor.</summary>
     public bool IsEditorOnly { get; init; }
 
