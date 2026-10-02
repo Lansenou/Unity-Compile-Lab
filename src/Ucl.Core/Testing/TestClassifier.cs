@@ -65,14 +65,12 @@ public static class TestClassifier
         assemblyName.StartsWith("UnityEngine", StringComparison.Ordinal) || assemblyName.StartsWith("UnityEditor", StringComparison.Ordinal);
 
     /// <summary>
-    /// The category and reason of the case that was running when the test host died, from the host's error output:
-    /// needs-unity when the stack has a <c>UnityEngine</c> or <c>UnityEditor</c> frame, else failed.
+    /// A case interrupted by a host crash is an error, with the host's error output retained as its reason.
     /// </summary>
     public static (TestCategory Category, string Reason) FromHostCrash(string crashText)
     {
         ArgumentNullException.ThrowIfNull(crashText);
-        var engine = crashText.Contains("at UnityEngine.", StringComparison.Ordinal) || crashText.Contains("at UnityEditor.", StringComparison.Ordinal);
-        return (engine ? TestCategory.NeedsUnity : TestCategory.Failed, "test host crashed during this case: " + FirstLine(crashText));
+        return (TestCategory.Failed, "test host crashed during this case: " + FirstLine(crashText));
     }
 
     /// <summary>The category of a case NUnit ran, from its result state (status, label) and failure message.</summary>

@@ -1,0 +1,92 @@
+using System.Runtime.InteropServices;
+using System.Text.Json;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Ucl.Core.Testing;
+using Ucl.Testing;
+using Xunit;
+
+namespace Ucl.Integration.Tests;
+
+/// <summary>Original synthetic assemblies reproduce missing method-body types without external binaries.</summary>
+public sealed class TestHostLoadFailureTests
+{
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void A_missing_method_body_type_is_reported_and_later_cases_run(bool inHelper)
+    {
+        using var temp = new TempDir();
+        var dependency = Emit("BodyDependency", "public struct MissingBodyType { public int Value; }");
+        var source = """
+            using NUnit.Framework;
+            public class Cases {
+                [Test] public void A_bad_body() { MissingBodyType value = default; Assert.That(value.Value, Is.Zero); }
+                [Test] public void Z_after() { Assert.That(2 + 2, Is.EqualTo(4)); }
+            }
+            """;
+        if (inHelper)
+        {
+            source = source.Replace("MissingBodyType value = default; Assert.That(value.Value, Is.Zero);", "Helper.Broken();", StringComparison.Ordinal)
+                + " public static class Helper { public static void Broken() { MissingBodyType value = default; Assert.That(value.Value, Is.Zero); } }";
+        }
+        var image = Emit("BodyTests", source, MetadataReference.CreateFromImage(dependency));
+        // Same assembly identity, but the type compiled into the test's local signature is absent.
+        var path = Path.Combine(temp.Path, "BodyDependency.dll");
+        File.WriteAllBytes(path, Emit("BodyDependency", "public struct Replacement { }"));
+        var run = TestHost.Run([new("BodyTests", false)], new Dictionary<string, byte[]> { ["BodyTests"] = image },
+            new Dictionary<string, string> { ["BodyDependency"] = path }, null, Launch);
+        Assert.Equal(2, run.Discovered);
+        Assert.Empty(run.Crashes);
+        var bad = Assert.Single(run.Cases, c => c.FullName == "Cases.A_bad_body");
+        Assert.Equal(TestCategory.NeedsUnity, bad.Category);
+        Assert.Contains("IL scan", bad.Reason, StringComparison.Ordinal);
+        Assert.Contains(inHelper ? "Helper.Broken" : "Cases.A_bad_body", bad.Reason, StringComparison.Ordinal);
+        Assert.Contains("TypeLoadException", bad.Reason, StringComparison.Ordinal);
+        Assert.Contains("MissingBodyType", bad.Reason, StringComparison.Ordinal);
+        Assert.Equal(TestCategory.Passed, Assert.Single(run.Cases, c => c.FullName == "Cases.Z_after").Category);
+    }
+
+    [Fact]
+    public void A_crash_during_classification_is_an_error_and_resumes_the_next_case()
+    {
+        var image = Emit("ResumeTests", "using NUnit.Framework; public class Cases { [Test] public void A_scan() {} [Test] public void Z_after() {} }");
+        var launches = 0;
+        var run = TestHost.Run([new("ResumeTests", false)], new Dictionary<string, byte[]> { ["ResumeTests"] = image },
+            new Dictionary<string, string>(), null, args =>
+            {
+                launches++;
+                if (launches != 1) return Launch(args);
+                using var request = JsonDocument.Parse(File.ReadAllText(args[0]));
+                var cases = new[] { "Cases.A_scan", "Cases.Z_after" }.Select(n => new TestCaseResult("ResumeTests", "Cases", n, TestCategory.Skipped, "")).ToArray();
+                var lines = cases.Select(c => JsonSerializer.Serialize(new { Event = "discovered", Case = c })).ToList();
+                lines.Add(JsonSerializer.Serialize(new { Event = "scanning", Case = cases[0] }));
+                File.WriteAllLines(request.RootElement.GetProperty("Results").GetString()!, lines);
+                return (1, "Unhandled exception. System.TypeLoadException: synthetic scan crash\n   at UnityEngine.Synthetic.Frame()");
+            });
+        Assert.Equal(2, launches);
+        Assert.Equal(2, run.Discovered);
+        Assert.Equal(TestCategory.Failed, run.Cases[0].Category);
+        Assert.Equal(TestCategory.Passed, run.Cases[1].Category);
+        Assert.Equal("Cases.A_scan", Assert.Single(run.Crashes).During);
+    }
+
+    private static (int Exit, string Error) Launch(IReadOnlyList<string> args)
+    {
+        try { return (TestHost.Serve(args[0]), ""); }
+        catch (Exception e) { return (1, e.ToString()); }
+    }
+
+    private static byte[] Emit(string name, string source, params MetadataReference[] extra)
+    {
+        var references = new[] { "System.Private.CoreLib.dll", "System.Runtime.dll", "netstandard.dll" }
+            .Select(n => MetadataReference.CreateFromFile(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), n)))
+            .Cast<MetadataReference>().Concat([MetadataReference.CreateFromFile(typeof(NUnit.Framework.Assert).Assembly.Location), .. extra]);
+        var compilation = CSharpCompilation.Create(name, [CSharpSyntaxTree.ParseText(source)], references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Debug));
+        using var stream = new MemoryStream();
+        var result = compilation.Emit(stream);
+        Assert.True(result.Success, string.Join("\n", result.Diagnostics));
+        return stream.ToArray();
+    }
+}

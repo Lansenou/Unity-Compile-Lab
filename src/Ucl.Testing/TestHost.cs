@@ -80,8 +80,12 @@ public static class TestHost
                         case "discovered":
                             runDiscovered.Add(entry.Case!);
                             break;
+                        case "scanning":
                         case "started":
                             inFlight = (entry.Case!.Assembly, entry.Case.FullName);
+                            break;
+                        case "scanned":
+                            inFlight = null;
                             break;
                         case "finished":
                             done[NUnitHost.Key(entry.Case!.Assembly, entry.Case.FullName)] = entry.Case;
@@ -192,6 +196,12 @@ public static class TestHost
 
         public void Started(string assembly, string fullName) =>
             Write(new Line("started", new TestCaseResult(assembly, string.Empty, fullName, TestCategory.Skipped, string.Empty)));
+
+        public void Scanning(string assembly, string fullName) =>
+            Write(new Line("scanning", new TestCaseResult(assembly, string.Empty, fullName, TestCategory.Skipped, string.Empty)));
+
+        public void Scanned(string assembly, string fullName) =>
+            Write(new Line("scanned", new TestCaseResult(assembly, string.Empty, fullName, TestCategory.Skipped, string.Empty)));
 
         public void Finished(TestCaseResult testCase) => Write(new Line("finished", testCase));
     }

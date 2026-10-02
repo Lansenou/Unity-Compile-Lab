@@ -8,6 +8,12 @@ public interface ITestEvents
     /// <summary>A case NUnit discovered (its category is not meaningful yet).</summary>
     void Discovered(TestCaseResult testCase);
 
+    /// <summary>A selected case is about to be inspected for Unity-only IL patterns.</summary>
+    void Scanning(string assembly, string fullName) { }
+
+    /// <summary>Inspection completed; the case may still be awaiting execution.</summary>
+    void Scanned(string assembly, string fullName) { }
+
     /// <summary>A selected case is about to run.</summary>
     void Started(string assembly, string fullName);
 

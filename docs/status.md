@@ -26,16 +26,26 @@ and automatic release on main.
 A counts-only private rerun is still needed; this fixes the serialization cause, not an unproven
 blanket API-profile-name filter or duplicate-plugin precedence rule.
 
-### Item 2: IL scan load failures and host recovery — open, next session
+### Item 2: IL scan load failures and host recovery — merged in PR 24
 
-`IlScanner.Callees` catches invalid/not-supported bodies, but GetMethodBody does not catch
-TypeLoadException, FileNotFoundException or FileLoadException. Build an original synthetic
-assembly whose method-body type cannot load; first prove the run aborts before the fix. Catch
-load failures per scanned method, report method/type/exception message, and complete all cases.
-Existing TestHost persists results and restarts after an execution-time crash, but scanning
-happens before case-start events: prove a crash during classification can identify its case,
-report it as an error and resume the next case. Preserve existing zero-loss accounting tests.
-No test-host code changed in item 1.
+Original TestHostLoadFailureTests compile a dependency with MissingBodyType, then load an original
+same-identity replacement without it. Before the fix, GetMethodBody throws TypeLoadException,
+the host records a crash and later cases never run. Per-method load failures now include declaring
+type, method, exception type and message in the affected case's needs-unity reason; later cases run.
+Both direct method bodies and helpers reached by the IL walk are covered.
+
+Classification start/end events identify the case if the process dies while scanning. An original
+host-protocol crash fixture proves the replacement host skips the interrupted case and runs the next.
+The existing real child-process finalizer-crash fixture still proves execution-time recovery.
+Interrupted cases now count as failed even with engine frames, and any host crash forces exit 1,
+including a crash before discovery. Red tests covered both earlier successful crash exit paths.
+No external binaries or private sample data were used. Local full gate passes: 623 Core, 75
+Discovery and 300 Integration tests; 211 independent cells; Core coverage 96.84%, overall 91.81%.
+[PR 24](https://github.com/Lansenou/Unity-Compile-Lab/pull/24) merges only after Linux, Windows
+and macOS CI pass, followed by post-merge main CI and the automatic release. Coverage gates unchanged.
+Release smoke checks now expect exit 1 for the host-crash fixture too. The initial macOS CI caught
+that stale expectation; the local smoke check reproduced it and passes after its update.
+A counts-only private rerun remains necessary to confirm the outstanding real-project case count.
 
 ### Item 3: sortable assembly/analyzer/rule timings — open, next session
 
@@ -45,8 +55,7 @@ multiple rule IDs, so never repeat or divide a shared analyzer total as purporte
 Add a sortable breakdown with proven attribution, a deliberately slow analyzer fixture, and a
 short README example; explicitly document any API limitation. No timing code changed in item 1.
 
-Budget stop: finish item 1 with green Linux/Windows/macOS PR and post-merge main CI, then stop.
-Items 2 and 3 remain open as above.
+The earlier budget stop completed item 1. Work resumed on items 2 and 3; each has its own PR.
 
 ## CI follow-up: Windows coverage collection (2026-10-02) — merged in PR 22
 
