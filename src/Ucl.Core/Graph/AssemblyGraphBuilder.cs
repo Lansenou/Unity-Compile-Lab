@@ -139,10 +139,9 @@ public static class AssemblyGraphBuilder
             }
 
             // A package's test assemblies compile only when the package is embedded or listed in "testables".
-            if (entry.IsTestAssembly && entry.PackageName is { } package && packages.TryGetValue(package, out var owner)
-                && owner.Source != "embedded" && !testables.Contains(package))
+            if (IsUntestable(entry, packages, testables))
             {
-                excluded[data.Name] = $"package {package} is not testable: its tests compile only when it is embedded in Packages/ or listed in Packages/manifest.json \"testables\"";
+                excluded[data.Name] = $"package {entry.PackageName} is not testable: its tests compile only when it is embedded in Packages/ or listed in Packages/manifest.json \"testables\"";
                 continue;
             }
 
@@ -198,7 +197,8 @@ public static class AssemblyGraphBuilder
             draft.Dropped.AddRange(gone);
         }
 
-        var plugins = PluginResolver.Resolve(inventory, index, cell, baseDefines, drafts, diagnostics);
+        var untestable = index.Asmdefs.Where(e => IsUntestable(e, packages, testables)).Select(e => e.Data.Name).ToHashSet(StringComparer.Ordinal);
+        var plugins = PluginResolver.Resolve(inventory, index, cell, baseDefines, drafts, untestable, diagnostics);
         var plans = new Dictionary<string, AssemblyPlan>(StringComparer.Ordinal);
         foreach (var draft in drafts.Values)
         {
@@ -222,6 +222,11 @@ public static class AssemblyGraphBuilder
             Problems = problems,
         };
     }
+
+    // A package's test assemblies compile only when the package is embedded or listed in "testables".
+    private static bool IsUntestable(AsmdefEntry entry, Dictionary<string, ResolvedPackage> packages, HashSet<string> testables) =>
+        entry.IsTestAssembly && entry.PackageName is { } package && packages.TryGetValue(package, out var owner)
+            && owner.Source != "embedded" && !testables.Contains(package);
 
     // Unity's immutable package folders (AssetDatabase.TryGetAssetFolderInfo): everything but embedded and local "file:" packages.
     private static bool IsImmutable(ResolvedPackage package) => package.Source is not ("embedded" or "local");
