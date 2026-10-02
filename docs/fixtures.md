@@ -104,3 +104,7 @@ an original stub; importer settings are derived from public Collections 2.6.7.
 `analyzer-slow`: an original analyzer sleeps for 200ms in a compilation callback and reports one warning
 per assembly on a four-assembly dependency chain. AnalyzerTimingTests verifies nonzero callback time,
 per-assembly and summary totals, cache-hit reporting, disabled analyzers and deterministic output.
+AnalyzerPipelineTests configures a temporary signal directory: the root analyzer waits for the leaf's
+generator to start. That test was red with serial analysis and proves dependency progress with one or
+four compile slots without a wall-clock speed assertion. A late-error variant checks cached diagnostics,
+final dependency cascades and that `ucl test` cannot receive failed or blocked speculative images.

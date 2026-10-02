@@ -9,6 +9,11 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Changed
 
+* Dependents compile once an assembly's reference image is emitted, while its analyzers finish in a
+  separate bounded queue. Source generators and compiler errors remain on the emission path. Late
+  analyzer diagnostics are reported and cached, and final dependency failure cascades are preserved.
+  Cache format v3 retains a compiler-valid image even when analysis fails; older entries rebuild once.
+
 * `ucl check --format json --timings` adds `analyzerTimings` (`path`, `analyzer`, `timeMs`) to each assembly
   and to cell/run summaries in `ucl-result/1`. Roslyn's logged callback times are summed per analyzer,
   not wall-clock latency. Cache hits report no current-run analyzer time; cached diagnostics still appear.

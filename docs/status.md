@@ -3,7 +3,7 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
-## Session 8 (2026-10-02): references and analyzer execution (in progress)
+## Session 8 (2026-10-02): references and analyzer execution
 
 Item 4a: fixed in PR 13 (merged after Linux, Windows and macOS CI). Reproduced with `package-plugin-auto-reference` (editor and player), using a synthetic package
 plugin with the importer settings of the public Collections 2.6.7 `System.IO.Hashing.dll`. The existing
@@ -30,15 +30,39 @@ no speculative reference filters were added. Network access is working.
 
 ### Analyzer timing
 
-Implemented `analyzer-slow` and AnalyzerTimingTests: the slow-analyzer JSON test was red before the
+Merged in PR 17 after green Linux, Windows and macOS CI. `analyzer-slow` and AnalyzerTimingTests: the slow-analyzer JSON test was red before the
 change (missing analyzerTimings), then green. `check --format json --timings` reports Roslyn's logged
 callback execution time per analyzer type/DLL on each assembly, and totals in cell and run summaries.
 These cumulative callback times exclude queueing and source generators; they are not wall-clock time.
 Cache hits retain diagnostics but report no current-run analyzer timing. Untimed output stays
 byte-identical. A synthetic suppressor test verifies compiler warnings remain suppressible under the
 tracked analysis API. The internal compiler-diagnostics adapter is excluded from analyzer totals.
-The full gate passes, including coverage and independent verification of 203 cells. PR CI/merge will
-use the same Linux/Windows/macOS gate. Analyzer scheduling off the dependency path is next.
+The full gate passed (Core 611, Discovery 75, Integration 277), including coverage and independent
+verification of 203 cells.
+
+### Analyzer scheduling
+
+Dependents now start after the producer's compiler-valid reference image is emitted. Source generators
+and compiler diagnostics remain before emission. Analyzer completion/timings and cache writes run in a
+separate bounded queue; each queue has at most --jobs assemblies. The runner joins all finalizations
+before returning, preserves the final late-error dependency cascade and excludes failed/blocked images
+from ucl test. Cache v3 retains compiler-valid images for analyzer failures, with checksum verification;
+old v2 entries rebuild once. Cached diagnostics still replay identically.
+
+AnalyzerPipelineTests was red before the change for both one and four compile slots: the root analyzer
+timed out waiting for the leaf's generator. Both cases now pass. A late root error is preserved across
+cold/warm runs and still blocks final dependent results; neither failed nor blocked full images are
+returned, on cold or warm runs. On the same controlled 32-assembly/1,720-file benchmark, three-run median
+cold wall time fell from 27.67s to 9.76s (64.7%), with the same 8,702 diagnostics and identical diagnostic
+hashes in all six runs. Configuration: jobs 4, original 750ms-per-assembly analyzer, stub editor; details
+and reproduction in docs/benchmarks.md. The full gate passes (Core 611, Discovery 75, Integration 282),
+including coverage and independent verification of 203 cells. Suppressed promoted-warning tests protect
+metadata-image behavior and authoritative full-emission errors. R11 passes: cold 8.54s, warm 0.29/0.30s,
+body edit 1.76s, API edit 3.60s, and about 100,000 cached warnings 0.60s. Platform CI gates this merge.
+
+Open after these changes: actual NUnit/editor-extra reference causes, the native runtime module table,
+the general duplicate-plugin precedence rule, and confirmation of the private counts-only rerun.
+No reference parity or private-project speed claim is made for those unproven cases.
 
 ### Item 4b: NUnit references — open after public-rule audit
 
