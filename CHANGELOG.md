@@ -9,6 +9,10 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Changed
 
+* Compiler and analyzer Info diagnostics are no longer reported, and an analyzer whose every diagnostic is Info,
+  Hidden or off at its effective severity is not run, as csc does without `-errorlog` (fixture
+  `analyzer-info-severity`).
+
 * `ucl test` runs the tests in a child test host (the same program, started again). A test that ends the
   process (an engine type's finalizer throwing on the GC thread) no longer loses the run: the completed cases
   are kept, the case in flight is classified from the crash text, a new host runs the rest, and `ucl-test/1`
