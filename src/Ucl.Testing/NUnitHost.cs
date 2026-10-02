@@ -73,7 +73,6 @@ public static class NUnitHost
                     var attributes = assemblyAttributes
                         .Concat(leaf.TypeInfo?.Type is { } type ? AttributeTypes(type.GetCustomAttributesData()) : [])
                         .Concat(method is null ? [] : AttributeTypes(method.GetCustomAttributesData()));
-                    var usesLogAssert = method is not null && IlScanner.Calls(method, TestClassifier.LogAssertType, ScanFailed);
                     TestCaseResult? decided = null;
                     if (TestClassifier.UnityOnlyReason(test.PlayMode, attributes) is { } reason)
                     {
@@ -83,7 +82,7 @@ public static class NUnitHost
                     {
                         decided = Case(test.Name, leaf, TestCategory.Skipped, "[Explicit]: runs only when selected by name");
                     }
-                    else if (usesLogAssert)
+                    else if (method is not null && IlScanner.Calls(method, TestClassifier.LogAssertType, ScanFailed))
                     {
                         decided = Case(test.Name, leaf, TestCategory.NeedsUnity, "LogAssert requires Unity's log scope");
                     }

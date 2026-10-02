@@ -96,6 +96,35 @@ public sealed class TestHostLoadFailureTests
         Assert.Equal(TestCategory.Passed, run.Cases[1].Category);
     }
 
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void Unity_only_cases_do_not_scan_unloadable_method_bodies(bool playMode, bool unityTest)
+    {
+        using var temp = new TempDir();
+        var dependency = Emit("ExcludedBodyDependency", "public struct MissingBodyType { public int Value; }");
+        var source = """
+            using NUnit.Framework;
+            public class Cases {
+                [Test] public void A_bad_body() { MissingBodyType value = default; Assert.AreEqual(0, value.Value); }
+                [Test] public void Z_after() { Assert.AreEqual(1, 1); }
+            }
+            namespace UnityEngine.TestTools { public class UnityTestAttribute : System.Attribute { } }
+            """;
+        if (unityTest) source = source.Replace("[Test] public void A_bad_body", "[Test, UnityEngine.TestTools.UnityTest] public void A_bad_body", StringComparison.Ordinal);
+        var image = Emit("ExcludedBodyTests", source, MetadataReference.CreateFromImage(dependency));
+        var path = Path.Combine(temp.Path, "ExcludedBodyDependency.dll");
+        File.WriteAllBytes(path, Emit("ExcludedBodyDependency", "public struct Replacement { }"));
+        var run = TestHost.Run([new("ExcludedBodyTests", playMode)], new Dictionary<string, byte[]> { ["ExcludedBodyTests"] = image },
+            new Dictionary<string, string> { ["ExcludedBodyDependency"] = path }, null, Launch);
+        Assert.Empty(run.Crashes);
+        Assert.Equal(2, run.Discovered);
+        Assert.Equal(TestCategory.UnityOnly, run.Cases[0].Category);
+        Assert.DoesNotContain("IL scan", run.Cases[0].Reason, StringComparison.Ordinal);
+        Assert.Equal(playMode ? TestCategory.UnityOnly : TestCategory.Passed, run.Cases[1].Category);
+    }
+
     private static (int Exit, string Error) Launch(IReadOnlyList<string> args)
     {
         try { return (TestHost.Serve(args[0]), ""); }
