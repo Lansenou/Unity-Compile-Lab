@@ -1,8 +1,35 @@
 # `ucl test`: EditMode tests without Unity
 
+### What `ucl test` can and cannot run
+
+`ucl test` runs code paths that never call the Unity engine's native side. Creating or using an
+engine object, including through a helper, is `needs-unity` and must run in the Editor.
+PlayMode tests and `[UnityTest]` tests never run here (`unity-only`). Editor log scopes also need Unity.
+
+The share depends on the project: plain C# logic can run most tests; tests that build GameObjects,
+textures or meshes may run few. Run `ucl test` once and read its summary counts before relying on it.
+Examples below name members, not whole types; the audit checks Unity 6000.3 C# bodies and native bindings.
+
+| Runs under `ucl test` (managed code paths) | Needs Unity (native bindings or Editor log scope) |
+|---|---|
+| Plain C# / `System.*`: collections, LINQ, `Span<T>`, JSON, your classes, with their required references | Creating/using `GameObject`, `Component`, `MonoBehaviour`, `Transform` |
+| Vector2/3/4 arithmetic; Vector3 `Distance`, `Dot`, `Cross`, `Lerp` | `ScriptableObject.CreateInstance`, `Object.Instantiate` / `Destroy` |
+| Mathf `Clamp`, `Lerp`, `Approximately`, `Sin`, `ClosestPowerOfTwo` | Mathf `PerlinNoise`, gamma/linear color-space conversions |
+| Color/Color32 constructors; Color arithmetic; Rect/RectInt value operations; Bounds construction / `Intersects` | Texture2D, RenderTexture, Mesh, Material, Shader, Sprite creation/use; Bounds `Contains` / `ClosestPoint` / `SqrDistance` |
+| Quaternion `identity`, quaternion times vector | Quaternion `Euler`, `LookRotation`, `Slerp`, `Inverse`, `AngleAxis` |
+| Matrix4x4 multiply, `MultiplyPoint3x4` | Matrix4x4 `TRS`, `inverse`, `Perspective` |
+| Attributes (`SerializeField`, `Range`), enums, plain structs | `Debug.Log*`, `LogAssert`, Application / Time engine properties, `Resources.Load` |
+| | AssetDatabase, EditorPrefs, EditorUtility engine operations |
+| | NativeArray / UnsafeUtility allocation, Jobs scheduling, Burst compilation, Physics / Camera / Graphics engine operations |
+
+Keep logic in classes that take plain values, and keep engine calls at the edge. Tests of that
+logic can run in seconds without the Editor.
+The original `test-editmode` fixture reports **45 cases: 25 passed, 1 failed (intentional),
+2 skipped, 1 ignored, 11 needs-unity, 5 unity-only**; these counts are not a project estimate.
+See the [API source audit](test-api-source-audit.md) and its original stub-editor cases for each table row.
+
 `ucl test [<project>]` compiles a project's test assemblies the way the Editor does, runs every NUnit case that
-needs no live engine under .NET (CoreCLR), and says exactly which cases need Unity and why. Most EditMode
-suites have a large engine-free share; those cases run in seconds, without starting the Editor.
+needs no live engine under .NET (CoreCLR), and says exactly which cases need Unity and why. The runnable share depends on the project; the summary gives its actual counts.
 
 ```sh
 ucl test path/to/Project                                   # text: counts per assembly, every case that did not pass
@@ -176,7 +203,7 @@ differences that change outcomes:
 | `string.GetHashCode()` | randomised per process | stable across runs | none (do not assert hash values) |
 | Reflection write to an initialized readonly static field | `FieldAccessException`: CoreCLR prohibits this since .NET Core 3.0; the specific initonly-static exception becomes `needs-unity`, with a runtime-divergence reason | rerun in the Editor; no readonly-field emulation | `TestHostLoadFailureTests.Readonly_static_reflection_is_a_runtime_divergence_and_later_cases_run` |
 | Allocation probe interrupted by GC | different collector and allocation behavior can invalidate a probe; a generic allocation assertion is not proof of a runtime divergence | rerun under the Editor's runtime | sanitized exception/invalid-probe signal still needed; never treat such a measurement as a portability oracle |
-| Culture | `CultureInfo.CurrentCulture` from the machine (or invariant with `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT`), ICU data on Linux and macOS | the machine's culture, Mono's own data | none; use `InvariantCulture` in tests |
+| Culture | full named cultures; `CultureInfo.CurrentCulture` from the machine, ICU data on Linux and macOS | the machine's culture, Mono's own data | none; use `InvariantCulture` in tests |
 | `Dictionary<,>` enumeration order | insertion order until a removal; a removed slot is reused by the next insert | the same algorithm (reference source) | none: not a divergence in practice, but order is unspecified in both |
 | Floating-point arithmetic | SSE2/AVX, IEEE 754 per operation | Mono JIT, also SSE2 on x64 | none known |
 
@@ -191,7 +218,8 @@ the risk described above, kept visible on purpose.
 
 ## Benchmark
 
-`scripts/bench-test.sh` times `ucl test` on fixture `test-editmode` (6 assemblies, 31 cases) against
+The recorded `scripts/bench-test.sh` run used the earlier `test-editmode` fixture (6 assemblies,
+31 cases, before the API-scope cases were added), comparing `ucl test` against
 `dotnet test` on an equivalent hand-written csproj (the same sources and stub engine DLLs in one net10.0 test
 project with NUnit 3.14.0 and NUnit3TestAdapter 4.6.0). 4 cores, Linux, .NET 10.0.401, 2026-10-02:
 

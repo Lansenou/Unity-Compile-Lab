@@ -28,6 +28,9 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Changed
 
+* Put the member-specific scope of ucl test upfront in the README and test docs, with public
+  source links and actual original stub-editor fixture counts.
+
 * `ucl test` needs-unity reasons include the first UnityEngine/UnityEditor member from the runtime
   exception stack. `ucl-test/1` adds nullable per-case `engineMember` and top-20 summary
   `needsUnityByMember`; text reports the same count ranking. Missing frames remain explicitly unknown.
