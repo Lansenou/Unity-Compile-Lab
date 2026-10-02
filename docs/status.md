@@ -10,12 +10,13 @@ Counts-only PR 24 rerun: 5943 discovered; reported categories 3057 passed, 2104 
 not supplied, so no skipped/ignored split is inferred. Of needs-unity reasons, 1233 reported only
 the ECall SecurityException message. No private project/type names or paths are recorded here.
 
-Member attribution is implemented in PR 27 (merge requires all three OS checks): take the first UnityEngine/UnityEditor exception frame,
+Member attribution is merged in PR 27 after green Linux, Windows and macOS CI: take the first UnityEngine/UnityEditor exception frame,
 include it in the reason and nullable engineMember JSON field, and rank top-20 counts in text/JSON.
 The original engine stub proves attribution through a project helper; unknown frames
 stay unknown. Working directory is fixed in PR 28: an original relative Assets file-read fixture fails from
 the temporary directory before the fix and passes from the project root afterward. The parent
-directory stays unchanged; restarts use the same launcher. Full cultures (3), missing log scope (10),
+directory stays unchanged; restarts use the same launcher. Full cultures are enabled in PR 29: the original de-DE culture fixture fails with
+CultureNotFoundException in invariant mode before the fix and passes afterward. Missing log scope (10),
 readonly-static reflection (1) and allocation-window GC differences (4) are next, each with a red
 fixture first. A reported group of 25 static-constructor failures has no proven cause; do not guess.
 

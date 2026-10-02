@@ -151,6 +151,10 @@ Check the first time that the Editor's filter syntax treats a list of negated pa
 tests. Divergence-sensitive classes (next section) must not be skipped: put such tests in a class with a
 Unity-only marker, or keep them out of the filter by hand.
 
+The CLI/test-host executable uses full globalization, so named cultures such as `de-DE` are
+available. Linux requires ICU; a machine missing its globalization data cannot run the host.
+Report formatting remains explicitly invariant.
+
 The test host runs with the project root as its working directory, including after a restart.
 Relative `Assets/...` paths resolve within that project; the parent process directory is unchanged.
 

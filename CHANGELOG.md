@@ -9,6 +9,8 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Fixed
 
+* Enable full globalization in the CLI/test host so named cultures do not produce false test failures.
+
 * `ucl test` starts each host in the project root so relative asset paths resolve as in EditMode.
 
 * `ucl test` records IL-scan load failures as needs-unity with the affected method and continues. A crash during
