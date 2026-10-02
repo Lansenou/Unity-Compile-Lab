@@ -7,6 +7,8 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ## [Unreleased]
 
+## [0.8.0]
+
 Session 4: the 0.7.0 private rerun (docs/real-project-fixes.md, "Session 4").
 
 ### Added

@@ -3,7 +3,7 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
-## Session 4 (2026-10-02): the 0.7.0 private rerun, toward `0.8.0` (in progress)
+## Session 4 (2026-10-02): the 0.7.0 private rerun, `0.8.0`
 
 Input: counts from the 0.7.0 rerun (docs/real-project-fixes.md, "Session 4"). Each item gets a synthetic
 fixture that is red on 0.7.0, then the fix, one commit each.
@@ -18,6 +18,21 @@ fixture that is red on 0.7.0, then the fix, one commit each.
 | 6 speed (analyzer reach) | R11 bench with a global noisy analyzer | improved, not closed: analyzers shared per run, one diagnostic pass (cold 12.3 s to 11.6 s); the 637 s is not reproduced, analyzer cost is linear here. Next: the cold time with `--analyzers off` from the private run |
 
 Unverified: everything against the real editor; the private rerun reports the counts.
+
+Gate (2026-10-02, Linux): `scripts/check.sh`: Core 602, Discovery 75, Integration 261 tests; 73 fixtures, 190
+cells; verify 190 cells agree; benchmark (now with a noisy global analyzer) cold 11.59 s, warm 0.56 s, body
+edit 2.57 s, API edit 5.65 s (targets 60 / 3 / 10 / 10). CI green on Linux, Windows, macOS for each item
+commit (runs 30-35).
+
+Tag (refused from this session; the maintainer runs it on the version commit):
+
+```sh
+git tag -a v0.8.0 <version-commit> -m v0.8.0 && git push origin v0.8.0
+```
+
+Maintainer rerun: docs/real-project-checklist.md, "Private project: counts only", plus the cold player time
+with `--analyzers off`. Open: item 6 (637 s first player run) is not reproduced; E08/E17 version bounds come from
+one private run; D61 and E16 are ucl rules, not read from Unity source.
 
 ## Session 3 (2026-10-02): real-project compile parity, `0.7.0`
 
