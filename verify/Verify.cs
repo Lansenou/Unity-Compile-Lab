@@ -347,6 +347,7 @@ internal static class Planner
             var d = new HashSet<string>(global, StringComparer.Ordinal);
             d.UnionWith(Profile(a is null ? editorPredefined : a.Include is ["Editor"]));
             if (a is null) { d.UnionWith(globalRsp); return d; }
+            if (a.Constraints.Contains("UNITY_TESTS_FRAMEWORK") && global.Contains("UNITY_INCLUDE_TESTS")) d.Add("UNITY_TESTS_FRAMEWORK"); // D61
             d.UnionWith(files.ContainsKey(a.Dir + "/csc.rsp") ? Rsp(a.Dir + "/csc.rsp") : globalRsp);
             foreach (var (res, expr, define) in a.VersionDefines) // D53
             {

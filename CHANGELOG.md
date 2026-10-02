@@ -9,6 +9,10 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Changed
 
+* A test framework assembly (its `defineConstraints` has `UNITY_TESTS_FRAMEWORK`) gets the symbol `UNITY_TESTS_FRAMEWORK`
+  in the Editor when the test framework is installed (row D61), so the released `Unity.InputSystem.TestFramework`,
+  which has no versionDefines, compiles again. No other assembly gets it.
+
 * Compiler and analyzer Info diagnostics are no longer reported, and an analyzer whose every diagnostic is Info,
   Hidden or off at its effective severity is not run, as csc does without `-errorlog` (fixture
   `analyzer-info-severity`).
