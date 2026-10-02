@@ -167,6 +167,10 @@ public sealed class TestCommandTests
         Assert.Equal("Game.Tests.RenderTests.C_pooled_command_buffer", crash.GetProperty("after").GetString());
         Assert.Equal("Game.Tests.RenderTests.D_collects_garbage", crash.GetProperty("during").GetString());
         Assert.Contains("at UnityEngine.Rendering.CommandBuffer.Finalize()", crash.GetProperty("text").GetString(), StringComparison.Ordinal);
+        using var json = JsonDocument.Parse(stdout);
+        var prescanned = Assert.Single(json.RootElement.GetProperty("cases").EnumerateArray(),
+            c => c.GetProperty("name").GetString() == "Game.Tests.RenderTests.B_creates_a_command_buffer");
+        Assert.Equal("UnityEngine.Rendering.CommandBuffer..ctor (finalizer prescan)", prescanned.GetProperty("engineMember").GetString());
 
         var text = Test(env, project).Stdout;
         Assert.Contains("test host crashed after Game.Tests.RenderTests.C_pooled_command_buffer", text, StringComparison.Ordinal);
