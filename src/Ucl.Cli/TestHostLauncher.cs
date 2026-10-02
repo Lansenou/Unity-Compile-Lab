@@ -9,11 +9,11 @@ namespace Ucl.Cli;
 /// </summary>
 internal static class TestHostLauncher
 {
-    public static (int Exit, string Error) Launch(IReadOnlyList<string> arguments)
+    public static (int Exit, string Error) Launch(IReadOnlyList<string> arguments, string projectRoot)
     {
         var (program, prefix) = Program();
         var result = new SystemProcessRunner()
-            .RunAsync(program, [.. prefix, TestHost.Command, .. arguments], Path.GetTempPath())
+            .RunAsync(program, [.. prefix, TestHost.Command, .. arguments], projectRoot)
             .GetAwaiter().GetResult();
         return result.Started ? (result.ExitCode, result.Stderr) : (-1, $"the test host did not start ({program}): {result.Stderr}");
     }

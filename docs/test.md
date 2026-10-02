@@ -151,6 +151,9 @@ Check the first time that the Editor's filter syntax treats a list of negated pa
 tests. Divergence-sensitive classes (next section) must not be skipped: put such tests in a class with a
 Unity-only marker, or keep them out of the filter by hand.
 
+The test host runs with the project root as its working directory, including after a restart.
+Relative `Assets/...` paths resolve within that project; the parent process directory is unchanged.
+
 ## Divergences: CoreCLR versus Mono
 
 `ucl test` runs on CoreCLR; the Editor runs tests on Mono with Unity's .NET Framework 4.8 class library. Known

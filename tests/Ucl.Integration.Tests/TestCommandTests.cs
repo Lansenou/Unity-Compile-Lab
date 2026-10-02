@@ -211,4 +211,24 @@ public sealed class TestCommandTests
         Assert.Equal(6, ranks[^1].GetProperty("cases").GetInt32());
     }
 
+    [Fact]
+    public void Relative_asset_paths_resolve_from_the_project_root()
+    {
+        using var temp = new TempDir();
+        var (project, env, _) = Setup(temp);
+        File.WriteAllText(Path.Combine(project, "Assets", "relative-probe.txt"), "project asset");
+        File.WriteAllText(Path.Combine(project, "Assets", "Tests", "EditMode", "RelativePathTests.cs"), """
+            using NUnit.Framework;
+            public class RelativePathTests
+            {
+                [Test] public void Reads_asset() => Assert.AreEqual("project asset", System.IO.File.ReadAllText("Assets/relative-probe.txt"));
+            }
+            """);
+        var parentDirectory = Directory.GetCurrentDirectory();
+        var (exit, stdout, stderr) = Test(env, project, "--format", "json", "--filter", "RelativePathTests");
+        Assert.True(exit == 0, stdout + stderr);
+        Assert.Equal("passed", Assert.Single(JsonDocument.Parse(stdout).RootElement.GetProperty("cases").EnumerateArray()).GetProperty("category").GetString());
+        Assert.Equal(parentDirectory, Directory.GetCurrentDirectory());
+    }
+
 }

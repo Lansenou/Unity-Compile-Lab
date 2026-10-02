@@ -96,7 +96,7 @@ internal static class TestCommand
             images,
             files,
             options.Filter,
-            TestHostLauncher.Launch);
+            arguments => TestHostLauncher.Launch(arguments, session.ProjectRoot));
         return report with { Cases = run.Cases, HostCrashes = run.Crashes };
     }
 
