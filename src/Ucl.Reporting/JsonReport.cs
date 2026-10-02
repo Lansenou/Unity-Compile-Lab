@@ -51,7 +51,8 @@ public static class JsonReport
         if (timings is not null)
         {
             WriteAnalyzerTimings(w, timings.GroupBy(t => (t.Path, t.Analyzer))
-                .Select(g => new AnalyzerTiming(g.Key.Path, g.Key.Analyzer, g.Sum(t => t.TimeMs))));
+                .Select(g => new AnalyzerTiming(g.Key.Path, g.Key.Analyzer, g.Sum(t => t.TimeMs))
+                { RuleIds = g.SelectMany(t => t.RuleIds).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray() }));
         }
         w.WriteEndObject();
     }
@@ -163,6 +164,8 @@ public static class JsonReport
             w.WriteStartObject();
             w.WriteString("path", timing.Path);
             w.WriteString("analyzer", timing.Analyzer);
+            Strings(w, "ruleIds", timing.RuleIds);
+            w.WriteString("timeScope", "analyzer");
             w.WriteNumber("timeMs", timing.TimeMs);
             w.WriteEndObject();
         }

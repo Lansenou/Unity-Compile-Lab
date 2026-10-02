@@ -18,6 +18,10 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Changed
 
+* Analyzer timing JSON adds supported `ruleIds` and `timeScope: "analyzer"` to assembly and summary
+  entries. Text timings show a descending-time assembly/analyzer/rule-ID table; README shows sortable
+  CSV export. Rules share their analyzer's measured time; no individual rule costs are inferred.
+
 * Dependents compile once an assembly's reference image is emitted, while its analyzers finish in a
   separate bounded queue. Source generators and compiler errors remain on the emission path. Late
   analyzer diagnostics are reported and cached, and final dependency failure cascades are preserved.

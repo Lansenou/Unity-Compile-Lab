@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using Ucl.Core.Model;
 using Ucl.Core.Results;
@@ -61,6 +62,20 @@ public static class TextReport
                 foreach (var a in cell.Assemblies)
                 {
                     sb.Append("time ").Append(a.Name).Append(": ").Append(a.ElapsedMs).Append(" ms").Append(a.Cached ? " (cached)" : string.Empty).Append('\n');
+                }
+                var rows = cell.Assemblies.SelectMany(a => a.AnalyzerTimings.Select(t => (Assembly: a.Name, Timing: t)))
+                    .OrderByDescending(r => r.Timing.TimeMs).ThenBy(r => r.Assembly, StringComparer.Ordinal)
+                    .ThenBy(r => r.Timing.Analyzer, StringComparer.Ordinal).ThenBy(r => r.Timing.Path, StringComparer.Ordinal).ToArray();
+                if (rows.Length > 0)
+                {
+                    sb.Append("analyzer callback times (cumulative; each rule list shares one total):\n")
+                        .Append("assembly\tanalyzer\trule IDs (shared time)\ttimeMs\n");
+                    foreach (var row in rows)
+                    {
+                        sb.Append(row.Assembly).Append('\t').Append(row.Timing.Analyzer).Append('\t')
+                            .Append(string.Join(",", row.Timing.RuleIds)).Append('\t')
+                            .Append(row.Timing.TimeMs.ToString("F3", CultureInfo.InvariantCulture)).Append('\n');
+                    }
                 }
             }
 

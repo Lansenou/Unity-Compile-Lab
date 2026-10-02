@@ -83,7 +83,13 @@ internal static class AnalyzerHost
         {
             var analysis = await withAnalyzers.GetAnalysisResultAsync(CancellationToken.None).ConfigureAwait(false);
             var timings = running.Select(analyzer => new AnalyzerTiming(displays[analyzer], analyzer.GetType().FullName ?? analyzer.GetType().Name,
-                analysis.AnalyzerTelemetryInfo[analyzer].ExecutionTime.TotalMilliseconds)).ToList();
+                analysis.AnalyzerTelemetryInfo[analyzer].ExecutionTime.TotalMilliseconds)
+            {
+                RuleIds = (analyzer is DiagnosticSuppressor suppressor
+                    ? suppressor.SupportedSuppressions.Select(s => s.SuppressedDiagnosticId)
+                    : analyzer.SupportedDiagnostics.Select(d => d.Id))
+                    .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
+            }).ToList();
             var diagnostics = analysis.GetAllDiagnostics()
                 .Select(d => (d, ids.Contains(d.Id) && !d.Id.StartsWith("CS", StringComparison.Ordinal) ? DiagnosticOrigin.Analyzer : DiagnosticOrigin.Compiler)).ToList();
             return new AnalysisBatch(diagnostics, timings);
