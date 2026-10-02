@@ -441,10 +441,11 @@ internal static class Planner
         var metaKey = cell.Editor ? "Editor" : plat.Meta;
         var pluginDefines = new HashSet<string>(global.Concat(Profile(false)), StringComparer.Ordinal); // the group's profile
         // One DLL per file name: the highest assembly version, then the first path.
-        // A DLL under a package test assembly that is not testable is no candidate at all.
+        // The observed untestable-package preference applies only to duplicate copies, never a unique auto-reference plugin.
+        var duplicateNames = plugins.GroupBy(p => Path.GetFileName(p.Path)).Where(g => g.Count() > 1).Select(g => g.Key).ToHashSet();
         var untestable = asmdefs.Where(a => a.Constraints.Contains("UNITY_INCLUDE_TESTS") && !Testable(a)).Select(a => a.Name).ToHashSet();
         var usable = plugins.Where(p => !p.Analyzer && p.EnabledFor(metaKey) && Holds(p.Constraints, pluginDefines))
-            .Where(p => OwnerOf(p.Path, folderOwner, out var owned) is not { } owner || !owned || !untestable.Contains(owner))
+            .Where(p => !duplicateNames.Contains(Path.GetFileName(p.Path)) || OwnerOf(p.Path, folderOwner, out var owned) is not { } owner || !owned || !untestable.Contains(owner))
             .GroupBy(p => Path.GetFileName(p.Path))
             .Select(g => g.OrderByDescending(p => System.Reflection.AssemblyName.GetAssemblyName(files[p.Path]).Version).ThenBy(p => p.Path, StringComparer.Ordinal).First())
             .ToList();
