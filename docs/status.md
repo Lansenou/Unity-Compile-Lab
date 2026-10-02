@@ -12,7 +12,7 @@ with a fixture that is red on 0.8.0.
 |---|---|---|
 | 1 analyzer cost on package assemblies | `analyzer-immutable-package` | fixed: immutable package assemblies report only errors and skip analyzers that cannot report one; the analyzer scope itself was already right (bee-diff: no analyzer differences) |
 | 2 editor engine module set | | next |
-| 3 `UNITY_TESTS_FRAMEWORK` (D61) | | open |
+| 3 `UNITY_TESTS_FRAMEWORK` (D61) | `tests-framework-symbol` (corrected) | fixed: D61 removed; the assembly gets the symbol from its own versionDefines (public `Unity.InputSystem.TestFramework` asmdef) |
 | 4 same-name DLL from an untestable package's tests | `plugin-untestable-tests` | fixed: such a DLL is no candidate ([REAL] rule) |
 
 Unverified: the player speed gain on the real project (maintainer rerun).

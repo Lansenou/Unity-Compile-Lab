@@ -92,7 +92,8 @@ Nothing is compiled or written. Details: [oracle.md](oracle.md#bee-oracle-ucl-be
   (UnityCsReference `CustomScriptAssemblyWithLegacyData`).
 * **Cell membership.** An asmdef is compiled in a cell when its platforms match (editor target: the
   `Editor` platform only; player target: the build platform; see [platforms.md](platforms.md)) and its
-  `defineConstraints` hold against the cell's defines. A test assembly (`defineConstraints` has the entry
+  `defineConstraints` hold against the assembly's own defines: the cell's defines plus its versionDefines
+  (UnityCsReference `EditorCompilation.GetTargetAssemblyDefines`; fixture `tests-framework-symbol`). A test assembly (`defineConstraints` has the entry
   `UNITY_INCLUDE_TESTS`) or a test framework assembly (the entry `UNITY_TESTS_FRAMEWORK`) is left out of a
   player unless `--include-tests`. A test assembly in a package compiles only when the package is embedded
   in `Packages/` or listed in `Packages/manifest.json` `testables` (UnityCsReference

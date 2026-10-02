@@ -9,6 +9,8 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Changed
 
+* `UNITY_TESTS_FRAMEWORK` is no longer a compiler define (row D61 removed, a 0.8.0 mistake). Test framework
+  assemblies declare it through their own versionDefines, which their defineConstraints see.
 * A DLL inside the folder of a package test assembly that is not testable is no longer a precompiled
   candidate, so it cannot shadow a same-name copy (fixture `plugin-untestable-tests`).
 
