@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "com.example.cached": {
+      "version": "1.0.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {}
+    }
+  }
+}

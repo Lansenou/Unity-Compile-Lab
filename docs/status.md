@@ -3,6 +3,32 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
+## Session 8 (2026-10-02): remaining references (in progress)
+
+Item 4a: reproduced with `package-plugin-auto-reference` (editor and player), using a synthetic package
+plugin with the importer settings of the public Collections 2.6.7 `System.IO.Hashing.dll`. The existing
+untestable-package filter wrongly removed unique DLLs along with duplicate copies. Narrowed that filter
+to duplicate file names; a unique managed plugin is now selected from its own Auto Reference, platform
+and define-constraint settings, independently of whether the containing package test asmdef compiles.
+Validate References checks dependencies, not compiler visibility. The package test assembly remains
+excluded. Existing duplicate-copy behavior is retained; its general precedence rule remains an open
+question rather than being inferred from this fix.
+
+Sources: [Unity 6.3 plugin inspector](https://docs.unity3d.com/6000.3/Documentation/Manual/plug-in-inspector.html),
+[public Collections 2.6.7 importer](https://github.com/needle-mirror/com.unity.collections/blob/2.6.7/Unity.Collections.Tests/System.IO.Hashing/System.IO.Hashing.dll.meta),
+and [UnityCsReference 6000.3](https://github.com/Unity-Technologies/UnityCsReference/tree/2f6cef60096cf50741d933becf101bf3186719dd)
+(`EditorBuildRules.AddScriptAssemblyReferences` and `GetPrecompiledReferences`). No package implementation
+or Unity binary was copied. Before the fix: the new Core test failed with an empty plugin reference set,
+and both fixture cells failed with missing `System.IO.Hashing` compile errors. After the fix: Core 611, Discovery 75, Integration 274 tests pass;
+`scripts/check.sh` passes with coverage gates and independent verification of 202 cells. PR merge is
+gated on green Linux, Windows and macOS CI. Whether the private reference difference is fully resolved
+requires the maintainer's counts-only rerun.
+
+Still open, in order: item 4b (NUnit references), 4c (Graphs/platform extension scope), 4d (runtime engine
+module exclusions), per-analyzer timing, and analyzer execution off the dependency path. No speculative
+rule changes have been made for these items. Network access to the public manual and GitHub API now
+works; the earlier infrastructure blocker is resolved.
+
 ## Session 7 (2026-10-02): the v0.8.50 private rerun
 
 | Item | Fixture | State |

@@ -218,4 +218,21 @@ public class GraphPluginTests
             .Player(BuildPlatform.WebGL);
         Assert.Equal(["Packages/com.foo/Plugins/Foo.Native.dll"], g.Find("Assembly-CSharp")!.PrecompiledReferences);
     }
+
+    [Fact]
+    public void Unique_auto_referenced_package_plugin_is_independent_of_package_testability()
+    {
+        const string dll = "Packages/com.example.cached/Tests/Plugins/System.IO.Hashing.dll";
+        var g = new InventoryBuilder()
+            .Package("com.example.cached", "1.0.0")
+            .Asmdef("Packages/com.example.cached/Tests/Cached.Tests.asmdef", "Cached.Tests",
+                "\"defineConstraints\": [\"UNITY_INCLUDE_TESTS\"]")
+            .Plugin(dll, Metas.Plugin(Metas.AnyPlatformData()))
+            .Asmdef("Assets/Game/Game.asmdef", "Game")
+            .Scripts("Packages/com.example.cached/Tests/T.cs", "Assets/A.cs", "Assets/Game/G.cs")
+            .Editor();
+        Assert.Equal([dll], g.Find("Assembly-CSharp")!.PrecompiledReferences);
+        Assert.Equal([dll], g.Find("Game")!.PrecompiledReferences);
+        Assert.Null(g.Find("Cached.Tests"));
+    }
 }

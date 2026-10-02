@@ -1,0 +1,7 @@
+{
+  "name": "Cached.Tests",
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "autoReferenced": false
+}

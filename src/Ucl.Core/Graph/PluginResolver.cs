@@ -27,6 +27,8 @@ internal static class PluginResolver
             .Select(p => (p.Path, Meta: p.MetaText is null ? null : MetaParser.Parse(p.MetaText)))
             .ToList();
 
+        var duplicateNames = all.GroupBy(p => ProjectPaths.FileName(p.Path), StringComparer.Ordinal)
+            .Where(g => g.Count() > 1).Select(g => g.Key).ToHashSet(StringComparer.Ordinal);
         var candidates = new List<(string Path, bool Auto)>();
         foreach (var (path, meta) in all)
         {
@@ -36,9 +38,9 @@ internal static class PluginResolver
                 continue;
             }
 
-            // A DLL inside the folder of a package test assembly that is not testable is no candidate at all, so it cannot shadow a
-            // same-name copy elsewhere ([REAL]: the Editor took the org.nuget copy over the one beside com.unity.collections' tests).
-            if (index.OwnerOf(path) is { } owner && untestable.Contains(owner))
+            // Preserve the observed duplicate-copy preference only when another copy exists. A unique plugin's Auto Reference
+            // is independent of its containing test asmdef's testability (public Collections System.IO.Hashing importer).
+            if (duplicateNames.Contains(ProjectPaths.FileName(path)) && index.OwnerOf(path) is { } owner && untestable.Contains(owner))
             {
                 continue;
             }

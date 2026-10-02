@@ -116,7 +116,12 @@ Nothing is compiled or written. Details: [oracle.md](oracle.md#bee-oracle-ucl-be
   share a name `ucl` keeps the highest assembly version, then the first path, and reports each copy left
   out as `UCL1005` (info). Which copy wins is observed, not read from source: on the maintainer's project
   the Editor passed only the newest `System.Runtime.CompilerServices.Unsafe.dll` of three (fixture
-  `plugin-same-name`). A DLL inside the folder of a package test assembly that is not compiled because
+  `plugin-same-name`). A unique package DLL is selected from its own importer settings even below an
+  untestable package test asmdef: testables controls test source assemblies, not plugin Auto Reference
+  ([Unity 6 plugin inspector](https://docs.unity3d.com/6000.3/Documentation/Manual/plug-in-inspector.html);
+  [Collections 2.6.7 importer](https://github.com/needle-mirror/com.unity.collections/blob/2.6.7/Unity.Collections.Tests/System.IO.Hashing/System.IO.Hashing.dll.meta)).
+  Validate References checks the plugin's dependencies; it is not an Auto Reference switch.
+  For duplicate file names only, a DLL inside the folder of a package test assembly that is not compiled because
   the package is not testable (neither embedded nor in `testables`) is no candidate, so it cannot win
   over a same-name copy elsewhere ([REAL]: the Editor referenced the `org.nuget` copy of
   `System.Runtime.CompilerServices.Unsafe.dll`, not the one beside `com.unity.collections`' tests;

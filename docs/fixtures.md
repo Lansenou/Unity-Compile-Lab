@@ -96,3 +96,7 @@ Every cell starts as `oracle: pending`; see [oracle.md](oracle.md).
 | 74 | `analyzer-immutable-package` | session 6, item 1: assemblies of immutable packages report no warnings (compiler or analyzer); embedded packages and Assets keep them | R8 |
 | 75 | `plugin-untestable-tests` | session 6, item 4: a DLL beside an untestable package test assembly is no precompiled candidate, so the same-version `org.nuget` copy is referenced | R4 |
 | 76 | `editor-only-disabled-modules` | session 6, item 2: editor-only assemblies of an editor cell reference disabled built-in modules too | R4 |
+
+`package-plugin-auto-reference`: a unique Auto Reference DLL below an untestable registry package test
+asmdef is still referenced by predefined and asmdef assemblies (editor and player). The plugin API is
+an original stub; importer settings are derived from public Collections 2.6.7.
