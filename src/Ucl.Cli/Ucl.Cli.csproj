@@ -14,6 +14,7 @@
     <ProjectReference Include="../Ucl.Discovery/Ucl.Discovery.csproj" />
     <ProjectReference Include="../Ucl.Compilation/Ucl.Compilation.csproj" />
     <ProjectReference Include="../Ucl.Reporting/Ucl.Reporting.csproj" />
+    <ProjectReference Include="../Ucl.Testing/Ucl.Testing.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="../../README.md" Pack="true" PackagePath="/" Condition="Exists('../../README.md')" />

@@ -7,6 +7,9 @@ namespace Ucl.Core.Graph;
 /// <summary>Applies plugin import settings: which DLLs each assembly references, and which analyzers run on it.</summary>
 internal static class PluginResolver
 {
+    /// <summary>The NUnit DLL of the <c>com.unity.ext.nunit</c> package.</summary>
+    public const string NUnitFramework = "nunit.framework.dll";
+
     public static PluginResolution Resolve(
         ProjectInventory inventory,
         DefinitionIndex index,
@@ -67,6 +70,15 @@ internal static class PluginResolver
             else
             {
                 references[draft.Name].AddRange(compatible.Where(c => c.Auto).Select(c => c.Path));
+            }
+
+            // Legacy test assemblies also get nunit.framework.dll, Auto Reference or not (UnityCsReference
+            // EditorBuildRules.AddTestRunnerPrecompiledReferences).
+            if (draft.Entry?.IsTestAssembly == true)
+            {
+                references[draft.Name].AddRange(compatible
+                    .Where(c => ProjectPaths.FileName(c.Path).Equals(NUnitFramework, StringComparison.OrdinalIgnoreCase) && !references[draft.Name].Contains(c.Path))
+                    .Select(c => c.Path));
             }
         }
 

@@ -6,6 +6,9 @@ namespace Ucl.Core.Graph;
 /// <summary>Fills <see cref="Draft.References"/>: asmdef references by name or GUID, and the predefined assemblies' implicit references.</summary>
 internal static class ReferenceResolver
 {
+    /// <summary>The Unity Test Framework's assemblies that a legacy test assembly references implicitly.</summary>
+    public static readonly string[] TestRunnerAssemblies = ["UnityEngine.TestRunner", "UnityEditor.TestRunner"];
+
     public static void Resolve(DefinitionIndex index, Dictionary<string, Draft> drafts, List<Diagnostic> diagnostics)
     {
         foreach (var draft in drafts.Values.Where(d => d.Entry is not null).OrderBy(d => d.Name, StringComparer.Ordinal))
@@ -28,6 +31,16 @@ internal static class ReferenceResolver
                 }
 
                 (drafts.ContainsKey(name) ? draft.References : draft.Dropped).Add(name);
+            }
+
+            // Legacy test assemblies (optionalUnityReferences: TestAssemblies) get the test runner assemblies
+            // without listing them (UnityCsReference EditorBuildRules.AddTestRunnerCustomReferences).
+            if (entry.IsTestAssembly)
+            {
+                foreach (var runner in TestRunnerAssemblies.Where(r => r != draft.Name && index.Resolve(r) is not null && !draft.References.Contains(r) && !draft.Dropped.Contains(r)))
+                {
+                    (drafts.ContainsKey(runner) ? draft.References : draft.Dropped).Add(runner);
+                }
             }
         }
 

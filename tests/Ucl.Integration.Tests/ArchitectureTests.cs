@@ -12,7 +12,8 @@ public sealed class ArchitectureTests
         ["Ucl.Discovery"] = ["Ucl.Core"],
         ["Ucl.Compilation"] = ["Ucl.Core", "Ucl.Discovery", "Microsoft.CodeAnalysis", "Microsoft.CodeAnalysis.CSharp"],
         ["Ucl.Reporting"] = ["Ucl.Core"],
-        ["ucl"] = ["Ucl.Core", "Ucl.Discovery", "Ucl.Compilation", "Ucl.Reporting"],
+        ["Ucl.Testing"] = ["Ucl.Core", "nunit.framework"],
+        ["ucl"] = ["Ucl.Core", "Ucl.Discovery", "Ucl.Compilation", "Ucl.Reporting", "Ucl.Testing"],
     };
 
     /// <summary>Each module references only the modules it may.</summary>
@@ -21,6 +22,7 @@ public sealed class ArchitectureTests
     [InlineData("Ucl.Discovery")]
     [InlineData("Ucl.Compilation")]
     [InlineData("Ucl.Reporting")]
+    [InlineData("Ucl.Testing")]
     [InlineData("ucl")]
     public void References_point_inward(string name)
     {

@@ -26,8 +26,19 @@ namespace System
     public struct UInt32 { }
     public struct Int64 { }
     public struct UInt64 { }
-    public struct Single { }
-    public struct Double { }
+    public struct Single
+    {
+        public string ToString(IFormatProvider provider) => null;
+    }
+    public struct Double
+    {
+        public string ToString(IFormatProvider provider) => null;
+    }
+
+    public interface IFormatProvider
+    {
+        object GetFormat(Type formatType);
+    }
     public struct Decimal { }
     public struct IntPtr { }
     public struct UIntPtr { }
@@ -241,6 +252,7 @@ namespace System.Collections.Generic
     public class List<T> : IList<T>, IReadOnlyList<T>
     {
         public List() { }
+        public List(IEnumerable<T> collection) { }
         public int Count => 0;
         public T this[int index] { get => default; set { } }
         public void Add(T item) { }
@@ -261,9 +273,19 @@ namespace System.Collections.Generic
         }
     }
 
-    public class Dictionary<TKey, TValue>
+    public class Dictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {
         public Dictionary() { }
+        public KeyCollection Keys => null;
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator() => null;
+        IEnumerator IEnumerable.GetEnumerator() => null;
+
+        public sealed class KeyCollection : IEnumerable<TKey>
+        {
+            public int Count => 0;
+            public IEnumerator<TKey> GetEnumerator() => null;
+            IEnumerator IEnumerable.GetEnumerator() => null;
+        }
         public int Count => 0;
         public TValue this[TKey key] { get => default; set { } }
         public void Add(TKey key, TValue value) { }
@@ -274,6 +296,25 @@ namespace System.Collections.Generic
             value = default;
             return false;
         }
+    }
+}
+
+namespace System.Collections.Generic
+{
+    public struct KeyValuePair<TKey, TValue>
+    {
+        public TKey Key => default;
+        public TValue Value => default;
+    }
+}
+
+namespace System.Globalization
+{
+    public class CultureInfo : IFormatProvider
+    {
+        public static CultureInfo InvariantCulture => null;
+        public static CultureInfo CurrentCulture => null;
+        public object GetFormat(Type formatType) => null;
     }
 }
 

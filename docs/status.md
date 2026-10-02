@@ -3,6 +3,36 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
+## Session 2 (2026-10-02): real-project correctness, Bee oracle, `ucl test`
+
+Budget 93 USD (83 for work, 10 reserve). Cumulative phase caps: A 40, B 80, C 83.
+
+| Phase | Cap (USD, cumulative) | Estimated spend (cumulative) | State |
+|---|---|---|---|
+| A real-project correctness, `ucl bee-diff` | 40 | ~27 | done (`v0.5.0`, commit `f06fd51`) |
+| B `ucl test` | 80 | | in progress |
+| C mutation testing (proposal only) | 83 | | not started |
+
+### Phase A
+
+| Finding | State | Fixture | Proof |
+|---|---|---|---|
+| G1 API compatibility level ignored | fixed (wrapped YAML lines; per-assembly level; Unity's reference sets) | `api-compat-netfx`, `realistic-netfx-nuget` | red run in docs/real-project-fixes.md; `A01`-`A06` unit tests; verify agrees |
+| G2 native plugin passed as reference | fixed (PE CLI header) | `plugin-native` | red run; `PluginBinaryTests` |
+| G3 missing precompiled reference was an error | fixed (UCL1004 is info, as Unity is silent) | `precompiled-reference-absent`, `override-references-missing` | red run; `GraphPluginTests` |
+| G4 facade gap (CS0012 System.Runtime) | fixed (profile facades and NetStandard shims) | `facade-system-runtime` | red run |
+| G5 cascades | report improved, behaviour unchanged | (project built in the test) | `CascadeReportTests` |
+
+`ucl bee-diff` (the Bee oracle) is built and documented (docs/oracle.md); tested on hand-written response
+files. The maintainer runs docs/real-project-checklist.md next. What the stubs cannot show: whether the real
+Editor's reference lists match `ucl`'s (the 125 `unity-4.8-api` references, the module DLLs, Unity's 16
+analyzers); `bee-diff` on the real project answers that.
+
+`scripts/check.sh --mutation` (Linux): Core 543, Discovery 72, Integration 212 tests passed; 61 fixtures, 151
+cells; verify 151 cells agree; mutation killed. CI run 25 (`f06fd51`): green on Linux, Windows and macOS.
+
+# Session 1
+
 ## Phase reached: 4 (final review), released as `v0.4.0`, not `v1.0.0`
 
 Every requirement R1 to R13 is implemented and tested and every check is green, but none of the 135 fixture

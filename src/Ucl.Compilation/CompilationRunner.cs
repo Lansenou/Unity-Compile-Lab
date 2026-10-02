@@ -22,8 +22,18 @@ public sealed class CompilationRunner
     /// <param name="editor">The editor install.</param>
     /// <param name="settings">Run-wide switches.</param>
     /// <param name="only">When set (<c>--changed</c>), report only these assemblies; their dependencies are still compiled (or read from the cache) because they are inputs.</param>
-    public CellResult Run(AssemblyGraph graph, ProjectContext project, EditorInstall editor, CompileSettings settings, IReadOnlySet<string>? only = null)
+    public CellResult Run(AssemblyGraph graph, ProjectContext project, EditorInstall editor, CompileSettings settings, IReadOnlySet<string>? only = null) =>
+        RunWithImages(graph, project, editor, settings, only).Result;
+
+    /// <summary>
+    /// Compiles a cell like <see cref="Run"/> and also returns the emitted image of every assembly that compiled
+    /// (the reported ones and their dependencies); full images when <see cref="CompileSettings.FullImages"/> is set.
+    /// </summary>
+    public (CellResult Result, IReadOnlyDictionary<string, byte[]> Images) RunWithImages(
+        AssemblyGraph graph, ProjectContext project, EditorInstall editor, CompileSettings settings, IReadOnlySet<string>? only = null)
     {
+        ArgumentNullException.ThrowIfNull(graph);
+        ArgumentNullException.ThrowIfNull(settings);
         var needed = Needed(graph, only);
         var catalog = new ReferenceCatalog(_fs, editor);
         var hasher = new ContentHasher(_fs);
@@ -73,7 +83,10 @@ public sealed class CompilationRunner
         var assemblies = reported.Select(p => tasks[p.Name].Result.Result).ToList();
         var planning = graph.Diagnostics.Where(d => only is null || d.Assembly is null || only.Contains(d.Assembly));
         var diagnostics = DiagnosticOrder.Sort(planning.Concat(assemblies.SelectMany(a => a.Diagnostics)));
-        return new CellResult
+        var images = tasks
+            .Where(t => t.Value.Result.Image is not null)
+            .ToDictionary(t => t.Key, t => t.Value.Result.Image!, StringComparer.Ordinal);
+        return (new CellResult
         {
             Cell = graph.Cell,
             Assemblies = assemblies,
@@ -81,7 +94,7 @@ public sealed class CompilationRunner
             Diagnostics = diagnostics,
             Problems = graph.Problems,
             ExitCode = ExitCodes.Compute(graph.Problems, diagnostics),
-        };
+        }, images);
     }
 
     // The reported assemblies and everything they reference, transitively.

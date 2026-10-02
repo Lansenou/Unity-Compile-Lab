@@ -18,7 +18,7 @@ public static class StubBuilder
     public static IReadOnlyList<string> EditorVersions { get; } = ["6000.0.30f1", "6000.3.2f1"];
 
     /// <summary>Bump when the layout or compile settings change, so existing stamps are invalidated.</summary>
-    private const string BuilderVersion = "ucl-stubs/2";
+    private const string BuilderVersion = "ucl-stubs/3";
 
     private const string CoreModule = "UnityEngine.CoreModule";
 
@@ -134,6 +134,8 @@ public static class StubBuilder
             MetadataReference[] references = usesEngine ? [baseReference, coreReference] : [baseReference];
             File.WriteAllBytes(Path.Combine(dlls, name + ".dll"), Compile(name, dir, references, ini.Version));
         }
+
+        File.Copy(Path.Combine(AppContext.BaseDirectory, "nunit", "nunit.framework.dll"), Path.Combine(dlls, "nunit.framework.dll"), overwrite: true);
 
         foreach (var dir in SubDirectories(Path.Combine(stubs, "native")))
         {

@@ -5,27 +5,27 @@ namespace UnityEngine
     /// <summary>Access to application runtime data.</summary>
     public static class Application
     {
-        public static bool isPlaying => throw null;
+        public static bool isPlaying => throw Native.Unavailable();
 
-        public static bool isEditor => throw null;
+        public static bool isEditor => throw Native.Unavailable();
 
-        public static RuntimePlatform platform => throw null;
+        public static RuntimePlatform platform => throw Native.Unavailable();
 
-        public static string version => throw null;
+        public static string version => throw Native.Unavailable();
 
-        public static string unityVersion => throw null;
+        public static string unityVersion => throw Native.Unavailable();
 
-        public static string productName => throw null;
+        public static string productName => throw Native.Unavailable();
 
-        public static string dataPath => throw null;
+        public static string dataPath => throw Native.Unavailable();
 
-        public static string persistentDataPath => throw null;
+        public static string persistentDataPath => throw Native.Unavailable();
 
-        public static int targetFrameRate { get => throw null; set => throw null; }
+        public static int targetFrameRate { get => throw Native.Unavailable(); set => throw Native.Unavailable(); }
 
-        public static void Quit() => throw null;
+        public static void Quit() => throw Native.Unavailable();
 
-        public static void OpenURL(string url) => throw null;
+        public static void OpenURL(string url) => throw Native.Unavailable();
     }
 
     /// <summary>The platform the application is running on.</summary>
@@ -45,18 +45,18 @@ namespace UnityEngine
     /// <summary>Time information.</summary>
     public static class Time
     {
-        public static float time => throw null;
+        public static float time => throw Native.Unavailable();
 
-        public static float deltaTime => throw null;
+        public static float deltaTime => throw Native.Unavailable();
 
-        public static float unscaledDeltaTime => throw null;
+        public static float unscaledDeltaTime => throw Native.Unavailable();
 
-        public static float fixedDeltaTime { get => throw null; set => throw null; }
+        public static float fixedDeltaTime { get => throw Native.Unavailable(); set => throw Native.Unavailable(); }
 
-        public static float timeScale { get => throw null; set => throw null; }
+        public static float timeScale { get => throw Native.Unavailable(); set => throw Native.Unavailable(); }
 
-        public static int frameCount => throw null;
+        public static int frameCount => throw Native.Unavailable();
 
-        public static float realtimeSinceStartup => throw null;
+        public static float realtimeSinceStartup => throw Native.Unavailable();
     }
 }

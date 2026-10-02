@@ -7,6 +7,30 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ## [Unreleased]
 
+## [0.6.0]
+
+Session 2, phase B: `ucl test`.
+
+### Added
+
+* `ucl test [<project>] [--filter <regex>] [--format text|json|junit|nunit3] [--emit-unity-filter <file>]`:
+  compiles the editor cell's test assemblies (those compiled against `nunit.framework.dll`) as full images,
+  runs them in process with NUnit 3.14.0's framework API in an isolated load context, and classifies every
+  discovered case as passed, failed, skipped, ignored, needs-unity (an engine call failed) or unity-only
+  (`[UnityTest]`, `[UnityPlatform]`, `[RequiresPlayMode]`, `LogAssert`, Play Mode assemblies; never run).
+  Zero-loss accounting; exit 1 only for real failures. JSON schema `ucl-test/1` (`schema/test.schema.json`).
+  docs/test.md.
+* New module `Ucl.Testing` (depends on Core and NUnit).
+* Legacy test assemblies (`optionalUnityReferences: ["TestAssemblies"]`) get `UnityEngine.TestRunner`,
+  `UnityEditor.TestRunner` and `nunit.framework.dll` implicitly, as in Unity.
+* Fixture `test-editmode` (62 fixtures, 153 cells) with the expected outcome of all 31 cases;
+  `scripts/bench-test.sh`.
+
+### Changed
+
+* The stub editor fails like the real one outside Unity: native-backed members call an `InternalCall` extern
+  (CoreCLR throws `SecurityException`), managed ones (`Vector3`, `Mathf`, attributes) have real bodies.
+
 ## [0.5.0]
 
 Session 2, phase A: the findings of the first real-project run (docs/real-project-fixes.md, G1-G5).

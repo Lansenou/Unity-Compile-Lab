@@ -9,10 +9,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="NETStandard.Library.Ref" GeneratePathProperty="true" ExcludeAssets="all" />
+    <PackageReference Include="NUnit" GeneratePathProperty="true" ExcludeAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="$(PkgNETStandard_Library_Ref)/ref/netstandard2.1/netstandard.dll" Link="netstandard.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+    <!-- Materialised into test fixtures as Packages/com.unity.ext.nunit/.../nunit.framework.dll (NUnit is MIT-licensed). -->
+    <None Include="$(PkgNUnit)/lib/netstandard2.0/nunit.framework.dll" Link="nunit/nunit.framework.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
 
 </Project>

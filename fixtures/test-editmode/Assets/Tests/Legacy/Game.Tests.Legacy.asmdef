@@ -1,0 +1,13 @@
+{
+    "name": "Game.Tests.Legacy",
+    "references": [
+        "Game.Runtime"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

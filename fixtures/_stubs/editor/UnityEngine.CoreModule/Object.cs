@@ -5,35 +5,35 @@ namespace UnityEngine
     /// <summary>Base class of every object Unity can reference.</summary>
     public class Object
     {
-        public string name { get => throw null; set => throw null; }
+        public string name { get => throw Native.Unavailable(); set => throw Native.Unavailable(); }
 
-        public HideFlags hideFlags { get => throw null; set => throw null; }
+        public HideFlags hideFlags { get => throw Native.Unavailable(); set => throw Native.Unavailable(); }
 
-        public int GetInstanceID() => throw null;
+        public int GetInstanceID() => throw Native.Unavailable();
 
-        public static T Instantiate<T>(T original) where T : Object => throw null;
+        public static T Instantiate<T>(T original) where T : Object => throw Native.Unavailable();
 
-        public static T Instantiate<T>(T original, Vector3 position, Quaternion rotation) where T : Object => throw null;
+        public static T Instantiate<T>(T original, Vector3 position, Quaternion rotation) where T : Object => throw Native.Unavailable();
 
-        public static void Destroy(Object obj) => throw null;
+        public static void Destroy(Object obj) => throw Native.Unavailable();
 
-        public static void Destroy(Object obj, float t) => throw null;
+        public static void Destroy(Object obj, float t) => throw Native.Unavailable();
 
-        public static void DontDestroyOnLoad(Object target) => throw null;
+        public static void DontDestroyOnLoad(Object target) => throw Native.Unavailable();
 
-        public static T FindAnyObjectByType<T>() where T : Object => throw null;
+        public static T FindAnyObjectByType<T>() where T : Object => throw Native.Unavailable();
 
-        public static bool operator ==(Object x, Object y) => throw null;
+        public static bool operator ==(Object x, Object y) => throw Native.Unavailable();
 
-        public static bool operator !=(Object x, Object y) => throw null;
+        public static bool operator !=(Object x, Object y) => throw Native.Unavailable();
 
-        public static implicit operator bool(Object exists) => throw null;
+        public static implicit operator bool(Object exists) => throw Native.Unavailable();
 
-        public override bool Equals(object other) => throw null;
+        public override bool Equals(object other) => throw Native.Unavailable();
 
-        public override int GetHashCode() => throw null;
+        public override int GetHashCode() => throw Native.Unavailable();
 
-        public override string ToString() => throw null;
+        public override string ToString() => throw Native.Unavailable();
     }
 
     /// <summary>Bit mask that controls object destruction, saving and visibility in inspectors.</summary>

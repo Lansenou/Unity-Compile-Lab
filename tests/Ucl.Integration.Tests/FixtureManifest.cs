@@ -20,7 +20,22 @@ public sealed record FixtureEntry(
     [property: JsonPropertyName("description")] string Description,
     [property: JsonPropertyName("requirements")] IReadOnlyList<string> Requirements,
     [property: JsonPropertyName("materialize")] IReadOnlyList<Materialize>? Materialize,
-    [property: JsonPropertyName("cells")] IReadOnlyList<FixtureCell> Cells);
+    [property: JsonPropertyName("cells")] IReadOnlyList<FixtureCell> Cells,
+    [property: JsonPropertyName("tests")] ExpectedTestRun? Tests = null);
+
+/// <summary>What <c>ucl test</c> must report for a fixture: every case in order with its category.</summary>
+public sealed record ExpectedTestRun(
+    [property: JsonPropertyName("unityVersion")] string UnityVersion,
+    [property: JsonPropertyName("platform")] string Platform,
+    [property: JsonPropertyName("exitCode")] int ExitCode,
+    [property: JsonPropertyName("cases")] IReadOnlyList<ExpectedTestCase> Cases,
+    [property: JsonPropertyName("unityFilter")] string UnityFilter);
+
+/// <summary>One expected test case.</summary>
+public sealed record ExpectedTestCase(
+    [property: JsonPropertyName("assembly")] string Assembly,
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("category")] string Category);
 
 /// <summary>A DLL built from fixtures/_stubs placed into a copy of the fixture.</summary>
 public sealed record Materialize(

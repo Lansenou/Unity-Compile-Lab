@@ -5,29 +5,29 @@ namespace UnityEngine
     /// <summary>The legacy Input Manager.</summary>
     public static class Input
     {
-        public static Vector3 mousePosition => throw null;
+        public static Vector3 mousePosition => throw Native.Unavailable();
 
-        public static bool anyKey => throw null;
+        public static bool anyKey => throw Native.Unavailable();
 
-        public static float GetAxis(string axisName) => throw null;
+        public static float GetAxis(string axisName) => throw Native.Unavailable();
 
-        public static float GetAxisRaw(string axisName) => throw null;
+        public static float GetAxisRaw(string axisName) => throw Native.Unavailable();
 
-        public static bool GetButton(string buttonName) => throw null;
+        public static bool GetButton(string buttonName) => throw Native.Unavailable();
 
-        public static bool GetButtonDown(string buttonName) => throw null;
+        public static bool GetButtonDown(string buttonName) => throw Native.Unavailable();
 
-        public static bool GetButtonUp(string buttonName) => throw null;
+        public static bool GetButtonUp(string buttonName) => throw Native.Unavailable();
 
-        public static bool GetKey(KeyCode key) => throw null;
+        public static bool GetKey(KeyCode key) => throw Native.Unavailable();
 
-        public static bool GetKeyDown(KeyCode key) => throw null;
+        public static bool GetKeyDown(KeyCode key) => throw Native.Unavailable();
 
-        public static bool GetKeyUp(KeyCode key) => throw null;
+        public static bool GetKeyUp(KeyCode key) => throw Native.Unavailable();
 
-        public static bool GetMouseButton(int button) => throw null;
+        public static bool GetMouseButton(int button) => throw Native.Unavailable();
 
-        public static bool GetMouseButtonDown(int button) => throw null;
+        public static bool GetMouseButtonDown(int button) => throw Native.Unavailable();
     }
 
     /// <summary>Key codes for Input.GetKey.</summary>

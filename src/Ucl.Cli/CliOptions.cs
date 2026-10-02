@@ -56,6 +56,12 @@ public sealed record CliOptions
     /// <summary><c>--changed</c> git ref.</summary>
     public string? Changed { get; init; }
 
+    /// <summary><c>--filter</c> (test): a regular expression over test full names.</summary>
+    public string? Filter { get; init; }
+
+    /// <summary><c>--emit-unity-filter</c> (test): file to write the Unity <c>-testFilter</c> exclusion list to.</summary>
+    public string? EmitUnityFilter { get; init; }
+
     /// <summary><c>--summary</c>: text output keeps only each cell's root failures and result line.</summary>
     public bool Summary { get; init; }
 

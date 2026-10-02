@@ -31,4 +31,10 @@ expect 0 '"schema": "ucl-result/1"' check fixtures/basic-predefined --format jso
 expect 0 '"version": "2.1.0"' check fixtures/basic-predefined --format sarif
 expect 0 "Assembly-CSharp" graph fixtures/basic-predefined
 expect 3 "UCL3001" check "$tmp"
+
+# ucl test: NUnit inside the binary, test assemblies loaded from a temporary folder.
+cp -r fixtures/test-editmode "$tmp/tests"
+mkdir -p "$tmp/tests/Packages/com.unity.ext.nunit/net40/unity-custom"
+cp artifacts/stubs/dlls/nunit.framework.dll "$tmp/tests/Packages/com.unity.ext.nunit/net40/unity-custom/"
+expect 1 "result: 31 cases: 19 passed, 1 failed, 2 skipped, 1 ignored, 2 needs-unity, 6 unity-only" test "$tmp/tests" --editor-os linux
 echo "smoke test passed"

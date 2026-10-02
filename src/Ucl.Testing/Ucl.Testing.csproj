@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Ucl.Testing</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Ucl.Core/Ucl.Core.csproj" />
+    <PackageReference Include="NUnit" />
+  </ItemGroup>
+</Project>

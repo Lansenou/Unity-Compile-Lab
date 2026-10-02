@@ -6,7 +6,7 @@ namespace Ucl.Cli;
 /// <summary>Parses argv. No prompts, no partial matches: an unknown option is an error (exit 3).</summary>
 public static class ArgParser
 {
-    private static readonly string[] Commands = ["check", "graph", "explain", "bee-diff", "export-csproj", "fetch", "doctor", "version", "help"];
+    private static readonly string[] Commands = ["check", "test", "graph", "explain", "bee-diff", "export-csproj", "fetch", "doctor", "version", "help"];
 
     /// <summary>Parses arguments.</summary>
     public static Result<CliOptions> Parse(IReadOnlyList<string> args)
@@ -104,7 +104,7 @@ public static class ArgParser
                     case "--warnaserror": o = o with { WarnAsError = true }; break;
                     case "--format":
                         var f = Next();
-                        o = o with { Format = f is "text" or "json" or "sarif" or "dot" ? f : throw new ArgumentException($"--format must be text, json or sarif (dot for graph), not '{f}'") };
+                        o = o with { Format = f is "text" or "json" or "sarif" or "dot" or "junit" or "nunit3" ? f : throw new ArgumentException($"--format must be text, json or sarif (dot for graph; junit or nunit3 for test), not '{f}'") };
                         break;
                     case "--output" or "-o": o = o with { Output = Next() }; break;
                     case "--cache-dir": o = o with { CacheDir = Next() }; break;
@@ -112,6 +112,8 @@ public static class ArgParser
                     case "--changed": o = o with { Changed = Next() }; break;
                     case "--timings": o = o with { Timings = true }; break;
                     case "--summary": o = o with { Summary = true }; break;
+                    case "--filter": o = o with { Filter = Next() }; break;
+                    case "--emit-unity-filter": o = o with { EmitUnityFilter = Next() }; break;
                     case "--jobs" or "-j":
                         var n = Next();
                         o = o with { Jobs = int.TryParse(n, NumberStyles.None, CultureInfo.InvariantCulture, out var j) && j > 0 ? j : throw new ArgumentException($"--jobs needs a positive number, not '{n}'") };

@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Lansenou/unity-compile-lab/schema/test.schema.json",
+  "title": "ucl test result",
+  "description": "Output of `ucl test --format json`. Schema id ucl-test/1. Fields are only added in minor versions; a removal or rename bumps the schema id.",
+  "type": "object",
+  "required": ["schema", "tool", "exitCode", "summary", "problems", "assemblies", "cases"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "ucl-test/1" },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": { "name": { "const": "ucl" }, "version": { "type": "string" } }
+    },
+    "exitCode": { "enum": [0, 1, 2, 3, 4] },
+    "summary": {
+      "type": "object",
+      "description": "passed + failed + skipped + ignored + needsUnity + unityOnly = cases (zero-loss accounting).",
+      "required": ["cases", "passed", "failed", "skipped", "ignored", "needsUnity", "unityOnly"],
+      "additionalProperties": false,
+      "properties": {
+        "cases": { "type": "integer", "minimum": 0 },
+        "passed": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 },
+        "skipped": { "type": "integer", "minimum": 0 },
+        "ignored": { "type": "integer", "minimum": 0 },
+        "needsUnity": { "type": "integer", "minimum": 0 },
+        "unityOnly": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "problems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "message"],
+        "additionalProperties": false,
+        "properties": { "id": { "type": "string" }, "message": { "type": "string" } }
+      }
+    },
+    "cell": {
+      "type": "object",
+      "required": ["unityVersion", "target", "platform", "editorOs"],
+      "additionalProperties": false,
+      "properties": {
+        "unityVersion": { "type": "string" },
+        "target": { "const": "editor" },
+        "platform": { "type": "string" },
+        "editorOs": { "enum": ["windows", "macos", "linux"] }
+      }
+    },
+    "compile": {
+      "type": "object",
+      "required": ["exitCode", "errors", "warnings"],
+      "additionalProperties": false,
+      "properties": {
+        "exitCode": { "type": "integer" },
+        "errors": { "type": "integer", "minimum": 0 },
+        "warnings": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "assemblies": { "type": "array", "items": { "type": "string" }, "description": "Test assemblies, sorted." },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["assembly", "class", "name", "category"],
+        "additionalProperties": false,
+        "properties": {
+          "assembly": { "type": "string" },
+          "class": { "type": "string" },
+          "name": { "type": "string", "description": "NUnit full name." },
+          "category": { "enum": ["passed", "failed", "skipped", "ignored", "needs-unity", "unity-only"] },
+          "reason": { "type": "string" },
+          "durationMs": { "type": "integer", "minimum": 0, "description": "Only with --timings." }
+        }
+      }
+    }
+  }
+}

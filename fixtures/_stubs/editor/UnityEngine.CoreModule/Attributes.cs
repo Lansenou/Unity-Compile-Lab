@@ -24,11 +24,11 @@ namespace UnityEngine
         public Type m_Type1;
         public Type m_Type2;
 
-        public RequireComponent(Type requiredComponent) => throw null;
+        public RequireComponent(Type requiredComponent) { }
 
-        public RequireComponent(Type requiredComponent, Type requiredComponent2) => throw null;
+        public RequireComponent(Type requiredComponent, Type requiredComponent2) { }
 
-        public RequireComponent(Type requiredComponent, Type requiredComponent2, Type requiredComponent3) => throw null;
+        public RequireComponent(Type requiredComponent, Type requiredComponent2, Type requiredComponent3) { }
     }
 
     /// <summary>Prevents adding a component twice to one GameObject.</summary>
@@ -41,14 +41,14 @@ namespace UnityEngine
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class AddComponentMenu : Attribute
     {
-        public AddComponentMenu(string menuName) => throw null;
+        public AddComponentMenu(string menuName) { }
     }
 
     /// <summary>Base class of property attributes.</summary>
     [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
     public abstract class PropertyAttribute : Attribute
     {
-        public int order { get => throw null; set => throw null; }
+        public int order { get; set; }
     }
 
     /// <summary>Adds a header above fields in the Inspector.</summary>
@@ -57,7 +57,7 @@ namespace UnityEngine
     {
         public readonly string header;
 
-        public HeaderAttribute(string header) => throw null;
+        public HeaderAttribute(string header) { }
     }
 
     /// <summary>Shows a tooltip for a field in the Inspector.</summary>
@@ -66,7 +66,7 @@ namespace UnityEngine
     {
         public readonly string tooltip;
 
-        public TooltipAttribute(string tooltip) => throw null;
+        public TooltipAttribute(string tooltip) { }
     }
 
     /// <summary>Restricts a numeric field to a range.</summary>
@@ -76,27 +76,27 @@ namespace UnityEngine
         public readonly float min;
         public readonly float max;
 
-        public RangeAttribute(float min, float max) => throw null;
+        public RangeAttribute(float min, float max) { }
     }
 
     /// <summary>Lists a ScriptableObject type in the Assets/Create menu.</summary>
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class CreateAssetMenuAttribute : Attribute
     {
-        public string menuName { get => throw null; set => throw null; }
+        public string menuName { get; set; }
 
-        public string fileName { get => throw null; set => throw null; }
+        public string fileName { get; set; }
 
-        public int order { get => throw null; set => throw null; }
+        public int order { get; set; }
     }
 
     /// <summary>Runs a static method when the runtime loads.</summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public sealed class RuntimeInitializeOnLoadMethodAttribute : Attribute
     {
-        public RuntimeInitializeOnLoadMethodAttribute() => throw null;
+        public RuntimeInitializeOnLoadMethodAttribute() { }
 
-        public RuntimeInitializeOnLoadMethodAttribute(RuntimeInitializeLoadType loadType) => throw null;
+        public RuntimeInitializeOnLoadMethodAttribute(RuntimeInitializeLoadType loadType) { }
     }
 
     /// <summary>When a RuntimeInitializeOnLoadMethod runs.</summary>

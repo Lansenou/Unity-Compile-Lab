@@ -79,6 +79,11 @@ internal sealed class AssemblyCompiler
             hash.Add(kind, logical, _fs.FileExists(physical) ? _hasher.HashFile(physical) : "missing");
         }
 
+        if (_settings.FullImages)
+        {
+            hash.Add("image", "full", "1");
+        }
+
         var inputsHash = hash.Finish(_settings.WarnAsError);
         var displays = referencePaths.Select(r => r.Display).Concat(plan.References.Select(n => $"assembly:{n}")).Order(StringComparer.Ordinal).ToList();
         if (_cache?.TryLoad(inputsHash) is { } hit)
@@ -86,7 +91,8 @@ internal sealed class AssemblyCompiler
             return new AssemblyOutcome(
                 Result(plan, hit.Failed, inputsHash, displays, analyzerPaths, hit.Diagnostics, clock.ElapsedMilliseconds, cached: true),
                 hit.Image is null ? null : MetadataReference.CreateFromImage(hit.Image),
-                hit.ImageHash);
+                hit.ImageHash,
+                hit.Image);
         }
 
         var parseOptions = new CSharpParseOptions(
@@ -133,7 +139,7 @@ internal sealed class AssemblyCompiler
         if (!failed)
         {
             using var stream = new MemoryStream();
-            var emit = compilation.Emit(stream, options: new EmitOptions(metadataOnly: true));
+            var emit = compilation.Emit(stream, options: new EmitOptions(metadataOnly: !_settings.FullImages));
             if (emit.Success)
             {
                 imageBytes = stream.ToArray();
@@ -151,7 +157,8 @@ internal sealed class AssemblyCompiler
         return new AssemblyOutcome(
             Result(plan, failed, inputsHash, displays, analyzerPaths, sorted, clock.ElapsedMilliseconds, cached: false),
             imageBytes is null ? null : MetadataReference.CreateFromImage(imageBytes),
-            imageHash);
+            imageHash,
+            imageBytes);
     }
 
     private static AssemblyResult Result(

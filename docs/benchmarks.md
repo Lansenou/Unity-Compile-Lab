@@ -27,3 +27,8 @@ wherever a referrer's own public surface is unchanged (here 8 of 32 assemblies r
 
 Wall clock includes `dotnet` host start-up (about 0.15 s); the single-file release binary starts slightly
 faster.
+
+## `ucl test`
+
+`scripts/bench-test.sh` compares `ucl test` with `dotnet test` on an equivalent csproj; results and method in
+[test.md](test.md#benchmark).

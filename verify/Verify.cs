@@ -176,7 +176,7 @@ internal sealed class Asm { public HashSet<string> Defines = []; public List<str
 
 /// <summary>An asmdef file.</summary>
 internal sealed record AsmDef(string Name, string Path, string Dir, string[] Refs, string[] Include, string[] Exclude, string[] Constraints,
-    (string Name, string Expr, string Define)[] VersionDefines, bool AutoReferenced, bool OverrideReferences, string[] PrecompiledRefs);
+    (string Name, string Expr, string Define)[] VersionDefines, bool AutoReferenced, bool OverrideReferences, string[] PrecompiledRefs, bool LegacyTests = false);
 
 /// <summary>A plugin DLL with a .meta.</summary>
 internal sealed record Plugin(string Path, bool Analyzer, bool Explicit, string[] Constraints, Func<string, bool> EnabledFor);
@@ -239,6 +239,10 @@ internal static class Planner
                 [.. (j["versionDefines"]?.AsArray() ?? []).Select(v => ((string?)v!["name"] ?? "", (string?)v["expression"] ?? "", (string?)v["define"] ?? ""))],
                 (bool?)j["autoReferenced"] ?? true, (bool?)j["overrideReferences"] ?? false, Strs(j, "precompiledReferences"));
             if (a.Include.Length > 0 && a.Exclude.Length > 0) throw new ProblemException($"{rel}: both includePlatforms and excludePlatforms");
+            // A legacy test assembly (optionalUnityReferences: TestAssemblies) needs UNITY_INCLUDE_TESTS, is never
+            // auto-referenced, and implicitly references the test runner assemblies and nunit.framework.dll.
+            if (Strs(j, "optionalUnityReferences").Contains("TestAssemblies"))
+                a = a with { Refs = [.. a.Refs, "UnityEngine.TestRunner", "UnityEditor.TestRunner"], Constraints = [.. a.Constraints, "UNITY_INCLUDE_TESTS"], AutoReferenced = false, LegacyTests = true };
             asmdefs.Add(a);
         }
 
@@ -386,6 +390,8 @@ internal static class Planner
             asm.Precompiled = a is { OverrideReferences: true }
                 ? [.. usable.Where(p => a.PrecompiledRefs.Contains(Path.GetFileName(p.Path))).Select(p => p.Path)]
                 : [.. usable.Where(p => !p.Explicit).Select(p => p.Path)];
+            if (a is { LegacyTests: true })
+                asm.Precompiled = [.. asm.Precompiled.Union(usable.Where(p => Path.GetFileName(p.Path) == "nunit.framework.dll").Select(p => p.Path))];
         }
 
         foreach (var analyzer in plugins.Where(p => p.Analyzer))

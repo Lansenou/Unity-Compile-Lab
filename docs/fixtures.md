@@ -81,3 +81,4 @@ Every cell starts as `oracle: pending`; see [oracle.md](oracle.md).
 | 59 | `precompiled-reference-absent` | G3: a package code-gen asmdef lists a DLL that does not exist: info, not an error | R2, R3 |
 | 60 | `facade-system-runtime` | G4: a DLL built against System.Runtime resolves through the 4.8 facades and the NetStandard shims | R4 |
 | 61 | `realistic-netfx-nuget` | G1-G4 together, shaped like the maintainer's real project; clean in every Standalone cell | R2-R5 |
+| 62 | `test-editmode` | `ucl test`: every kind of case (pure, parameterised, guarded by defines, engine, unity-only, failing, ignored, explicit, inconclusive, divergent); `tests` in the manifest lists all 31 | B |

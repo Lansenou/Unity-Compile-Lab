@@ -16150,6 +16150,696 @@
           "diagnostics": []
         }
       ]
+    },
+    {
+      "name": "test-editmode",
+      "description": "ucl test (phase B): an EditMode suite with pure tests, TestCase and TestCaseSource, a SetUpFixture, cases behind #if UNITY_5_3_OR_NEWER, UNITY_EDITOR and NET_UNITY_4_8, engine-touching tests (needs-unity), [UnityTest], LogAssert, [UnityPlatform] and [RequiresPlayMode] (unity-only), a real failure, ignored, explicit and inconclusive cases, CoreCLR/Mono divergences, a legacy optionalUnityReferences test assembly and a Play Mode assembly. The test framework and com.unity.ext.nunit are embedded stand-ins; nunit.framework.dll is NUnit 3.14.0 from NuGet. 'tests' lists every case ucl test must report, in order, with its category.",
+      "requirements": [
+        "B"
+      ],
+      "materialize": [
+        {
+          "dll": "nunit.framework",
+          "to": "Packages/com.unity.ext.nunit/net40/unity-custom/nunit.framework.dll"
+        }
+      ],
+      "cells": [
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "linux",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Runtime",
+              "definesInclude": [
+                "NETSTANDARD2_1",
+                "UNITY_EDITOR"
+              ],
+              "definesExclude": [
+                "NET_4_6"
+              ],
+              "defines": [
+                "CSHARP_7_3_OR_NEWER",
+                "DEBUG",
+                "ENABLE_LEGACY_INPUT_MANAGER",
+                "ENABLE_MONO",
+                "NETSTANDARD",
+                "NETSTANDARD2_1",
+                "NET_STANDARD",
+                "NET_STANDARD_2_0",
+                "NET_STANDARD_2_1",
+                "PLATFORM_STANDALONE",
+                "PLATFORM_STANDALONE_WIN",
+                "TRACE",
+                "UNITY_2017_1_OR_NEWER",
+                "UNITY_2017_2_OR_NEWER",
+                "UNITY_2017_3_OR_NEWER",
+                "UNITY_2017_4_OR_NEWER",
+                "UNITY_2018_1_OR_NEWER",
+                "UNITY_2018_2_OR_NEWER",
+                "UNITY_2018_3_OR_NEWER",
+                "UNITY_2018_4_OR_NEWER",
+                "UNITY_2019_1_OR_NEWER",
+                "UNITY_2019_2_OR_NEWER",
+                "UNITY_2019_3_OR_NEWER",
+                "UNITY_2019_4_OR_NEWER",
+                "UNITY_2020_1_OR_NEWER",
+                "UNITY_2020_2_OR_NEWER",
+                "UNITY_2020_3_OR_NEWER",
+                "UNITY_2021_1_OR_NEWER",
+                "UNITY_2021_2_OR_NEWER",
+                "UNITY_2021_3_OR_NEWER",
+                "UNITY_2022_1_OR_NEWER",
+                "UNITY_2022_2_OR_NEWER",
+                "UNITY_2022_3_OR_NEWER",
+                "UNITY_2023_1_OR_NEWER",
+                "UNITY_2023_2_OR_NEWER",
+                "UNITY_2023_3_OR_NEWER",
+                "UNITY_5_3_OR_NEWER",
+                "UNITY_5_4_OR_NEWER",
+                "UNITY_5_5_OR_NEWER",
+                "UNITY_5_6_OR_NEWER",
+                "UNITY_6000",
+                "UNITY_6000_0",
+                "UNITY_6000_0_30",
+                "UNITY_6000_0_OR_NEWER",
+                "UNITY_64",
+                "UNITY_ASSERTIONS",
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_64",
+                "UNITY_EDITOR_LINUX",
+                "UNITY_STANDALONE",
+                "UNITY_STANDALONE_WIN"
+              ]
+            },
+            {
+              "name": "UnityEngine.TestRunner",
+              "definesInclude": [
+                "NETSTANDARD2_1"
+              ],
+              "definesExclude": [
+                "NET_4_6"
+              ],
+              "defines": [
+                "CSHARP_7_3_OR_NEWER",
+                "DEBUG",
+                "ENABLE_LEGACY_INPUT_MANAGER",
+                "ENABLE_MONO",
+                "NETSTANDARD",
+                "NETSTANDARD2_1",
+                "NET_STANDARD",
+                "NET_STANDARD_2_0",
+                "NET_STANDARD_2_1",
+                "PLATFORM_STANDALONE",
+                "PLATFORM_STANDALONE_WIN",
+                "TRACE",
+                "UNITY_2017_1_OR_NEWER",
+                "UNITY_2017_2_OR_NEWER",
+                "UNITY_2017_3_OR_NEWER",
+                "UNITY_2017_4_OR_NEWER",
+                "UNITY_2018_1_OR_NEWER",
+                "UNITY_2018_2_OR_NEWER",
+                "UNITY_2018_3_OR_NEWER",
+                "UNITY_2018_4_OR_NEWER",
+                "UNITY_2019_1_OR_NEWER",
+                "UNITY_2019_2_OR_NEWER",
+                "UNITY_2019_3_OR_NEWER",
+                "UNITY_2019_4_OR_NEWER",
+                "UNITY_2020_1_OR_NEWER",
+                "UNITY_2020_2_OR_NEWER",
+                "UNITY_2020_3_OR_NEWER",
+                "UNITY_2021_1_OR_NEWER",
+                "UNITY_2021_2_OR_NEWER",
+                "UNITY_2021_3_OR_NEWER",
+                "UNITY_2022_1_OR_NEWER",
+                "UNITY_2022_2_OR_NEWER",
+                "UNITY_2022_3_OR_NEWER",
+                "UNITY_2023_1_OR_NEWER",
+                "UNITY_2023_2_OR_NEWER",
+                "UNITY_2023_3_OR_NEWER",
+                "UNITY_5_3_OR_NEWER",
+                "UNITY_5_4_OR_NEWER",
+                "UNITY_5_5_OR_NEWER",
+                "UNITY_5_6_OR_NEWER",
+                "UNITY_6000",
+                "UNITY_6000_0",
+                "UNITY_6000_0_30",
+                "UNITY_6000_0_OR_NEWER",
+                "UNITY_64",
+                "UNITY_ASSERTIONS",
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_64",
+                "UNITY_EDITOR_LINUX",
+                "UNITY_STANDALONE",
+                "UNITY_STANDALONE_WIN"
+              ]
+            },
+            {
+              "name": "UnityEditor.TestRunner",
+              "definesInclude": [
+                "NET_4_6",
+                "NET_UNITY_4_8"
+              ],
+              "definesExclude": [
+                "NETSTANDARD"
+              ],
+              "defines": [
+                "CSHARP_7_3_OR_NEWER",
+                "DEBUG",
+                "ENABLE_LEGACY_INPUT_MANAGER",
+                "ENABLE_MONO",
+                "NET_4_6",
+                "NET_UNITY_4_8",
+                "PLATFORM_STANDALONE",
+                "PLATFORM_STANDALONE_WIN",
+                "TRACE",
+                "UNITY_2017_1_OR_NEWER",
+                "UNITY_2017_2_OR_NEWER",
+                "UNITY_2017_3_OR_NEWER",
+                "UNITY_2017_4_OR_NEWER",
+                "UNITY_2018_1_OR_NEWER",
+                "UNITY_2018_2_OR_NEWER",
+                "UNITY_2018_3_OR_NEWER",
+                "UNITY_2018_4_OR_NEWER",
+                "UNITY_2019_1_OR_NEWER",
+                "UNITY_2019_2_OR_NEWER",
+                "UNITY_2019_3_OR_NEWER",
+                "UNITY_2019_4_OR_NEWER",
+                "UNITY_2020_1_OR_NEWER",
+                "UNITY_2020_2_OR_NEWER",
+                "UNITY_2020_3_OR_NEWER",
+                "UNITY_2021_1_OR_NEWER",
+                "UNITY_2021_2_OR_NEWER",
+                "UNITY_2021_3_OR_NEWER",
+                "UNITY_2022_1_OR_NEWER",
+                "UNITY_2022_2_OR_NEWER",
+                "UNITY_2022_3_OR_NEWER",
+                "UNITY_2023_1_OR_NEWER",
+                "UNITY_2023_2_OR_NEWER",
+                "UNITY_2023_3_OR_NEWER",
+                "UNITY_5_3_OR_NEWER",
+                "UNITY_5_4_OR_NEWER",
+                "UNITY_5_5_OR_NEWER",
+                "UNITY_5_6_OR_NEWER",
+                "UNITY_6000",
+                "UNITY_6000_0",
+                "UNITY_6000_0_30",
+                "UNITY_6000_0_OR_NEWER",
+                "UNITY_64",
+                "UNITY_ASSERTIONS",
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_64",
+                "UNITY_EDITOR_LINUX",
+                "UNITY_STANDALONE",
+                "UNITY_STANDALONE_WIN"
+              ]
+            },
+            {
+              "name": "Game.Tests.EditMode",
+              "definesInclude": [
+                "NET_4_6",
+                "NET_UNITY_4_8",
+                "UNITY_EDITOR"
+              ],
+              "definesExclude": [
+                "NETSTANDARD"
+              ],
+              "defines": [
+                "CSHARP_7_3_OR_NEWER",
+                "DEBUG",
+                "ENABLE_LEGACY_INPUT_MANAGER",
+                "ENABLE_MONO",
+                "NET_4_6",
+                "NET_UNITY_4_8",
+                "PLATFORM_STANDALONE",
+                "PLATFORM_STANDALONE_WIN",
+                "TRACE",
+                "UNITY_2017_1_OR_NEWER",
+                "UNITY_2017_2_OR_NEWER",
+                "UNITY_2017_3_OR_NEWER",
+                "UNITY_2017_4_OR_NEWER",
+                "UNITY_2018_1_OR_NEWER",
+                "UNITY_2018_2_OR_NEWER",
+                "UNITY_2018_3_OR_NEWER",
+                "UNITY_2018_4_OR_NEWER",
+                "UNITY_2019_1_OR_NEWER",
+                "UNITY_2019_2_OR_NEWER",
+                "UNITY_2019_3_OR_NEWER",
+                "UNITY_2019_4_OR_NEWER",
+                "UNITY_2020_1_OR_NEWER",
+                "UNITY_2020_2_OR_NEWER",
+                "UNITY_2020_3_OR_NEWER",
+                "UNITY_2021_1_OR_NEWER",
+                "UNITY_2021_2_OR_NEWER",
+                "UNITY_2021_3_OR_NEWER",
+                "UNITY_2022_1_OR_NEWER",
+                "UNITY_2022_2_OR_NEWER",
+                "UNITY_2022_3_OR_NEWER",
+                "UNITY_2023_1_OR_NEWER",
+                "UNITY_2023_2_OR_NEWER",
+                "UNITY_2023_3_OR_NEWER",
+                "UNITY_5_3_OR_NEWER",
+                "UNITY_5_4_OR_NEWER",
+                "UNITY_5_5_OR_NEWER",
+                "UNITY_5_6_OR_NEWER",
+                "UNITY_6000",
+                "UNITY_6000_0",
+                "UNITY_6000_0_30",
+                "UNITY_6000_0_OR_NEWER",
+                "UNITY_64",
+                "UNITY_ASSERTIONS",
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_64",
+                "UNITY_EDITOR_LINUX",
+                "UNITY_STANDALONE",
+                "UNITY_STANDALONE_WIN"
+              ]
+            },
+            {
+              "name": "Game.Tests.Legacy",
+              "definesInclude": [
+                "NET_4_6",
+                "NET_UNITY_4_8"
+              ],
+              "definesExclude": [
+                "NETSTANDARD"
+              ],
+              "defines": [
+                "CSHARP_7_3_OR_NEWER",
+                "DEBUG",
+                "ENABLE_LEGACY_INPUT_MANAGER",
+                "ENABLE_MONO",
+                "NET_4_6",
+                "NET_UNITY_4_8",
+                "PLATFORM_STANDALONE",
+                "PLATFORM_STANDALONE_WIN",
+                "TRACE",
+                "UNITY_2017_1_OR_NEWER",
+                "UNITY_2017_2_OR_NEWER",
+                "UNITY_2017_3_OR_NEWER",
+                "UNITY_2017_4_OR_NEWER",
+                "UNITY_2018_1_OR_NEWER",
+                "UNITY_2018_2_OR_NEWER",
+                "UNITY_2018_3_OR_NEWER",
+                "UNITY_2018_4_OR_NEWER",
+                "UNITY_2019_1_OR_NEWER",
+                "UNITY_2019_2_OR_NEWER",
+                "UNITY_2019_3_OR_NEWER",
+                "UNITY_2019_4_OR_NEWER",
+                "UNITY_2020_1_OR_NEWER",
+                "UNITY_2020_2_OR_NEWER",
+                "UNITY_2020_3_OR_NEWER",
+                "UNITY_2021_1_OR_NEWER",
+                "UNITY_2021_2_OR_NEWER",
+                "UNITY_2021_3_OR_NEWER",
+                "UNITY_2022_1_OR_NEWER",
+                "UNITY_2022_2_OR_NEWER",
+                "UNITY_2022_3_OR_NEWER",
+                "UNITY_2023_1_OR_NEWER",
+                "UNITY_2023_2_OR_NEWER",
+                "UNITY_2023_3_OR_NEWER",
+                "UNITY_5_3_OR_NEWER",
+                "UNITY_5_4_OR_NEWER",
+                "UNITY_5_5_OR_NEWER",
+                "UNITY_5_6_OR_NEWER",
+                "UNITY_6000",
+                "UNITY_6000_0",
+                "UNITY_6000_0_30",
+                "UNITY_6000_0_OR_NEWER",
+                "UNITY_64",
+                "UNITY_ASSERTIONS",
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_64",
+                "UNITY_EDITOR_LINUX",
+                "UNITY_STANDALONE",
+                "UNITY_STANDALONE_WIN"
+              ]
+            },
+            {
+              "name": "Game.Tests.PlayMode",
+              "definesInclude": [
+                "NETSTANDARD2_1"
+              ],
+              "definesExclude": [
+                "NET_4_6"
+              ],
+              "defines": [
+                "CSHARP_7_3_OR_NEWER",
+                "DEBUG",
+                "ENABLE_LEGACY_INPUT_MANAGER",
+                "ENABLE_MONO",
+                "NETSTANDARD",
+                "NETSTANDARD2_1",
+                "NET_STANDARD",
+                "NET_STANDARD_2_0",
+                "NET_STANDARD_2_1",
+                "PLATFORM_STANDALONE",
+                "PLATFORM_STANDALONE_WIN",
+                "TRACE",
+                "UNITY_2017_1_OR_NEWER",
+                "UNITY_2017_2_OR_NEWER",
+                "UNITY_2017_3_OR_NEWER",
+                "UNITY_2017_4_OR_NEWER",
+                "UNITY_2018_1_OR_NEWER",
+                "UNITY_2018_2_OR_NEWER",
+                "UNITY_2018_3_OR_NEWER",
+                "UNITY_2018_4_OR_NEWER",
+                "UNITY_2019_1_OR_NEWER",
+                "UNITY_2019_2_OR_NEWER",
+                "UNITY_2019_3_OR_NEWER",
+                "UNITY_2019_4_OR_NEWER",
+                "UNITY_2020_1_OR_NEWER",
+                "UNITY_2020_2_OR_NEWER",
+                "UNITY_2020_3_OR_NEWER",
+                "UNITY_2021_1_OR_NEWER",
+                "UNITY_2021_2_OR_NEWER",
+                "UNITY_2021_3_OR_NEWER",
+                "UNITY_2022_1_OR_NEWER",
+                "UNITY_2022_2_OR_NEWER",
+                "UNITY_2022_3_OR_NEWER",
+                "UNITY_2023_1_OR_NEWER",
+                "UNITY_2023_2_OR_NEWER",
+                "UNITY_2023_3_OR_NEWER",
+                "UNITY_5_3_OR_NEWER",
+                "UNITY_5_4_OR_NEWER",
+                "UNITY_5_5_OR_NEWER",
+                "UNITY_5_6_OR_NEWER",
+                "UNITY_6000",
+                "UNITY_6000_0",
+                "UNITY_6000_0_30",
+                "UNITY_6000_0_OR_NEWER",
+                "UNITY_64",
+                "UNITY_ASSERTIONS",
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_64",
+                "UNITY_EDITOR_LINUX",
+                "UNITY_STANDALONE",
+                "UNITY_STANDALONE_WIN"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.0.30f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Game.Runtime",
+              "definesInclude": [
+                "NETSTANDARD2_1"
+              ],
+              "definesExclude": [
+                "NET_4_6"
+              ],
+              "defines": [
+                "CSHARP_7_3_OR_NEWER",
+                "ENABLE_LEGACY_INPUT_MANAGER",
+                "ENABLE_MONO",
+                "NETSTANDARD",
+                "NETSTANDARD2_1",
+                "NET_STANDARD",
+                "NET_STANDARD_2_0",
+                "NET_STANDARD_2_1",
+                "PLATFORM_STANDALONE",
+                "PLATFORM_STANDALONE_WIN",
+                "UNITY_2017_1_OR_NEWER",
+                "UNITY_2017_2_OR_NEWER",
+                "UNITY_2017_3_OR_NEWER",
+                "UNITY_2017_4_OR_NEWER",
+                "UNITY_2018_1_OR_NEWER",
+                "UNITY_2018_2_OR_NEWER",
+                "UNITY_2018_3_OR_NEWER",
+                "UNITY_2018_4_OR_NEWER",
+                "UNITY_2019_1_OR_NEWER",
+                "UNITY_2019_2_OR_NEWER",
+                "UNITY_2019_3_OR_NEWER",
+                "UNITY_2019_4_OR_NEWER",
+                "UNITY_2020_1_OR_NEWER",
+                "UNITY_2020_2_OR_NEWER",
+                "UNITY_2020_3_OR_NEWER",
+                "UNITY_2021_1_OR_NEWER",
+                "UNITY_2021_2_OR_NEWER",
+                "UNITY_2021_3_OR_NEWER",
+                "UNITY_2022_1_OR_NEWER",
+                "UNITY_2022_2_OR_NEWER",
+                "UNITY_2022_3_OR_NEWER",
+                "UNITY_2023_1_OR_NEWER",
+                "UNITY_2023_2_OR_NEWER",
+                "UNITY_2023_3_OR_NEWER",
+                "UNITY_5_3_OR_NEWER",
+                "UNITY_5_4_OR_NEWER",
+                "UNITY_5_5_OR_NEWER",
+                "UNITY_5_6_OR_NEWER",
+                "UNITY_6000",
+                "UNITY_6000_0",
+                "UNITY_6000_0_30",
+                "UNITY_6000_0_OR_NEWER",
+                "UNITY_64",
+                "UNITY_STANDALONE",
+                "UNITY_STANDALONE_WIN"
+              ]
+            },
+            {
+              "name": "UnityEngine.TestRunner",
+              "definesInclude": [
+                "NETSTANDARD2_1"
+              ],
+              "definesExclude": [
+                "NET_4_6"
+              ],
+              "defines": [
+                "CSHARP_7_3_OR_NEWER",
+                "ENABLE_LEGACY_INPUT_MANAGER",
+                "ENABLE_MONO",
+                "NETSTANDARD",
+                "NETSTANDARD2_1",
+                "NET_STANDARD",
+                "NET_STANDARD_2_0",
+                "NET_STANDARD_2_1",
+                "PLATFORM_STANDALONE",
+                "PLATFORM_STANDALONE_WIN",
+                "UNITY_2017_1_OR_NEWER",
+                "UNITY_2017_2_OR_NEWER",
+                "UNITY_2017_3_OR_NEWER",
+                "UNITY_2017_4_OR_NEWER",
+                "UNITY_2018_1_OR_NEWER",
+                "UNITY_2018_2_OR_NEWER",
+                "UNITY_2018_3_OR_NEWER",
+                "UNITY_2018_4_OR_NEWER",
+                "UNITY_2019_1_OR_NEWER",
+                "UNITY_2019_2_OR_NEWER",
+                "UNITY_2019_3_OR_NEWER",
+                "UNITY_2019_4_OR_NEWER",
+                "UNITY_2020_1_OR_NEWER",
+                "UNITY_2020_2_OR_NEWER",
+                "UNITY_2020_3_OR_NEWER",
+                "UNITY_2021_1_OR_NEWER",
+                "UNITY_2021_2_OR_NEWER",
+                "UNITY_2021_3_OR_NEWER",
+                "UNITY_2022_1_OR_NEWER",
+                "UNITY_2022_2_OR_NEWER",
+                "UNITY_2022_3_OR_NEWER",
+                "UNITY_2023_1_OR_NEWER",
+                "UNITY_2023_2_OR_NEWER",
+                "UNITY_2023_3_OR_NEWER",
+                "UNITY_5_3_OR_NEWER",
+                "UNITY_5_4_OR_NEWER",
+                "UNITY_5_5_OR_NEWER",
+                "UNITY_5_6_OR_NEWER",
+                "UNITY_6000",
+                "UNITY_6000_0",
+                "UNITY_6000_0_30",
+                "UNITY_6000_0_OR_NEWER",
+                "UNITY_64",
+                "UNITY_STANDALONE",
+                "UNITY_STANDALONE_WIN"
+              ]
+            }
+          ],
+          "excluded": [
+            "Game.Tests.EditMode",
+            "Game.Tests.Legacy",
+            "Game.Tests.PlayMode",
+            "UnityEditor.TestRunner"
+          ],
+          "diagnostics": []
+        }
+      ],
+      "tests": {
+        "unityVersion": "6000.0.30f1",
+        "platform": "StandaloneWindows64",
+        "exitCode": 1,
+        "cases": [
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.DefineGuardedTests.Editor_assemblies_use_the_net_framework_profile",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.DefineGuardedTests.Editor_symbol_is_defined",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.DefineGuardedTests.Historical_version_symbol_is_defined",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.DefineGuardedTests.Parameterised_case_behind_a_version_symbol(\"a\")",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.DefineGuardedTests.Parameterised_case_behind_a_version_symbol(\"b\")",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.Divergence.DivergenceTests.Double_ToString_is_shortest_round_trip",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.Divergence.DivergenceTests.Float_ToString_is_shortest_round_trip",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.EngineTests.Logging_needs_the_engine",
+            "category": "needs-unity"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.EngineTests.Spawning_needs_the_engine",
+            "category": "needs-unity"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.EngineTests.Vector_math_is_managed",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.Fixtures.UsesNamespaceSetUp.SetUp_fixture_ran_first",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.OutcomeTests.Arithmetic_is_wrong_on_purpose",
+            "category": "failed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.OutcomeTests.Explicit_case",
+            "category": "skipped"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.OutcomeTests.Ignored_case",
+            "category": "ignored"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.OutcomeTests.Inconclusive_case",
+            "category": "skipped"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.SourceTests.Prices_add_up(-1,1)",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.SourceTests.Prices_add_up(0,0)",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.SourceTests.Prices_add_up(1,2)",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.SourceTests.Prices_add_up(2,2)",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.UnityOnlyTests.Expects_a_log_message",
+            "category": "unity-only"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.UnityOnlyTests.Needs_play_mode",
+            "category": "unity-only"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.UnityOnlyTests.Waits_a_frame",
+            "category": "unity-only"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.UnityOnlyTests.Windows_editor_only",
+            "category": "unity-only"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.WalletTests.Balance_after_spending(1,9)",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.WalletTests.Balance_after_spending(10,0)",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.WalletTests.Balance_after_spending(5,5)",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.WalletTests.Spending_less_than_the_balance_succeeds",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.EditMode",
+            "name": "Game.Tests.WalletTests.Spending_more_than_the_balance_fails",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.Legacy",
+            "name": "Game.Tests.Legacy.LegacyTests.Legacy_test_assemblies_get_nunit",
+            "category": "passed"
+          },
+          {
+            "assembly": "Game.Tests.PlayMode",
+            "name": "Game.Tests.PlayMode.PlayModeTests.Pure_but_in_a_play_mode_assembly",
+            "category": "unity-only"
+          },
+          {
+            "assembly": "Game.Tests.PlayMode",
+            "name": "Game.Tests.PlayMode.PlayModeTests.Waits_in_play_mode",
+            "category": "unity-only"
+          }
+        ],
+        "unityFilter": "!^Game\\.Tests\\.DefineGuardedTests\\.;!^Game\\.Tests\\.Divergence\\.DivergenceTests\\.;!^Game\\.Tests\\.Fixtures\\.UsesNamespaceSetUp\\.;!^Game\\.Tests\\.Legacy\\.LegacyTests\\.;!^Game\\.Tests\\.SourceTests\\.;!^Game\\.Tests\\.WalletTests\\."
+      }
     }
   ]
 }
