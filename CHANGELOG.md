@@ -9,6 +9,10 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Changed
 
+* `ucl check --format json --timings` adds `analyzerTimings` (`path`, `analyzer`, `timeMs`) to each assembly
+  and to cell/run summaries in `ucl-result/1`. Roslyn's logged callback times are summed per analyzer,
+  not wall-clock latency. Cache hits report no current-run analyzer time; cached diagnostics still appear.
+
 * A test framework assembly (its `defineConstraints` has `UNITY_TESTS_FRAMEWORK`) gets the symbol `UNITY_TESTS_FRAMEWORK`
   in the Editor when the test framework is installed (row D61), so the released `Unity.InputSystem.TestFramework`,
   which has no versionDefines, compiles again. No other assembly gets it.

@@ -45,6 +45,9 @@ public sealed record AssemblyResult
     /// <summary>Wall-clock milliseconds; reported only with <c>--timings</c>.</summary>
     public long ElapsedMs { get; init; }
 
+    /// <summary>Analyzer callback execution times from this run; empty for cache hits, disabled or filtered analyzers.</summary>
+    public IReadOnlyList<AnalyzerTiming> AnalyzerTimings { get; init; } = [];
+
     /// <summary>True when the result came from the incremental cache.</summary>
     public bool Cached { get; init; }
 }

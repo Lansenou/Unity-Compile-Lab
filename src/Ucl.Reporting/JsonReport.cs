@@ -25,7 +25,8 @@ public static class JsonReport
             w.WriteString("version", run.ToolVersion);
             w.WriteEndObject();
             w.WriteNumber("exitCode", run.ExitCode);
-            WriteSummary(w, run.Cells.SelectMany(c => c.Diagnostics).ToList(), run.Cells.Count);
+            WriteSummary(w, run.Cells.SelectMany(c => c.Diagnostics).ToList(), run.Cells.Count,
+                run.Timings ? run.Cells.SelectMany(c => c.Assemblies).SelectMany(a => a.AnalyzerTimings) : null);
             WriteProblems(w, run.Problems);
             w.WriteStartArray("cells");
             foreach (var cell in run.Cells)
@@ -40,13 +41,18 @@ public static class JsonReport
         return Encoding.UTF8.GetString(stream.ToArray()).Replace("\r\n", "\n", StringComparison.Ordinal) + "\n";
     }
 
-    private static void WriteSummary(Utf8JsonWriter w, IReadOnlyList<Diagnostic> diagnostics, int cells)
+    private static void WriteSummary(Utf8JsonWriter w, IReadOnlyList<Diagnostic> diagnostics, int cells, IEnumerable<AnalyzerTiming>? timings)
     {
         w.WriteStartObject("summary");
         w.WriteNumber("cells", cells);
         w.WriteNumber("errors", diagnostics.Count(d => d.Severity == Severity.Error));
         w.WriteNumber("warnings", diagnostics.Count(d => d.Severity == Severity.Warning));
         w.WriteNumber("analyzerDiagnostics", diagnostics.Count(d => d.Origin == DiagnosticOrigin.Analyzer));
+        if (timings is not null)
+        {
+            WriteAnalyzerTimings(w, timings.GroupBy(t => (t.Path, t.Analyzer))
+                .Select(g => new AnalyzerTiming(g.Key.Path, g.Key.Analyzer, g.Sum(t => t.TimeMs))));
+        }
         w.WriteEndObject();
     }
 
@@ -76,7 +82,7 @@ public static class JsonReport
         w.WriteBoolean("development", c.Development);
         if (c.IsEditor) w.WriteString("editorOs", Names.Of(c.EditorOs));
         w.WriteNumber("exitCode", cell.ExitCode);
-        WriteSummary(w, cell.Diagnostics, 1);
+        WriteSummary(w, cell.Diagnostics, 1, timings ? cell.Assemblies.SelectMany(a => a.AnalyzerTimings) : null);
         WriteProblems(w, cell.Problems);
         w.WriteStartArray("assemblies");
         foreach (var a in cell.Assemblies)
@@ -112,6 +118,7 @@ public static class JsonReport
             {
                 w.WriteNumber("timeMs", a.ElapsedMs);
                 w.WriteBoolean("cached", a.Cached);
+                WriteAnalyzerTimings(w, a.AnalyzerTimings);
             }
 
             w.WriteEndObject();
@@ -146,6 +153,21 @@ public static class JsonReport
 
         w.WriteEndArray();
         w.WriteEndObject();
+    }
+
+    private static void WriteAnalyzerTimings(Utf8JsonWriter w, IEnumerable<AnalyzerTiming> timings)
+    {
+        w.WriteStartArray("analyzerTimings");
+        foreach (var timing in timings.OrderBy(t => t.Path, StringComparer.Ordinal).ThenBy(t => t.Analyzer, StringComparer.Ordinal))
+        {
+            w.WriteStartObject();
+            w.WriteString("path", timing.Path);
+            w.WriteString("analyzer", timing.Analyzer);
+            w.WriteNumber("timeMs", timing.TimeMs);
+            w.WriteEndObject();
+        }
+
+        w.WriteEndArray();
     }
 
     private static void Strings(Utf8JsonWriter w, string name, IEnumerable<string> values)

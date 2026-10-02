@@ -129,10 +129,11 @@ internal sealed class AssemblyCompiler
 
         Microsoft.CodeAnalysis.Compilation compilation = CSharpCompilation.Create(plan.Name, trees, references, options);
         var raw = new List<(Microsoft.CodeAnalysis.Diagnostic Diagnostic, DiagnosticOrigin Origin)>();
+        var timings = new List<AnalyzerTiming>();
         if (analyzerDisplays.Count > 0)
         {
-            var physical = analyzerPaths.Select(_project.ToPhysical).Concat(editorAnalyzers.Select(a => a.Path)).ToList();
-            compilation = AnalyzerHost.Run(compilation, physical, plan, _project, _fs, _loader, parseOptions, configSet, raw);
+            var physical = analyzerPaths.Select(a => (Display: a, Path: _project.ToPhysical(a))).Concat(editorAnalyzers).ToList();
+            compilation = AnalyzerHost.Run(compilation, physical, plan, _project, _fs, _loader, parseOptions, configSet, raw, timings);
         }
         else
         {
@@ -168,7 +169,7 @@ internal sealed class AssemblyCompiler
         var sorted = DiagnosticOrder.Sort(diagnostics);
         _cache?.Store(inputsHash, failed, sorted, imageBytes, imageHash);
         return new AssemblyOutcome(
-            Result(plan, failed, inputsHash, displays, analyzerDisplays, sorted, clock.ElapsedMilliseconds, cached: false),
+            Result(plan, failed, inputsHash, displays, analyzerDisplays, sorted, clock.ElapsedMilliseconds, cached: false) with { AnalyzerTimings = timings },
             imageBytes is null ? null : MetadataReference.CreateFromImage(imageBytes),
             imageHash,
             imageBytes);
