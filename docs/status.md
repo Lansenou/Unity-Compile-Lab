@@ -5,7 +5,7 @@ billing view); treat them as rough.
 
 ## Current follow-up (2026-10-02): map-form plugins and test-host resilience
 
-### Item 1: map-form plugin metadata — implemented, awaiting platform CI and merge
+### Item 1: map-form plugin metadata — merged in PR 23
 
 Accept both list-form first/second entries and serializedVersion 3 map-form platformData;
 map keys name the platforms. Both shapes share Any Platform exclusions and explicit platform
@@ -19,6 +19,10 @@ universal inclusion and Editor-only inclusion. Before the fix, six focused unit 
 fixture cells failed; after it, all pass. Existing list-form parser/graph tests also pass.
 The independently implemented verifier agrees on all 211 cells. No external sample data or
 private project identifiers were added. Coverage thresholds remain Core 90% / overall 75%.
+Local full gate: 622 Core, 75 Discovery and 297 Integration tests pass; Core line coverage
+96.10%, overall 91.82%. [PR 23](https://github.com/Lansenou/Unity-Compile-Lab/pull/23)
+is merged only after Linux, Windows and macOS CI pass; its merge commit also runs the full gate
+and automatic release on main.
 A counts-only private rerun is still needed; this fixes the serialization cause, not an unproven
 blanket API-profile-name filter or duplicate-plugin precedence rule.
 
