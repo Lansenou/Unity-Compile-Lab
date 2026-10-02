@@ -337,6 +337,8 @@ namespace System.Globalization
 {
     public class CultureInfo : IFormatProvider
     {
+        public CultureInfo(string name) { }
+        public string Name => null;
         public static CultureInfo InvariantCulture => null;
         public static CultureInfo CurrentCulture => null;
         public object GetFormat(Type formatType) => null;

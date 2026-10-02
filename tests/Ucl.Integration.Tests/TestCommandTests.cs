@@ -231,4 +231,21 @@ public sealed class TestCommandTests
         Assert.Equal(parentDirectory, Directory.GetCurrentDirectory());
     }
 
+    [Fact]
+    public void Test_hosts_support_named_cultures()
+    {
+        using var temp = new TempDir();
+        var (project, env, _) = Setup(temp);
+        File.WriteAllText(Path.Combine(project, "Assets", "Tests", "EditMode", "CultureTests.cs"), """
+            using NUnit.Framework;
+            public class CultureTests
+            {
+                [Test] public void German_culture() => Assert.AreEqual("de-DE", new System.Globalization.CultureInfo("de-DE").Name);
+            }
+            """);
+        var (exit, stdout, stderr) = Test(env, project, "--format", "json", "--filter", "CultureTests");
+        Assert.True(exit == 0, stdout + stderr);
+        Assert.Equal("passed", Assert.Single(JsonDocument.Parse(stdout).RootElement.GetProperty("cases").EnumerateArray()).GetProperty("category").GetString());
+    }
+
 }
