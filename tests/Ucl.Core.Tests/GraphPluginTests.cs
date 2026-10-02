@@ -17,6 +17,18 @@ public class GraphPluginTests
     private static bool Referenced(Graph.AssemblyGraph g, string assembly, string dll = Dll) =>
         g.Find(assembly)!.PrecompiledReferences.Contains(dll);
 
+    [Theory]
+    [InlineData(1, 1, 0, false, true)]
+    [InlineData(1, 0, 0, true, true)]
+    [InlineData(0, 0, 1, true, false)]
+    public void Map_importer_controls_references_on_all_assembly_kinds(int any, int excludeEditor, int editor, bool inEditor, bool inPlayer)
+    {
+        var meta = $"PluginImporter:\n  serializedVersion: 3\n  platformData:\n    Any:\n      enabled: {any}\n      settings:\n        Exclude Editor: {excludeEditor}\n    Editor:\n      enabled: {editor}\n";
+        var inventory = WithPlugin(meta);
+        Assert.All(inventory.Editor().Assemblies, a => Assert.Equal(inEditor, a.PrecompiledReferences.Contains(Dll)));
+        Assert.All(inventory.Player().Assemblies, a => Assert.Equal(inPlayer, a.PrecompiledReferences.Contains(Dll)));
+    }
+
     [Fact]
     public void Dll_without_meta_is_referenced_everywhere()
     {

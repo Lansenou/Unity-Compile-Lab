@@ -516,9 +516,30 @@ internal static class Planner
         var enabled = new Dictionary<string, bool>();
         var excluded = new HashSet<string>();
         string? current = null;
+        int? platformIndent = null;
+        int? mapIndent = null;
         for (var i = 0; i < meta.Length; i++)
         {
             var t = meta[i].Trim();
+            var indent = meta[i].Length - meta[i].TrimStart().Length;
+            if (t == "platformData:")
+            {
+                platformIndent = indent;
+                continue;
+            }
+            if (t == "- first:" || (platformIndent is { } sectionDepth && indent <= sectionDepth && t.Length > 0))
+            {
+                platformIndent = null;
+            }
+            if (platformIndent is { } depth && indent > depth && t.EndsWith(':') && !t.StartsWith('-'))
+            {
+                mapIndent ??= indent;
+                if (indent == mapIndent)
+                {
+                    current = t[..^1].Trim('\'', '"');
+                    continue;
+                }
+            }
             if (t == "- first:" && i + 1 < meta.Length)
             {
                 var kv = meta[i + 1].Trim();

@@ -23,17 +23,9 @@ public static class MetaParser
         var any = false;
         var excluded = new HashSet<string>(StringComparer.Ordinal);
         var enabled = new HashSet<string>(StringComparer.Ordinal);
-        var entries = importer["platformData"]?.Items ?? [];
-        foreach (var entry in entries)
+        var platformData = importer["platformData"];
+        foreach (var (category, name, second) in PlatformEntries(platformData))
         {
-            var first = entry["first"]?.Map;
-            var second = entry["second"];
-            if (first is null || first.Count == 0 || second is null)
-            {
-                continue;
-            }
-
-            var (category, name) = (first[0].Key, first[0].Value.Scalar ?? string.Empty);
             var isEnabled = second.Get("enabled") == "1";
             if ((category.Length == 0 && name == "Any") || (category == "Any" && name.Length == 0))
             {
@@ -58,7 +50,7 @@ public static class MetaParser
 
         return new PluginSettings
         {
-            HasPlatformData = entries.Count > 0,
+            HasPlatformData = (platformData?.Items?.Count ?? 0) + (platformData?.Map?.Count ?? 0) > 0,
             AnyPlatform = any,
             Excluded = excluded,
             Enabled = enabled,
@@ -67,4 +59,23 @@ public static class MetaParser
             DefineConstraints = importer["defineConstraints"]?.Items?.Select(i => i.Scalar ?? string.Empty).Where(s => s.Length > 0).ToList() ?? [],
         };
     }
+
+    private static IEnumerable<(string Category, string Name, YamlNode Settings)> PlatformEntries(YamlNode? data)
+    {
+        foreach (var entry in data?.Items ?? [])
+        {
+            var first = entry["first"]?.Map;
+            var second = entry["second"];
+            if (first is { Count: > 0 } && second is not null)
+            {
+                yield return (first[0].Key, first[0].Value.Scalar ?? string.Empty, second);
+            }
+        }
+
+        foreach (var entry in data?.Map ?? [])
+        {
+            yield return (entry.Key, string.Empty, entry.Value);
+        }
+    }
+
 }

@@ -3,7 +3,48 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
-## CI follow-up: Windows coverage collection (2026-10-02)
+## Current follow-up (2026-10-02): map-form plugins and test-host resilience
+
+### Item 1: map-form plugin metadata — implemented, awaiting platform CI and merge
+
+Accept both list-form first/second entries and serializedVersion 3 map-form platformData;
+map keys name the platforms. Both shapes share Any Platform exclusions and explicit platform
+selection. Auto Reference, Validate References and define constraints retain their existing rules.
+Sources: the [Unity plugin inspector manual](https://docs.unity3d.com/6000.3/Documentation/Manual/plug-in-inspector.html)
+and the three original repository fixtures encoding the reported map shape.
+
+Synthetic `plugin-map-exclude-editor`, `plugin-map-any` and `plugin-map-editor-only` reuse only
+the repository's original Vendor.Math stub. Six editor/player cells cover excluded Editor,
+universal inclusion and Editor-only inclusion. Before the fix, six focused unit cases and two
+fixture cells failed; after it, all pass. Existing list-form parser/graph tests also pass.
+The independently implemented verifier agrees on all 211 cells. No external sample data or
+private project identifiers were added. Coverage thresholds remain Core 90% / overall 75%.
+A counts-only private rerun is still needed; this fixes the serialization cause, not an unproven
+blanket API-profile-name filter or duplicate-plugin precedence rule.
+
+### Item 2: IL scan load failures and host recovery — open, next session
+
+`IlScanner.Callees` catches invalid/not-supported bodies, but GetMethodBody does not catch
+TypeLoadException, FileNotFoundException or FileLoadException. Build an original synthetic
+assembly whose method-body type cannot load; first prove the run aborts before the fix. Catch
+load failures per scanned method, report method/type/exception message, and complete all cases.
+Existing TestHost persists results and restarts after an execution-time crash, but scanning
+happens before case-start events: prove a crash during classification can identify its case,
+report it as an error and resume the next case. Preserve existing zero-loss accounting tests.
+No test-host code changed in item 1.
+
+### Item 3: sortable assembly/analyzer/rule timings — open, next session
+
+Current JSON already contains per-assembly analyzer callback totals (PR 17). Next inspect the
+Roslyn timing API to establish whether individual rule timing is available: callbacks can report
+multiple rule IDs, so never repeat or divide a shared analyzer total as purported per-rule time.
+Add a sortable breakdown with proven attribution, a deliberately slow analyzer fixture, and a
+short README example; explicitly document any API limitation. No timing code changed in item 1.
+
+Budget stop: finish item 1 with green Linux/Windows/macOS PR and post-merge main CI, then stop.
+Items 2 and 3 remain open as above.
+
+## CI follow-up: Windows coverage collection (2026-10-02) — merged in PR 22
 
 The post-merge main run for PR 21 failed on Windows after all 973 tests passed: merged line
 coverage was 52.67%, with compilation and reporting at 0%. Release was skipped. PR checks

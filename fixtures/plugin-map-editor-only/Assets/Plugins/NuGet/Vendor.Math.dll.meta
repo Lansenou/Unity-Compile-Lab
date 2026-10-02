@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 128dfb579df94035ae6fd01da5c3f063
+PluginImporter:
+  serializedVersion: 3
+  defineConstraints: []
+  isExplicitlyReferenced: 0
+  validateReferences: 1
+  platformData:
+    Any:
+      enabled: 0
+      settings:
+        Exclude Editor: 0
+        Exclude Linux64: 0
+    Editor:
+      enabled: 1
+      settings:
+        DefaultValueInitialized: true

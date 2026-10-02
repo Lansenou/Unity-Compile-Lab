@@ -7,6 +7,11 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ## [Unreleased]
 
+### Fixed
+
+* Accept map-form plugin `platformData` as well as list-form entries. Apply the same Any Platform
+  exclusions and explicit platform enables, including Editor-only and Exclude Editor settings.
+
 ### Changed
 
 * Dependents compile once an assembly's reference image is emitted, while its analyzers finish in a
