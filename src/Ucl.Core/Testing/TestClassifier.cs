@@ -14,7 +14,7 @@ public static class TestClassifier
         ["UnityEngine.TestTools.RequiresPlayModeAttribute"] = "[RequiresPlayMode] runs in Play Mode",
     };
 
-    /// <summary>The type whose use makes a case unity-only: log expectations need the Editor's log.</summary>
+    /// <summary>The type whose use needs Unity: log expectations require a Unity log scope.</summary>
     public const string LogAssertType = "UnityEngine.TestTools.LogAssert";
 
     // Exception types whose presence in a failure means an engine call: CoreCLR refuses an InternalCall in a
@@ -31,9 +31,9 @@ public static class TestClassifier
 
     /// <summary>
     /// The unity-only reason for a case, or null when it can run under .NET: a Play Mode assembly (not Editor-only),
-    /// one of <see cref="UnityOnlyAttributes"/> on the method, its class or its assembly, or a call to <see cref="LogAssertType"/>.
+    /// one of <see cref="UnityOnlyAttributes"/> on the method, its class or its assembly.
     /// </summary>
-    public static string? UnityOnlyReason(bool playModeAssembly, IEnumerable<string> attributeTypes, bool usesLogAssert)
+    public static string? UnityOnlyReason(bool playModeAssembly, IEnumerable<string> attributeTypes)
     {
         ArgumentNullException.ThrowIfNull(attributeTypes);
         if (playModeAssembly)
@@ -49,7 +49,7 @@ public static class TestClassifier
             }
         }
 
-        return usesLogAssert ? "LogAssert needs the Editor's log" : null;
+        return null;
     }
 
     /// <summary>
@@ -77,12 +77,13 @@ public static class TestClassifier
     /// <param name="status">NUnit <c>TestStatus</c>: Passed, Failed, Skipped, Inconclusive, Warning.</param>
     /// <param name="label">NUnit result label (Ignored, Explicit, Error, Invalid, ...), or empty.</param>
     /// <param name="message">NUnit's message, or empty.</param>
-    public static TestCategory FromResult(string status, string? label, string? message) => status switch
+    /// <param name="stackTrace">Runtime frames, needed to identify a missing Unity log scope.</param>
+    public static TestCategory FromResult(string status, string? label, string? message, string? stackTrace = null) => status switch
     {
         "Passed" or "Warning" => TestCategory.Passed,
         "Skipped" when label == "Ignored" => TestCategory.Ignored,
         "Skipped" or "Inconclusive" => TestCategory.Skipped,
-        _ => IsEngineFailure(message ?? string.Empty) ? TestCategory.NeedsUnity : TestCategory.Failed,
+        _ => (IsEngineFailure(message ?? string.Empty) || IsMissingLogScope(message, stackTrace)) ? TestCategory.NeedsUnity : TestCategory.Failed,
     };
 
     /// <summary>
@@ -103,6 +104,14 @@ public static class TestClassifier
 
         return false;
     }
+
+    /// <summary>The public test framework's missing-scope exception, with a framework stack frame; not a general assertion.</summary>
+    public static bool IsMissingLogScope(string? message, string? stackTrace) =>
+        (message ?? string.Empty).Split('\n').Any(line => Named(line, "System.InvalidOperationException")
+            && line.Contains("No log scope is available", StringComparison.Ordinal))
+        && EngineMember(stackTrace) is { } member
+        && (member.StartsWith("UnityEngine.TestTools.Logging.LogScope.", StringComparison.Ordinal)
+            || member.StartsWith("UnityEngine.TestTools.LogAssert.", StringComparison.Ordinal));
 
     /// <summary>First UnityEngine/UnityEditor type and member in a runtime stack trace; never infer one from the test name.</summary>
     public static string? EngineMember(string? stackTrace)

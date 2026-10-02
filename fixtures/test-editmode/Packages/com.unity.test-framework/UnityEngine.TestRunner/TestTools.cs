@@ -35,8 +35,17 @@ namespace UnityEngine.TestTools
     {
         public static bool ignoreFailingMessages { get; set; }
 
-        public static void Expect(LogType type, string message) => throw new InvalidOperationException("LogAssert needs the Unity log");
+        public static void Expect(LogType type, string message) => throw Logging.LogScope.Current;
 
-        public static void NoUnexpectedReceived() => throw new InvalidOperationException("LogAssert needs the Unity log");
+        public static void NoUnexpectedReceived() => throw Logging.LogScope.Current;
+    }
+}
+
+namespace UnityEngine.TestTools.Logging
+{
+    // Original stand-in for the public framework's unavailable-scope failure; no logging shim.
+    internal static class LogScope
+    {
+        internal static System.Exception Current => throw new System.InvalidOperationException("No log scope is available");
     }
 }

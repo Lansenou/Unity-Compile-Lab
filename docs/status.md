@@ -13,11 +13,14 @@ the ECall SecurityException message. No private project/type names or paths are 
 Member attribution is merged in PR 27 after green Linux, Windows and macOS CI: take the first UnityEngine/UnityEditor exception frame,
 include it in the reason and nullable engineMember JSON field, and rank top-20 counts in text/JSON.
 The original engine stub proves attribution through a project helper; unknown frames
-stay unknown. Working directory is fixed in PR 28: an original relative Assets file-read fixture fails from
+stay unknown. Working directory is merged in PR 28 after green Linux, Windows and macOS CI: an original relative Assets file-read fixture fails from
 the temporary directory before the fix and passes from the project root afterward. The parent
-directory stays unchanged; restarts use the same launcher. Full cultures are enabled in PR 29: the original de-DE culture fixture fails with
-CultureNotFoundException in invariant mode before the fix and passes afterward. Missing log scope (10),
-readonly-static reflection (1) and allocation-window GC differences (4) are next, each with a red
+directory stays unchanged; restarts use the same launcher. Full cultures are merged in PR 29 after green Linux, Windows and macOS CI: the original de-DE culture fixture fails with
+CultureNotFoundException in invariant mode before the fix and passes afterward. Missing log scope is classified needs-unity in PR 30: direct LogAssert calls and
+the public framework missing-scope exception through a helper are covered. The helper
+fixture was failed before the fix; afterward it is needs-unity and the following case passes.
+Ordinary assertions/InvalidOperationException remain failed. No logging shim is installed.
+Readonly-static reflection (1) and allocation-window GC differences (4) are next, each with a red
 fixture first. A reported group of 25 static-constructor failures has no proven cause; do not guess.
 
 No production Unity API shims are added. Logging needs expected/unexpected/missing-expectation

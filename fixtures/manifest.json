@@ -31710,7 +31710,7 @@
     },
     {
       "name": "test-editmode",
-      "description": "ucl test (phase B): an EditMode suite with pure tests, TestCase and TestCaseSource, a SetUpFixture, cases behind #if UNITY_5_3_OR_NEWER, UNITY_EDITOR and NET_UNITY_4_8, engine-touching tests (needs-unity), [UnityTest], LogAssert, [UnityPlatform] and [RequiresPlayMode] (unity-only), a real failure, ignored, explicit and inconclusive cases, CoreCLR/Mono divergences, a legacy optionalUnityReferences test assembly and a Play Mode assembly. The test framework and com.unity.ext.nunit are embedded stand-ins; nunit.framework.dll is NUnit 3.14.0 from NuGet. 'tests' lists every case ucl test must report, in order, with its category.",
+      "description": "ucl test (phase B): an EditMode suite with pure tests, TestCase and TestCaseSource, a SetUpFixture, cases behind #if UNITY_5_3_OR_NEWER, UNITY_EDITOR and NET_UNITY_4_8, engine-touching tests (needs-unity), LogAssert (needs-unity), [UnityTest], [UnityPlatform] and [RequiresPlayMode] (unity-only), a real failure, ignored, explicit and inconclusive cases, CoreCLR/Mono divergences, a legacy optionalUnityReferences test assembly and a Play Mode assembly. The test framework and com.unity.ext.nunit are embedded stand-ins; nunit.framework.dll is NUnit 3.14.0 from NuGet. 'tests' lists every case ucl test must report, in order, with its category.",
       "requirements": [
         "B"
       ],
@@ -32950,7 +32950,7 @@
           {
             "assembly": "Game.Tests.EditMode",
             "name": "Game.Tests.UnityOnlyTests.Expects_a_log_message",
-            "category": "unity-only"
+            "category": "needs-unity"
           },
           {
             "assembly": "Game.Tests.EditMode",

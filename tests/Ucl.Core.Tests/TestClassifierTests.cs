@@ -46,12 +46,11 @@ public class TestClassifierTests
     [Fact]
     public void Unity_only_rules_in_priority_order()
     {
-        Assert.Contains("Play Mode", TestClassifier.UnityOnlyReason(true, [], false), StringComparison.Ordinal);
-        Assert.Contains("[UnityTest]", TestClassifier.UnityOnlyReason(false, ["NUnit.Framework.TestAttribute", "UnityEngine.TestTools.UnityTestAttribute"], false), StringComparison.Ordinal);
-        Assert.Contains("[UnityPlatform]", TestClassifier.UnityOnlyReason(false, ["UnityEngine.TestTools.UnityPlatformAttribute"], true), StringComparison.Ordinal);
-        Assert.Contains("[RequiresPlayMode]", TestClassifier.UnityOnlyReason(false, ["UnityEngine.TestTools.RequiresPlayModeAttribute"], false), StringComparison.Ordinal);
-        Assert.Contains("LogAssert", TestClassifier.UnityOnlyReason(false, ["NUnit.Framework.TestAttribute"], true), StringComparison.Ordinal);
-        Assert.Null(TestClassifier.UnityOnlyReason(false, ["NUnit.Framework.TestAttribute"], false));
+        Assert.Contains("Play Mode", TestClassifier.UnityOnlyReason(true, []), StringComparison.Ordinal);
+        Assert.Contains("[UnityTest]", TestClassifier.UnityOnlyReason(false, ["NUnit.Framework.TestAttribute", "UnityEngine.TestTools.UnityTestAttribute"]), StringComparison.Ordinal);
+        Assert.Contains("[UnityPlatform]", TestClassifier.UnityOnlyReason(false, ["UnityEngine.TestTools.UnityPlatformAttribute"]), StringComparison.Ordinal);
+        Assert.Contains("[RequiresPlayMode]", TestClassifier.UnityOnlyReason(false, ["UnityEngine.TestTools.RequiresPlayModeAttribute"]), StringComparison.Ordinal);
+        Assert.Null(TestClassifier.UnityOnlyReason(false, ["NUnit.Framework.TestAttribute"]));
     }
 
     [Theory]
@@ -120,5 +119,12 @@ public class TestClassifierTests
     [InlineData(null, null)]
     public void Native_member_comes_from_the_first_engine_stack_frame(string? stack, string? expected) =>
         Assert.Equal(expected, TestClassifier.EngineMember(stack));
+
+    [Theory]
+    [InlineData("System.InvalidOperationException : No log scope is available", "at UnityEngine.TestTools.Logging.LogScope.get_Current()", TestCategory.NeedsUnity)]
+    [InlineData("System.InvalidOperationException : No log scope is available", "at Game.Helpers.Check()", TestCategory.Failed)]
+    [InlineData("System.InvalidOperationException : unrelated failure", "at UnityEngine.TestTools.LogAssert.Expect()", TestCategory.Failed)]
+    public void Missing_log_scopes_require_the_framework_exception_and_frame(string message, string stack, TestCategory expected) =>
+        Assert.Equal(expected, TestClassifier.FromResult("Failed", "Error", message, stack));
 
 }
