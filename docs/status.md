@@ -32,7 +32,7 @@ No production Unity API shims are added. Logging needs expected/unexpected/missi
 parity tests; native Quaternion/Matrix math needs actual Unity CI comparison over 10,000 random
 inputs with per-member ULP bounds. Engine state and unpublished algorithms remain needs-unity.
 
-## Test scope documentation — PR 32
+## Test scope documentation — merged in PR 32 after green three-OS CI
 
 README now puts “What ucl test can and cannot run” directly below the test command row;
 docs/test.md mirrors it at the top. The member-specific table was audited against pinned

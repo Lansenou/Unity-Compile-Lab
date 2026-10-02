@@ -30,9 +30,19 @@ namespace Game.Tests
             Assert.IsTrue(bounds.Intersects(bounds));
         }
         [Test] public void Native_texture() => new Texture2D(1, 1);
-        [Test] public void Managed_quaternion() => Assert.AreEqual(Vector3.right, Quaternion.identity * Vector3.right);
+        [Test] public void Managed_quaternion()
+        {
+            Assert.AreEqual(Vector3.right, Quaternion.identity * Vector3.right);
+            Assert.AreEqual(Vector3.left, new Quaternion { z = 1f } * Vector3.right);
+            Assert.AreEqual(Quaternion.identity, Quaternion.identity * Quaternion.identity);
+        }
         [Test] public void Native_quaternion() => Quaternion.Euler(0f, 90f, 0f);
-        [Test] public void Managed_matrix() => Assert.AreEqual(Vector3.right, (Matrix4x4.identity * Matrix4x4.identity).MultiplyPoint3x4(Vector3.right));
+        [Test] public void Managed_matrix()
+        {
+            var translated = Matrix4x4.identity;
+            translated.m03 = 2f;
+            Assert.AreEqual(new Vector3(3, 0, 0), (translated * Matrix4x4.identity).MultiplyPoint3x4(Vector3.right));
+        }
         [Test] public void Native_matrix() => Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one);
         [Test] public void Managed_attributes_and_enums()
         {

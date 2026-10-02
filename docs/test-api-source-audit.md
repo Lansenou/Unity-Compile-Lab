@@ -30,9 +30,10 @@ actual editor DLLs and does not substitute these fixture stand-ins or add produc
    in [Geometry](https://github.com/Unity-Technologies/UnityCsReference/tree/2f6cef60096cf50741d933becf101bf3186719dd/Runtime/Export/Geometry)
    have C# constructors/value operations; Bounds.Intersects is C#. Bounds.Contains/SqrDistance/ClosestPoint
    in Math.bindings.cs are native, as are Color.linear/gamma via Mathf color-space conversions.
-   Creation/use bindings for Texture/RenderTexture/Mesh/Sprite are in
+   Creation/use bindings for Texture/RenderTexture/Mesh are in
    [Graphics](https://github.com/Unity-Technologies/UnityCsReference/tree/2f6cef60096cf50741d933becf101bf3186719dd/Runtime/Export/Graphics),
-   and Material/Shader in Runtime/Export/Shaders. Cases: Managed_values / Native_texture.
+   Material/Shader are in Runtime/Export/Shaders, and Sprite creation is in
+   Runtime/2D/Common/ScriptBindings/Sprites.bindings.cs. Cases: Managed_values / Native_texture.
 5. **Quaternion.** Quaternion.cs identity and multiplication operators have C# bodies.
    Math.bindings.cs Euler's Internal_FromEulerRad, LookRotation, Slerp, Inverse and AngleAxis use native
    bindings. Cases: Managed_quaternion / Native_quaternion. The old original stub incorrectly made
@@ -55,7 +56,7 @@ actual editor DLLs and does not substitute these fixture stand-ins or add produc
 9. **Allocation / scheduling / engine systems.**
    [NativeArray.cs](https://github.com/Unity-Technologies/UnityCsReference/blob/2f6cef60096cf50741d933becf101bf3186719dd/Runtime/Export/NativeArray/NativeArray.cs)
    allocation calls native MallocTracked in Runtime/Export/Unsafe/UnsafeUtility.bindings.cs.
-   Runtime/Jobs/ScriptBindings and Modules/Burst/Managed/BurstCompilerService.bindings.cs provide native
+   Runtime/Jobs/ScriptBindings and Runtime/Export/Burst/BurstCompilerService.bindings.cs provide native
    scheduling/compilation; an IJob.Execute body or Burst attribute can itself be plain managed code.
    Physics.bindings.cs, Camera.bindings.cs and Graphics.bindings.cs bind engine operations.
    Case: Native_physics. Reading an enum or constructing an unallocated value is not allocation.

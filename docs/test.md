@@ -203,7 +203,7 @@ differences that change outcomes:
 | `string.GetHashCode()` | randomised per process | stable across runs | none (do not assert hash values) |
 | Reflection write to an initialized readonly static field | `FieldAccessException`: CoreCLR prohibits this since .NET Core 3.0; the specific initonly-static exception becomes `needs-unity`, with a runtime-divergence reason | rerun in the Editor; no readonly-field emulation | `TestHostLoadFailureTests.Readonly_static_reflection_is_a_runtime_divergence_and_later_cases_run` |
 | Allocation probe interrupted by GC | different collector and allocation behavior can invalidate a probe; a generic allocation assertion is not proof of a runtime divergence | rerun under the Editor's runtime | sanitized exception/invalid-probe signal still needed; never treat such a measurement as a portability oracle |
-| Culture | `CultureInfo.CurrentCulture` from the machine (or invariant with `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT`), ICU data on Linux and macOS | the machine's culture, Mono's own data | none; use `InvariantCulture` in tests |
+| Culture | full named cultures; `CultureInfo.CurrentCulture` from the machine, ICU data on Linux and macOS | the machine's culture, Mono's own data | none; use `InvariantCulture` in tests |
 | `Dictionary<,>` enumeration order | insertion order until a removal; a removed slot is reused by the next insert | the same algorithm (reference source) | none: not a divergence in practice, but order is unspecified in both |
 | Floating-point arithmetic | SSE2/AVX, IEEE 754 per operation | Mono JIT, also SSE2 on x64 | none known |
 
@@ -218,7 +218,8 @@ the risk described above, kept visible on purpose.
 
 ## Benchmark
 
-`scripts/bench-test.sh` times `ucl test` on fixture `test-editmode` (6 assemblies, 31 cases) against
+The recorded `scripts/bench-test.sh` run used the earlier `test-editmode` fixture (6 assemblies,
+31 cases, before the API-scope cases were added), comparing `ucl test` against
 `dotnet test` on an equivalent hand-written csproj (the same sources and stub engine DLLs in one net10.0 test
 project with NUnit 3.14.0 and NUnit3TestAdapter 4.6.0). 4 cores, Linux, .NET 10.0.401, 2026-10-02:
 
