@@ -134,7 +134,7 @@ open-ended. Missing components compare as 0 (`1.2` = `1.2.0`). Pre-release suffi
 | Id | Symbol | When | Status | Source |
 |---|---|---|---|---|
 | D60 | `UNITY_INCLUDE_TESTS` | target editor and `com.unity.test-framework` resolved; target player only with `--include-tests`. A compiler symbol like any other (until 0.6.0 `ucl` used it for `defineConstraints` only) | observed | test framework docs, [PUB], [REAL] |
-| D61 | (removed) | `UNITY_TESTS_FRAMEWORK` is not a compiler define (bee-diff on a real 6000.3 project). Assemblies constrained on it declare it themselves: `Unity.InputSystem.TestFramework` has the versionDefines entry `com.unity.test-framework` / `""` / `UNITY_TESTS_FRAMEWORK`, and defineConstraints see version defines (D53) | - | [PUB] (`com.unity.inputsystem` asmdef; UnityCsReference `EditorCompilation.GetTargetAssemblyDefines`) |
+| D61 | `UNITY_TESTS_FRAMEWORK` | only for a test framework assembly (its `defineConstraints` has the entry `UNITY_TESTS_FRAMEWORK`), wherever D60 holds. Not a global symbol: bee-diff on a real 6000.3 project showed it on no other assembly (0.8.0 defined it everywhere, wrongly). The released `Unity.InputSystem.TestFramework` asmdef has this constraint and no versionDefines, and the Editor compiles it | observed | [PUB] (Unity-generated `Unity.InputSystem.TestFramework.csproj` with Input System 1.11.1 defines it, `Assembly-CSharp.csproj` does not), [REAL] |
 
 ## Built-in symbols
 

@@ -89,6 +89,14 @@ public static class AssemblyGraphBuilder
             var editorOnly = data.IncludePlatforms.Count == 1 && data.IncludePlatforms[0].Equals(PlatformInfo.EditorAsmdefName, StringComparison.OrdinalIgnoreCase);
             var netFramework = settings.IsNetFrameworkFor(info.TargetGroup, editorOnly);
             var defines = DefineTable.ForProfile(baseDefines, netFramework);
+
+            // D61: a test framework assembly (defineConstraints has UNITY_TESTS_FRAMEWORK) gets the symbol wherever
+            // UNITY_INCLUDE_TESTS holds; no other assembly does.
+            if (entry.IsTestFrameworkAssembly && defines.Contains("UNITY_INCLUDE_TESTS"))
+            {
+                defines.Add("UNITY_TESTS_FRAMEWORK", "D61: test framework assembly (defineConstraints)");
+            }
+
             foreach (var d in rsp.Options?.Defines ?? [])
             {
                 defines.Add(d, rsp.Path);
