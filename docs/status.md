@@ -71,7 +71,18 @@ Open (item 4), with the evidence found so far:
   noEngineReferences, Editor-only).
 * `UnityEditor.Graphs.dll` and the platform `Extensions.dll` extra on 15 assemblies: UnityCsReference adds
   `EditorAssemblyReferences` to every assembly in editor builds, yet generated project files omit them for some
-  (Assembly-CSharp, the test runners). Rule not found.
+  (Assembly-CSharp, the test runners). Rule not found. Audit for item 4c (Session 8): pinned
+  [Unity 6000.3 EditorBuildRules](https://github.com/Unity-Technologies/UnityCsReference/blob/2f6cef60096cf50741d933becf101bf3186719dd/Editor/Mono/Scripting/ScriptCompilation/EditorBuildRules.cs)
+  adds this list outside the noEngineReferences condition, with no asmdef/predefined/test distinction.
+  [ModuleUtils](https://github.com/Unity-Technologies/UnityCsReference/blob/2f6cef60096cf50741d933becf101bf3186719dd/Editor/Mono/Modules/ModuleManager.cs)
+  has separate lists for user-script compilation and Editor C# project generation; generated csproj
+  membership alone cannot prove which list Bee used. EditorLocator currently gathers all installed
+  platform extension files and Graphs without the native provider's membership metadata. The open
+  question is which files belong to the user-script list for the selected installation, not a proven
+  receiving-assembly predicate. No receiving/non-receiving fixture can be justified yet. Do not
+  special-case Assembly-CSharp, test runners, noEngineReferences or active-platform names to hide the
+  difference. Next: a public Bee response-file pair and its editor version/target showing the actual
+  membership, or a public implementation of the platform provider's reference lists. No code change.
 * `System.IO.Hashing.dll` missing on 55 assemblies: needs the package path and .meta settings from the maintainer.
 
 ## Session 6 (2026-10-02): the 0.8.0 private rerun
