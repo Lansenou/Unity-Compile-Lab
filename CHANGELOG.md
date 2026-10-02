@@ -9,6 +9,9 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Changed
 
+* A DLL inside the folder of a package test assembly that is not testable is no longer a precompiled
+  candidate, so it cannot shadow a same-name copy (fixture `plugin-untestable-tests`).
+
 * Assemblies of immutable packages (registry, git, built-in) report only errors, as Unity compiles them with
   `SuppressCompilerWarnings`; analyzers that cannot report an error are not run on them (fixture
   `analyzer-immutable-package`). This removes most analyzer time on projects with many package assemblies.

@@ -159,6 +159,27 @@ public class GraphUnityRulesTests
     }
 
     [Fact]
+    public void A_DLL_beside_an_untestable_package_test_assembly_is_no_candidate()
+    {
+        const string Unsafe = "System.Runtime.CompilerServices.Unsafe.dll";
+        const string Tests = "\"defineConstraints\": [\"UNITY_INCLUDE_TESTS\"], \"includePlatforms\": [\"Editor\"]";
+        var inTests = $"Packages/com.example.cached/Tests/Plugins/{Unsafe}";
+        var nuget = $"Packages/org.nuget.unsafe/lib/{Unsafe}";
+        var g = new InventoryBuilder()
+            .Package("com.example.cached", "1.0.0")
+            .Package("org.nuget.unsafe", "6.0.0")
+            .Asmdef("Packages/com.example.cached/Tests/Cached.Tests.asmdef", "Cached.Tests", Tests)
+            .Plugin(inTests)
+            .Plugin(nuget)
+            .PluginVersion(inTests, "6.0.0.0")
+            .PluginVersion(nuget, "6.0.0.0")
+            .Scripts("Packages/com.example.cached/Tests/T.cs", "Assets/A.cs")
+            .Editor();
+        Assert.Equal([nuget], g.Find("Assembly-CSharp")!.PrecompiledReferences);
+        Assert.DoesNotContain(g.Diagnostics, d => d.Id == ProblemIds.ShadowedPrecompiledReference);
+    }
+
+    [Fact]
     public void One_precompiled_DLL_per_file_name_the_highest_version_wins()
     {
         const string Unsafe = "System.Runtime.CompilerServices.Unsafe.dll";

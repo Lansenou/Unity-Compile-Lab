@@ -94,3 +94,4 @@ Every cell starts as `oracle: pending`; see [oracle.md](oracle.md).
 | 72 | `version-gated-symbols` | session 4, item 4: `versionDefines` bounds with Unity suffixes, a pre-release package range, E08 and E17 by editor patch (adds the 6000.3.19f1 stub editor) | R5 |
 | 73 | `asmdef-no-scripts` | session 4, item 5: an asmdef with no scripts is skipped with UCL1006 (info) | R2 |
 | 74 | `analyzer-immutable-package` | session 6, item 1: assemblies of immutable packages report no warnings (compiler or analyzer); embedded packages and Assets keep them | R8 |
+| 75 | `plugin-untestable-tests` | session 6, item 4: a DLL beside an untestable package test assembly is no precompiled candidate, so the same-version `org.nuget` copy is referenced | R4 |
