@@ -17,6 +17,7 @@ internal sealed class InputsHashBuilder
         _lines.Add($"options lang={plan.LangVersion} nullable={plan.Nullable} unsafe={plan.AllowUnsafe} wae={plan.WarnAsErrorAll}");
         _lines.Add($"nowarn {string.Join(';', plan.NoWarn)} waeids {string.Join(';', plan.WarnAsErrorIds)} wnaeids {string.Join(';', plan.WarnNotAsErrorIds)}");
         _lines.Add($"ruleset {plan.RuleSet} additional {string.Join(';', plan.AdditionalFiles)}");
+        _lines.Add($"suppress-warnings {plan.SuppressWarnings}");
     }
 
     public void Add(string kind, string name, string hash) => _lines.Add($"{kind} {name} {hash}");

@@ -3,6 +3,20 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
+## Session 6 (2026-10-02): the 0.8.0 private rerun
+
+Input: counts from the 0.8.0 rerun (docs/real-project-fixes.md, "Session 6"). One pull request per item, each
+with a fixture that is red on 0.8.0.
+
+| Item | Fixture | State |
+|---|---|---|
+| 1 analyzer cost on package assemblies | `analyzer-immutable-package` | fixed: immutable package assemblies report only errors and skip analyzers that cannot report one; the analyzer scope itself was already right (bee-diff: no analyzer differences) |
+| 2 editor engine module set | | next |
+| 3 `UNITY_TESTS_FRAMEWORK` (D61) | | open |
+| 4 same-name DLL from an untestable package's tests | | open |
+
+Unverified: the player speed gain on the real project (maintainer rerun).
+
 ## Session 5 (2026-10-02): automatic releases
 
 Work now goes through pull requests merged after the Linux, Windows and macOS gates pass; nothing is pushed

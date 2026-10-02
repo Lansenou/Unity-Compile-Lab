@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "com.example.inventory": "2.3.1",
+    "com.example.workbench": "file:com.example.workbench",
+    "com.unity.modules.physics": "1.0.0"
+  }
+}
