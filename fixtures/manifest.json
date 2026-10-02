@@ -33604,7 +33604,7 @@
       "tests": {
         "unityVersion": "6000.0.30f1",
         "platform": "StandaloneWindows64",
-        "exitCode": 0,
+        "exitCode": 1,
         "unityFilter": "",
         "cases": [
           {
@@ -33625,7 +33625,7 @@
           {
             "assembly": "Game.Tests.EditMode",
             "name": "Game.Tests.RenderTests.D_collects_garbage",
-            "category": "needs-unity"
+            "category": "failed"
           },
           {
             "assembly": "Game.Tests.EditMode",

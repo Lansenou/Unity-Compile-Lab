@@ -33,10 +33,10 @@ public sealed record TestRunReport
     /// <summary>Number of cases in <paramref name="category"/>.</summary>
     public int Count(TestCategory category) => Cases.Count(c => c.Category == category);
 
-    /// <summary>3 on a configuration problem, 1 when a test assembly does not compile or a case failed for a real reason, else 0.</summary>
+    /// <summary>3 on a configuration problem, 1 when a test assembly does not compile, a case failed, or a host crashed, else 0.</summary>
     public int ExitCode =>
         Problems.Count > 0 ? Rules.ExitCodes.Configuration
         : Compile is { ExitCode: not 0 } ? Compile.ExitCode
-        : Count(TestCategory.Failed) > 0 ? Rules.ExitCodes.Errors
+        : Count(TestCategory.Failed) > 0 || HostCrashes.Count > 0 ? Rules.ExitCodes.Errors
         : Rules.ExitCodes.Clean;
 }

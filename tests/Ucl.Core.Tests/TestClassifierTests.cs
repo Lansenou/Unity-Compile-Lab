@@ -80,11 +80,18 @@ public class TestClassifierTests
     }
 
     [Fact]
-    public void A_host_crash_with_an_engine_frame_needs_unity()
+    public void A_host_crash_with_an_engine_frame_is_an_error()
     {
         var (category, reason) = TestClassifier.FromHostCrash("Unhandled exception. System.NullReferenceException: Object reference not set\n   at UnityEngine.Rendering.CommandBuffer.Finalize()\n   at System.GC.RunFinalizers()");
-        Assert.Equal(TestCategory.NeedsUnity, category);
+        Assert.Equal(TestCategory.Failed, category);
         Assert.Equal("test host crashed during this case: Unhandled exception. System.NullReferenceException: Object reference not set", reason);
+    }
+
+    [Fact]
+    public void A_host_crash_before_discovery_still_returns_an_error()
+    {
+        var report = new TestRunReport { ToolVersion = "test", HostCrashes = [new(null, null, "synthetic crash")] };
+        Assert.Equal(1, report.ExitCode);
     }
 
     [Fact]

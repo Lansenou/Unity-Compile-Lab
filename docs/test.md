@@ -50,8 +50,7 @@ command `__test-host <request.json>` (a .NET tool or `ucl.dll` runs under `dotne
   `NullReferenceException` on the GC finalizer thread. That is an unhandled exception, which ends the process.
 * **Results are written as they happen.** The host writes every discovered case, each case as it starts and
   each result to a results file, one JSON line each, flushed as written. When the host dies, the parent keeps
-  the completed cases, classifies the case in flight from the host's error output (`needs-unity` when the
-  stack has a `UnityEngine.` or `UnityEditor.` frame, else `failed`; reason "test host crashed during this
+  the completed cases, reports the case in flight as `failed` (reason "test host crashed during this
   case: ..."), records the crash (`hostCrashes` in `ucl-test/1`: the last case reported before it, the case in
   flight, the error text) and starts a new host that skips every case already reported. A host that dies
   before reaching any case ends the run; the cases it never ran are `failed` ("not run: the test host crashed
@@ -105,6 +104,14 @@ non-system module with `System.Security.SecurityException` (verified on .NET 10)
 `Native.Unavailable()`, a real `InternalCall` extern, so the same exception type, from the same runtime check,
 reaches the test. Members Unity implements in C# (`Vector3`, `Mathf`, attributes) have managed bodies in the
 stubs too, so engine-free tests that use them pass as they would in the Editor.
+
+IL scanning records load failures per method, including type/method identity, exception type and message
+in the affected case's failure reason. Missing body types or unresolved callees do not abort classification
+of later cases. Classification start/end events are flushed too, so a host crash during scanning names
+its case and the replacement host skips that case and resumes the remainder. All host crashes force exit
+1, even if discovery had not produced any cases. Original `TestHostLoadFailureTests` compile a type-bearing
+dependency, then load an original replacement without that type: GetMethodBody throws TypeLoadException
+for both a test body and a helper reached during scanning. No external binaries are used.
 
 ## Zero-loss accounting
 
@@ -180,4 +187,4 @@ numbers (docs/real-project-checklist.md) are the ones that matter.
 * No per-test timeout: a test that never returns blocks the run (NUnit's timeout needs thread abort, which
   CoreCLR lacks).
 * `LogAssert` is detected in the test method's own IL, not in helpers or lambdas it calls.
-* Tests run in the `ucl` process: a test that calls `Environment.Exit` ends the run.
+* Discovery failures before any case is known cannot identify an individual case; the host crash still returns exit 1.

@@ -65,11 +65,15 @@ public static class NUnitHost
                         continue;
                     }
 
+                    events.Scanning(test.Name, leaf.FullName);
+                    var scanFailures = new List<string>();
+                    void ScanFailed(MethodBase scanned, Exception exception) => scanFailures.Add(
+                        $"IL scan {scanned.DeclaringType?.FullName}.{scanned.Name}: {exception.GetType().Name}: {exception.Message}");
                     var method = leaf.Method?.MethodInfo;
                     var attributes = assemblyAttributes
                         .Concat(leaf.TypeInfo?.Type is { } type ? AttributeTypes(type.GetCustomAttributesData()) : [])
                         .Concat(method is null ? [] : AttributeTypes(method.GetCustomAttributesData()));
-                    var usesLogAssert = method is not null && IlScanner.Calls(method, TestClassifier.LogAssertType);
+                    var usesLogAssert = method is not null && IlScanner.Calls(method, TestClassifier.LogAssertType, ScanFailed);
                     TestCaseResult? decided = null;
                     if (TestClassifier.UnityOnlyReason(test.PlayMode, attributes, usesLogAssert) is { } reason)
                     {
@@ -79,13 +83,19 @@ public static class NUnitHost
                     {
                         decided = Case(test.Name, leaf, TestCategory.Skipped, "[Explicit]: runs only when selected by name");
                     }
-                    else if (method is not null && IlScanner.Constructs(method, HasEngineFinalizer, a => IsProject(a, projectNames)) is { } finalizable)
+                    else if (method is not null && IlScanner.Constructs(method, HasEngineFinalizer, a => IsProject(a, projectNames), ScanFailed) is { } finalizable)
                     {
                         decided = Case(test.Name, leaf, TestCategory.NeedsUnity, TestClassifier.FinalizerReason(finalizable.FullName ?? finalizable.Name));
                     }
 
+                    if (scanFailures.Count > 0)
+                    {
+                        decided = Case(test.Name, leaf, TestCategory.Failed, string.Join(" | ", scanFailures.Distinct(StringComparer.Ordinal)));
+                    }
+
                     if (decided is null)
                     {
+                        events.Scanned(test.Name, leaf.FullName);
                         toRun.Add(leaf.Id, leaf);
                     }
                     else

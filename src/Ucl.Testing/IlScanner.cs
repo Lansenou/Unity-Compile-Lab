@@ -12,14 +12,14 @@ internal static class IlScanner
         .ToDictionary(o => o.Value);
 
     /// <summary>True when <paramref name="method"/>'s body calls a member declared on a type named <paramref name="typeFullName"/>.</summary>
-    public static bool Calls(MethodBase method, string typeFullName) =>
-        Callees(method).Any(m => m.DeclaringType?.FullName == typeFullName);
+    public static bool Calls(MethodBase method, string typeFullName, Action<MethodBase, Exception>? onLoadFailure = null) =>
+        Callees(method, onLoadFailure).Any(m => m.DeclaringType?.FullName == typeFullName);
 
     /// <summary>
     /// The first type matching <paramref name="match"/> whose constructor <paramref name="method"/> calls (newobj or a
     /// base constructor call), directly or through the methods it calls in assemblies <paramref name="follow"/> accepts.
     /// </summary>
-    public static Type? Constructs(MethodBase method, Func<Type, bool> match, Func<Assembly, bool> follow)
+    public static Type? Constructs(MethodBase method, Func<Type, bool> match, Func<Assembly, bool> follow, Action<MethodBase, Exception>? onLoadFailure = null)
     {
         var seen = new HashSet<MethodBase>();
         var pending = new Stack<MethodBase>([method]);
@@ -31,9 +31,9 @@ internal static class IlScanner
                 continue;
             }
 
-            foreach (var callee in Callees(current))
+            foreach (var callee in Callees(current, onLoadFailure))
             {
-                if (callee is ConstructorInfo { DeclaringType: { } type } && Safe(() => match(type)))
+                if (callee is ConstructorInfo { DeclaringType: { } type } && Safe(() => match(type), callee, onLoadFailure))
                 {
                     return type;
                 }
@@ -51,27 +51,29 @@ internal static class IlScanner
     // Bounds the walk through project code; a deeper chain is not claimed.
     private const int MaxMethods = 2000;
 
-    private static bool Safe(Func<bool> test)
+    private static bool Safe(Func<bool> test, MethodBase method, Action<MethodBase, Exception>? onLoadFailure)
     {
         try
         {
             return test();
         }
-        catch (Exception e) when (e is TypeLoadException or FileNotFoundException or FileLoadException)
+        catch (Exception e) when (IsLoadFailure(e))
         {
+            onLoadFailure?.Invoke(method, e);
             return false;
         }
     }
 
-    private static IEnumerable<MethodBase> Callees(MethodBase method)
+    private static IEnumerable<MethodBase> Callees(MethodBase method, Action<MethodBase, Exception>? onLoadFailure)
     {
         byte[]? il;
         try
         {
             il = method.GetMethodBody()?.GetILAsByteArray();
         }
-        catch (Exception e) when (e is InvalidOperationException or NotSupportedException or BadImageFormatException)
+        catch (Exception e) when (e is InvalidOperationException or NotSupportedException || IsLoadFailure(e))
         {
+            if (IsLoadFailure(e)) onLoadFailure?.Invoke(method, e);
             yield break;
         }
 
@@ -90,7 +92,7 @@ internal static class IlScanner
                 yield break; // not IL we understand: no claim
             }
 
-            if (op.OperandType == OperandType.InlineMethod && i + 4 <= il.Length && Resolve(method, BitConverter.ToInt32(il, i)) is { } callee)
+            if (op.OperandType == OperandType.InlineMethod && i + 4 <= il.Length && Resolve(method, BitConverter.ToInt32(il, i), onLoadFailure) is { } callee)
             {
                 yield return callee;
             }
@@ -99,7 +101,7 @@ internal static class IlScanner
         }
     }
 
-    private static MethodBase? Resolve(MethodBase method, int token)
+    private static MethodBase? Resolve(MethodBase method, int token, Action<MethodBase, Exception>? onLoadFailure)
     {
         try
         {
@@ -107,11 +109,15 @@ internal static class IlScanner
             var methodArgs = method.IsGenericMethod ? method.GetGenericArguments() : null;
             return method.Module.ResolveMethod(token, typeArgs, methodArgs);
         }
-        catch (Exception e) when (e is ArgumentException or BadImageFormatException or TypeLoadException or FileNotFoundException or FileLoadException or MissingMethodException)
+        catch (Exception e) when (e is ArgumentException || IsLoadFailure(e))
         {
+            if (IsLoadFailure(e)) onLoadFailure?.Invoke(method, e);
             return null;
         }
     }
+
+    private static bool IsLoadFailure(Exception e) =>
+        e is TypeLoadException or FileNotFoundException or FileLoadException or MissingMethodException or BadImageFormatException;
 
     private static int OperandSize(OpCode op, byte[] il, int at) => op.OperandType switch
     {
