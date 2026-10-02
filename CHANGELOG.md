@@ -11,6 +11,8 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 * `UNITY_TESTS_FRAMEWORK` is no longer a compiler define (row D61 removed, a 0.8.0 mistake). Test framework
   assemblies declare it through their own versionDefines, which their defineConstraints see.
+* A DLL inside the folder of a package test assembly that is not testable is no longer a precompiled
+  candidate, so it cannot shadow a same-name copy (fixture `plugin-untestable-tests`).
 
 * Assemblies of immutable packages (registry, git, built-in) report only errors, as Unity compiles them with
   `SuppressCompilerWarnings`; analyzers that cannot report an error are not run on them (fixture

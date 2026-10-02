@@ -116,7 +116,11 @@ Nothing is compiled or written. Details: [oracle.md](oracle.md#bee-oracle-ucl-be
   share a name `ucl` keeps the highest assembly version, then the first path, and reports each copy left
   out as `UCL1005` (info). Which copy wins is observed, not read from source: on the maintainer's project
   the Editor passed only the newest `System.Runtime.CompilerServices.Unsafe.dll` of three (fixture
-  `plugin-same-name`).
+  `plugin-same-name`). A DLL inside the folder of a package test assembly that is not compiled because
+  the package is not testable (neither embedded nor in `testables`) is no candidate, so it cannot win
+  over a same-name copy elsewhere ([REAL]: the Editor referenced the `org.nuget` copy of
+  `System.Runtime.CompilerServices.Unsafe.dll`, not the one beside `com.unity.collections`' tests;
+  the native provider is not public; fixture `plugin-untestable-tests`).
 * **Analyzers.** A DLL labelled `RoslynAnalyzer` is an analyzer and source generator, never a reference.
   Scope (UnityCsReference `RoslynAnalyzers.SetAnalyzers`): its owner is the assembly whose asmdef or asmref
   folder is its nearest ancestor; it applies to the owner and to every assembly that reaches the owner

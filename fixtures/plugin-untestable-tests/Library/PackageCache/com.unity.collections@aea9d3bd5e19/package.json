@@ -1,0 +1,7 @@
+{
+  "name": "com.unity.collections",
+  "version": "2.5.7",
+  "displayName": "Collections (fixture stand-in)",
+  "unity": "6000.0",
+  "dependencies": {}
+}

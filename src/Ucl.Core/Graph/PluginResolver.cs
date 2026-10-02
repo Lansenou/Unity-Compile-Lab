@@ -16,6 +16,7 @@ internal static class PluginResolver
         CompileCell cell,
         DefineSet baseDefines,
         Dictionary<string, Draft> drafts,
+        IReadOnlySet<string> untestable,
         List<Diagnostic> diagnostics)
     {
         var key = cell.IsEditor ? PlatformInfo.EditorPluginKey : PlatformInfo.Of(cell.Platform).PluginKey;
@@ -32,6 +33,13 @@ internal static class PluginResolver
             if (meta?.IsRoslynAnalyzer == true)
             {
                 AddAnalyzer(path, index, drafts, analyzers);
+                continue;
+            }
+
+            // A DLL inside the folder of a package test assembly that is not testable is no candidate at all, so it cannot shadow a
+            // same-name copy elsewhere ([REAL]: the Editor took the org.nuget copy over the one beside com.unity.collections' tests).
+            if (index.OwnerOf(path) is { } owner && untestable.Contains(owner))
+            {
                 continue;
             }
 
