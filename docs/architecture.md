@@ -130,7 +130,10 @@ Nothing is compiled or written. Details: [oracle.md](oracle.md#bee-oracle-ucl-be
 * **Editor references** (observed in public Unity-generated project files; fixture `editor-reference-set`).
   With engine references: the facade `Managed/UnityEngine/UnityEngine.dll` (DLLs built against the old
   single `UnityEngine` assembly need it) and the cell platform's engine modules,
-  `PlaybackEngines/<support>/Managed/UnityEngine.*.dll` (`UnityEngine.WebGLModule` for WebGL). In editor
+  `PlaybackEngines/<support>/Managed/UnityEngine.*.dll` (`UnityEngine.WebGLModule` for WebGL). One DLL per
+  file name: editor cells keep `Managed/UnityEngine/` whatever the active platform is and add only the
+  platform modules it lacks; player cells use the platform's copy of each name (fixture
+  `editor-engine-modules`). In editor
   cells, for every assembly: `Managed/UnityEditor.Graphs.dll` and each installed platform's
   `PlaybackEngines/<support>/UnityEditor.*.Extensions.dll` (with `Unity.Android.Gradle.dll` and
   `Unity.Android.Types.dll` for Android). Code-gen assemblies (`Unity.*.CodeGen`, `Unity.*.Compiler`, their

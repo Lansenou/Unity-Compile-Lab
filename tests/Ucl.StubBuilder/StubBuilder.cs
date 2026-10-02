@@ -18,7 +18,7 @@ public static class StubBuilder
     public static IReadOnlyList<string> EditorVersions { get; } = ["6000.0.30f1", "6000.3.2f1"];
 
     /// <summary>Bump when the layout or compile settings change, so existing stamps are invalidated.</summary>
-    private const string BuilderVersion = "ucl-stubs/4";
+    private const string BuilderVersion = "ucl-stubs/5";
 
     private const string CoreModule = "UnityEngine.CoreModule";
 
@@ -104,11 +104,12 @@ public static class StubBuilder
         var extras = new List<(string DataPath, string Name, byte[] Image)>();
         foreach (var dir in SubDirectories(Path.Combine(stubs, "editor-extra")))
         {
-            var name = Path.GetFileName(dir);
             var ini = StubIni.Read(dir);
+            var name = ini.Name ?? Path.GetFileName(dir);
+            var sources = ini.Sources is { } s ? Path.Combine(stubs, s.Replace('/', Path.DirectorySeparatorChar)) : dir;
             var image = ini.Kind == "analyzer"
-                ? CompileAnalyzer(name, dir, netstandard)
-                : Compile(name, dir, [netstandard, .. ini.References.Select(r => moduleReferences[r])]);
+                ? CompileAnalyzer(name, sources, netstandard)
+                : Compile(name, sources, [netstandard, .. ini.References.Select(r => moduleReferences[r])], ini.Version);
             extras.Add((ini.DataPath ?? throw new InvalidOperationException($"{dir}/stub.ini: path= is required"), name, image));
         }
 

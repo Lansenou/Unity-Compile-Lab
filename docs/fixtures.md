@@ -88,3 +88,4 @@ Every cell starts as `oracle: pending`; see [oracle.md](oracle.md).
 | 66 | `package-testables` | session 3, cause 4: package tests only when embedded or in `testables`; test framework assemblies out of players | R2, R3 |
 | 67 | `editor-reference-set` | session 3, cause 5: `UnityEngine.dll` facade, platform module, `UnityEditor.Graphs`, platform editor extensions, `Unity.CompilationPipeline.Common` for code-gen | R4 |
 | 68 | `analyzer-reach` | session 3, cause 6: global analyzers reach asmdefs, owned ones reach transitive referrers, the editor's own generators run everywhere | R8 |
+| 69 | `editor-engine-modules` | session 4, item 1: editor cells take engine modules from `Managed/UnityEngine/`, players from the platform folder, one DLL per name | R4 |

@@ -46,9 +46,8 @@ internal sealed class ReferenceCatalog
 
         if (engine != EngineReferences.None)
         {
-            var modules = _editor.EngineModules.Where(p => BuiltInModules.IsReferenced(Path.GetFileName(p), graph.EnabledModules, _modulePackages))
-                .Concat(_editor.PlatformModules.GetValueOrDefault(graph.Cell.Platform) ?? [])
-                .Concat(_editor.EngineFacade is { } facade ? [facade] : []);
+            var modules = EngineModules(graph.Cell.IsEditor, _editor.PlatformModules.GetValueOrDefault(graph.Cell.Platform) ?? [])
+                .Where(p => BuiltInModules.IsReferenced(Path.GetFileName(p), graph.EnabledModules, _modulePackages));
             foreach (var p in modules)
             {
                 result.Add(($"editor:{Relative(p)}", p));
@@ -78,6 +77,17 @@ internal sealed class ReferenceCatalog
         }
 
         return result.OrderBy(r => r.Item1, StringComparer.Ordinal).ToList();
+    }
+
+    // One DLL per file name (docs/architecture.md, "Editor references"). Editor cells use Managed/UnityEngine/ whatever the
+    // active platform is, plus the platform modules it lacks (UnityEngine.WebGLModule); player cells use the platform's copy.
+    private IEnumerable<string> EngineModules(bool editorCell, IReadOnlyList<string> platform)
+    {
+        IEnumerable<string> editor = [.. _editor.EngineModules, .. _editor.EngineFacade is { } facade ? [facade] : Array.Empty<string>()];
+        var first = editorCell ? editor : platform;
+        var second = editorCell ? platform : editor;
+        var names = first.Select(Path.GetFileName).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return first.Concat(second.Where(p => !names.Contains(Path.GetFileName(p))));
     }
 
     /// <summary>The editor's own source generators, which run on every assembly: (display string, absolute path).</summary>

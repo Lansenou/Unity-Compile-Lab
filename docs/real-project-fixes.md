@@ -129,3 +129,14 @@ asmdef assemblies (`analyzer-global`) and owned analyzers reach transitive refer
 the facade, a type of a disabled module is CS1069 rather than CS0246 (`builtin-module-disabled`); editor cells of
 an IL2CPP project define `ENABLE_MONO` (`backend-il2cpp`); Editor-only assemblies get the test runners and
 `nunit.framework.dll` (`test-editmode`, `test-assembly` unchanged).
+
+# Session 4: the 0.7.0 private rerun (0.8.0)
+
+Counts from the maintainer (same project class, 0.7.0 `1840155`): `bee-diff` 80 assemblies, 6180 differences
+(assembly 2, references 6015, defines 163); `check` editor 20 errors, one root failure (`UnityEditor.UI`, blocks
+72); player StandaloneWindows64 2 errors, one root failure (`Unity.Collections`, blocks 10); cold 80.4 s, warm
+2.5 s; first player run 637 s. Red runs are 0.7.0's rules on the 0.8.0 stub editor.
+
+| Item | Rule (source) | Fixture | Red run (0.7.0) | Green (0.8.0) |
+|---|---|---|---|---|
+| 1. editor cells took the platform's engine modules | one DLL per file name; editor cells use `Managed/UnityEngine/` plus the platform modules it lacks, players the platform's copy ([PUB]: editor project files reference only `PlaybackEngines/WebGLSupport/Managed/UnityEngine.WebGLModule.dll` from that folder) | `editor-engine-modules` | editor and player WebGL exit 1: CS1704 (`UnityEngine.InputLegacyModule` imported twice); `editor-reference-set` WebGL cells too | exit 0 in all 3 cells |

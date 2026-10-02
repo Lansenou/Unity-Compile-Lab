@@ -11,9 +11,11 @@ namespace Ucl.StubBuilder;
 /// <item><c>path=</c> (<c>editor-extra/</c> only): folder under the editor's data folder that receives the DLL.</item>
 /// <item><c>kind=</c> (<c>editor-extra/</c> only): <c>library</c> (default) or <c>analyzer</c> (compiled against Roslyn).</item>
 /// <item><c>references=</c> (<c>editor-extra/</c> only): comma-separated stub module names it references.</item>
+/// <item><c>sources=</c> (<c>editor-extra/</c> only): folder under <c>fixtures/_stubs</c> to compile instead of this one (a
+/// platform's variant of an engine module shares the module's sources).</item>
 /// </list>
 /// </summary>
-internal sealed record StubIni(string? Version, string Profile, string? Name, string Engine, string? DataPath, string Kind, IReadOnlyList<string> References)
+internal sealed record StubIni(string? Version, string Profile, string? Name, string Engine, string? DataPath, string Kind, IReadOnlyList<string> References, string? Sources = null)
 {
     public static StubIni Read(string dir)
     {
@@ -45,6 +47,6 @@ internal sealed record StubIni(string? Version, string Profile, string? Name, st
 
         var references = values.GetValueOrDefault("references", string.Empty)
             .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        return new StubIni(values.GetValueOrDefault("version"), profile, values.GetValueOrDefault("name"), engine, values.GetValueOrDefault("path"), kind, references);
+        return new StubIni(values.GetValueOrDefault("version"), profile, values.GetValueOrDefault("name"), engine, values.GetValueOrDefault("path"), kind, references, values.GetValueOrDefault("sources"));
     }
 }

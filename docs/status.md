@@ -3,6 +3,22 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
+## Session 4 (2026-10-02): the 0.7.0 private rerun, toward `0.8.0` (in progress)
+
+Input: counts from the 0.7.0 rerun (docs/real-project-fixes.md, "Session 4"). Each item gets a synthetic
+fixture that is red on 0.7.0, then the fix, one commit each.
+
+| Item | Fixture | State |
+|---|---|---|
+| 1 editor cells took the platform's engine modules | `editor-engine-modules` | fixed |
+| 2 player collections safety: references and defines disagree | | next |
+| 3 `Unity.InputSystem.TestFramework` excluded (`UNITY_TESTS_FRAMEWORK`) | | to do |
+| 4 version-gated built-in symbols, versionDefines | | to do |
+| 5 script-less asmdef compiled | | to do |
+| 6 speed (analyzer reach) | | to do |
+
+Unverified: everything against the real editor; the private rerun reports the counts.
+
 ## Session 3 (2026-10-02): real-project compile parity, `0.7.0`
 
 Input: the maintainer's counts from a private 6000.3.19f1 project (WebGL active) with 0.6.0: `bee-diff` exit 1
