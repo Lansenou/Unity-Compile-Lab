@@ -63,6 +63,24 @@ Other options: `--editor`, `--editor-os`, `--backend mono|il2cpp`, `--developmen
 `--analyzers on|off`, `--warnaserror`, `--format text|json|sarif`, `--output`, `--cache-dir`, `--no-cache`,
 `--changed <git-ref>`, `--timings`, `--jobs`. `ucl --help` has the full list.
 
+`--timings` prints an assembly/analyzer/rule-ID table, slowest first. JSON timing entries include
+`ruleIds` and `timeScope: "analyzer"`. To sort or export them as CSV (requires `jq`):
+
+```sh
+ucl check . --no-cache --timings --format json --output timings.json
+jq -r '[.cells[] as $c | $c.assemblies[] as $a | $a.analyzerTimings[] |
+  {assembly: $a.name, analyzer, ruleIds, timeMs, target: $c.target, platform: $c.platform}] |
+  sort_by(-.timeMs)[] | [.assembly, .analyzer, (.ruleIds | join(",")), .timeMs, .target, .platform] | @csv' timings.json
+```
+
+Use `sort_by(.assembly)`, `sort_by(.analyzer)` or `sort_by(.ruleIds)` to compare other columns.
+IDs are supported rules, including rules that emitted no diagnostic; suppressors list the diagnostic
+IDs they can suppress. Roslyn measures cumulative callback time **per analyzer**, shared by its rules,
+not time for each rule. A callback can inspect several rules, so the total is neither repeated nor divided
+into guessed rule costs. Disable candidate rules and rerun to measure the effect; use `--no-cache` because
+cache hits report no current-run analyzer time. See
+[Roslyn ExecutionTime](https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.diagnostics.telemetry.analyzertelemetryinfo.executiontime).
+
 ## Exit codes
 
 | Code | Meaning |

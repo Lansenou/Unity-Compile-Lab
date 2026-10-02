@@ -19,7 +19,9 @@ public sealed class AnalyzerTimingTests
         File.WriteAllText(dll + ".meta", "labels:\n- RoslynAnalyzer\n");
         var result = Cli.Run(new TestEnvironment(temp.Path), "check", project, "--no-cache", "--format", "json", "--timings");
         Assert.Equal(0, result.Exit);
-        Assert.DoesNotContain("CS0168", result.Stdout, StringComparison.Ordinal);
+        using var report = JsonDocument.Parse(result.Stdout);
+        Assert.DoesNotContain(report.RootElement.GetProperty("cells").EnumerateArray().SelectMany(c => c.GetProperty("diagnostics").EnumerateArray()),
+            d => d.GetProperty("id").GetString() == "CS0168");
         Assert.DoesNotContain("AD0001", result.Stdout, StringComparison.Ordinal);
         var disabled = Cli.Run(new TestEnvironment(temp.Path), "check", project, "--no-cache", "--format", "json", "--analyzers", "off");
         Assert.Contains("CS0168", disabled.Stdout, StringComparison.Ordinal);
@@ -45,6 +47,8 @@ public sealed class AnalyzerTimingTests
             var timing = Assert.Single(timings.EnumerateArray());
             Assert.Equal("Ucl.Fixture.Slow.SlowAnalyzer", timing.GetProperty("analyzer").GetString());
             Assert.Equal("Assets/Analyzers/Ucl.Fixture.Slow.dll", timing.GetProperty("path").GetString());
+            Assert.Equal("analyzer", timing.GetProperty("timeScope").GetString());
+            Assert.Equal(new[] { "USLOW001", "USLOW002", "USLOW003" }, timing.GetProperty("ruleIds").EnumerateArray().Select(r => r.GetString()));
             var elapsed = timing.GetProperty("timeMs").GetDouble();
             Assert.True(elapsed >= 150, $"Expected the 200ms callback to be measured, got {elapsed}ms");
             total += elapsed;
@@ -52,6 +56,7 @@ public sealed class AnalyzerTimingTests
 
         var summary = Assert.Single(root.GetProperty("summary").GetProperty("analyzerTimings").EnumerateArray());
         Assert.Equal(total, summary.GetProperty("timeMs").GetDouble(), precision: 5);
+        Assert.Equal(new[] { "USLOW001", "USLOW002", "USLOW003" }, summary.GetProperty("ruleIds").EnumerateArray().Select(r => r.GetString()));
         var cellSummary = Assert.Single(root.GetProperty("cells")[0].GetProperty("summary").GetProperty("analyzerTimings").EnumerateArray());
         Assert.Equal(total, cellSummary.GetProperty("timeMs").GetDouble(), precision: 5);
 
@@ -74,4 +79,26 @@ public sealed class AnalyzerTimingTests
         Assert.Empty(off.RootElement.GetProperty("summary").GetProperty("analyzerTimings").EnumerateArray());
         Assert.Equal(0, off.RootElement.GetProperty("summary").GetProperty("analyzerDiagnostics").GetInt32());
     }
+
+    [Fact]
+    public void Text_timings_list_assemblies_analyzers_and_shared_rules_sorted_by_time()
+    {
+        using var temp = new TempDir();
+        var fixture = FixtureManifest.Load().Fixtures.Single(f => f.Name == "analyzer-slow");
+        var project = FixtureRunner.Prepare(fixture, temp.Path);
+        var result = Cli.Run(new TestEnvironment(temp.Path), "check", project, "--no-cache", "--timings");
+        Assert.Equal(0, result.Exit);
+        Assert.Contains("assembly\tanalyzer\trule IDs (shared time)\ttimeMs", result.Stdout, StringComparison.Ordinal);
+        var rows = result.Stdout.Split('\n').Select(l => l.Split('\t')).Where(r => r.Length == 4 && r[0] != "assembly").ToArray();
+        Assert.Equal(4, rows.Length);
+        Assert.All(rows, r =>
+        {
+            Assert.Equal(4, r.Length);
+            Assert.Equal("Ucl.Fixture.Slow.SlowAnalyzer", r[1]);
+            Assert.Equal("USLOW001,USLOW002,USLOW003", r[2]);
+        });
+        var times = rows.Select(r => double.Parse(r[3], System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+        Assert.Equal(times.OrderDescending(), times);
+    }
+
 }
