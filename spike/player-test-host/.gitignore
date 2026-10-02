@@ -1,0 +1,18 @@
+# Local Unity project cache, copied dependencies and measurements.
+host/Library/
+host/Logs/
+host/Temp/
+host/Obj/
+host/UserSettings/
+host/Assets/Plugins/*.dll
+host/Assets/Plugins/*.dll.meta
+host/Assets/Placeholder/
+host/Assets/Placeholder.meta
+host/Assets/Empty.unity
+host/Assets/Empty.unity.meta
+host/ProjectSettings/*
+!host/ProjectSettings/ProjectVersion.txt
+host/Packages/packages-lock.json
+**/bin/
+**/obj/
+host/**/*.meta
