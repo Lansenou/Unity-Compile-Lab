@@ -11,11 +11,12 @@ with a fixture that is red on 0.8.0.
 | Item | Fixture | State |
 |---|---|---|
 | 1 analyzer cost on package assemblies | `analyzer-immutable-package` | fixed: immutable package assemblies report only errors and skip analyzers that cannot report one; the analyzer scope itself was already right (bee-diff: no analyzer differences) |
-| 2 editor engine module set | | next |
+| 2 editor engine module set | `editor-only-disabled-modules` | fixed for editor-only assemblies (all modules, disabled ones too); open: 5 modules the Editor omits on runtime assemblies of a WebGL project (VirtualTexturing, Insights, ClusterRenderer, ClusterInput, AR), rule unknown |
 | 3 `UNITY_TESTS_FRAMEWORK` (D61) | `tests-framework-symbol` (corrected) | fixed: D61 removed; the assembly gets the symbol from its own versionDefines (public `Unity.InputSystem.TestFramework` asmdef) |
-| 4 same-name DLL from an untestable package's tests | `plugin-untestable-tests` | fixed: such a DLL is no candidate ([REAL] rule) |
+| 4 same-name DLL from an untestable package's tests | `plugin-untestable-tests` | fixed: such a DLL is no candidate ([REAL] rule); PR 6 was merged on main after the budget stop |
 
-Unverified: the player speed gain on the real project (maintainer rerun).
+Item 3 was merged (PR 5) before the stop for budget. Unverified: the player speed gain (item 1) and the editor module
+set (item 2) on the real project (maintainer rerun).
 
 ## Session 5 (2026-10-02): automatic releases
 
