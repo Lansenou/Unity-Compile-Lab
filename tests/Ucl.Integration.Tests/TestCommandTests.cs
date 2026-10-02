@@ -48,8 +48,8 @@ public sealed class TestCommandTests
         Assert.Equal(total, new[] { "passed", "failed", "skipped", "ignored", "needsUnity", "unityOnly" }.Sum(k => summary.GetProperty(k).GetInt32()));
         Assert.Equal(19, summary.GetProperty("passed").GetInt32());
         Assert.Equal(1, summary.GetProperty("failed").GetInt32());
-        Assert.Equal(2, summary.GetProperty("needsUnity").GetInt32());
-        Assert.Equal(6, summary.GetProperty("unityOnly").GetInt32());
+        Assert.Equal(3, summary.GetProperty("needsUnity").GetInt32());
+        Assert.Equal(5, summary.GetProperty("unityOnly").GetInt32());
 
         // The cases behind #if UNITY_5_3_OR_NEWER, UNITY_EDITOR and NET_UNITY_4_8 are there, the #else branch is not.
         var names = expected.Cases.Select(c => c.Name).ToList();
@@ -76,11 +76,11 @@ public sealed class TestCommandTests
         var (project, env, _) = Setup(temp);
         var (exit, stdout, _) = Test(env, project);
         Assert.Equal(1, exit);
-        Assert.Contains("Game.Tests.EditMode: 18 passed, 1 failed, 2 skipped, 1 ignored, 2 needs-unity, 4 unity-only\n", stdout, StringComparison.Ordinal);
+        Assert.Contains("Game.Tests.EditMode: 18 passed, 1 failed, 2 skipped, 1 ignored, 3 needs-unity, 3 unity-only\n", stdout, StringComparison.Ordinal);
         Assert.Contains("  needs-unity Game.Tests.EngineTests.Spawning_needs_the_engine: System.Security.SecurityException : ECall methods must be packaged into a system module.; engine member: UnityEngine.Native.Unavailable\n", stdout, StringComparison.Ordinal);
         Assert.Contains("  failed      Game.Tests.OutcomeTests.Arithmetic_is_wrong_on_purpose: a real failure, not an engine call\n", stdout, StringComparison.Ordinal);
         Assert.DoesNotContain("Spending_less_than_the_balance_succeeds", stdout, StringComparison.Ordinal);
-        Assert.EndsWith("result: 31 cases: 19 passed, 1 failed, 2 skipped, 1 ignored, 2 needs-unity, 6 unity-only, exit 1\n", stdout, StringComparison.Ordinal);
+        Assert.EndsWith("result: 31 cases: 19 passed, 1 failed, 2 skipped, 1 ignored, 3 needs-unity, 5 unity-only, exit 1\n", stdout, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public sealed class TestCommandTests
         Assert.Equal("Failed", nunit.Attribute("result")!.Value);
         Assert.Equal(expected.Cases.Count, nunit.Descendants("test-case").Count());
         Assert.Equal(3, nunit.Elements("test-suite").Count());
-        Assert.Equal(2, nunit.Descendants("test-case").Count(c => (string?)c.Attribute("label") == "NeedsUnity"));
+        Assert.Equal(3, nunit.Descendants("test-case").Count(c => (string?)c.Attribute("label") == "NeedsUnity"));
     }
 
     [Fact]
@@ -246,6 +246,27 @@ public sealed class TestCommandTests
         var (exit, stdout, stderr) = Test(env, project, "--format", "json", "--filter", "CultureTests");
         Assert.True(exit == 0, stdout + stderr);
         Assert.Equal("passed", Assert.Single(JsonDocument.Parse(stdout).RootElement.GetProperty("cases").EnumerateArray()).GetProperty("category").GetString());
+    }
+
+    [Fact]
+    public void Missing_log_scope_through_a_helper_needs_unity_and_later_cases_run()
+    {
+        using var temp = new TempDir();
+        var (project, env, _) = Setup(temp);
+        File.WriteAllText(Path.Combine(project, "Assets", "Tests", "EditMode", "LogScopeTests.cs"), """
+            using NUnit.Framework;
+            public class LogScopeTests
+            {
+                [Test] public void A_helper_uses_log_scope() => Helper();
+                private static void Helper() => UnityEngine.TestTools.LogAssert.NoUnexpectedReceived();
+                [Test] public void Z_following_case() => Assert.AreEqual(1, 1);
+            }
+            """);
+        var (exit, stdout, stderr) = Test(env, project, "--format", "json", "--filter", "LogScopeTests");
+        Assert.True(exit == 0, stdout + stderr);
+        var cases = JsonDocument.Parse(stdout).RootElement.GetProperty("cases").EnumerateArray().ToArray();
+        Assert.Equal(new[] { "needs-unity", "passed" }, cases.Select(c => c.GetProperty("category").GetString()));
+        Assert.Contains("log scope", cases[0].GetProperty("reason").GetString(), StringComparison.Ordinal);
     }
 
 }

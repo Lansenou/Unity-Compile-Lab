@@ -9,6 +9,9 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Fixed
 
+* Report unavailable Unity log scopes as needs-unity, including helper calls; direct LogAssert
+  calls now use that category instead of unity-only. PlayMode and UnityTest remain unity-only.
+
 * Enable full globalization in the CLI/test host so named cultures do not produce false test failures.
 
 * `ucl test` starts each host in the project root so relative asset paths resolve as in EditMode.

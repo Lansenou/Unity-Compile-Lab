@@ -75,13 +75,17 @@ public static class NUnitHost
                         .Concat(method is null ? [] : AttributeTypes(method.GetCustomAttributesData()));
                     var usesLogAssert = method is not null && IlScanner.Calls(method, TestClassifier.LogAssertType, ScanFailed);
                     TestCaseResult? decided = null;
-                    if (TestClassifier.UnityOnlyReason(test.PlayMode, attributes, usesLogAssert) is { } reason)
+                    if (TestClassifier.UnityOnlyReason(test.PlayMode, attributes) is { } reason)
                     {
                         decided = Case(test.Name, leaf, TestCategory.UnityOnly, reason);
                     }
                     else if (IsExplicit(leaf))
                     {
                         decided = Case(test.Name, leaf, TestCategory.Skipped, "[Explicit]: runs only when selected by name");
+                    }
+                    else if (usesLogAssert)
+                    {
+                        decided = Case(test.Name, leaf, TestCategory.NeedsUnity, "LogAssert requires Unity's log scope");
                     }
                     else if (method is not null && IlScanner.Constructs(method, HasEngineFinalizer, a => IsProject(a, projectNames), ScanFailed) is { } finalizable)
                     {
@@ -179,7 +183,7 @@ public static class NUnitHost
             }
 
             var state = result.ResultState;
-            var category = TestClassifier.FromResult(state.Status.ToString(), state.Label, result.Message);
+            var category = TestClassifier.FromResult(state.Status.ToString(), state.Label, result.Message, result.StackTrace);
             var reason = category == TestCategory.Passed ? string.Empty : TestClassifier.FirstLine(result.Message);
             var engineMember = category == TestCategory.NeedsUnity ? TestClassifier.EngineMember(result.StackTrace) : null;
             if (engineMember is not null) reason += $"; engine member: {engineMember}";

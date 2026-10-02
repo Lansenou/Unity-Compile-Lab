@@ -82,7 +82,7 @@ source text:
 
 | Category | When |
 |---|---|
-| `unity-only` | Never run. The assembly is a Play Mode assembly (not Editor-only: the Unity Test Framework runs it in Play Mode); or the method, its class or its assembly carries `[UnityTest]`, `[UnityPlatform]` or `[RequiresPlayMode]` (`UnityEngine.TestTools`, subclasses included; read from metadata); or the method's IL calls a member of `UnityEngine.TestTools.LogAssert` (decoded with the runtime's opcode table, `IlScanner`). |
+| `unity-only` | Never run. The assembly is a Play Mode assembly (not Editor-only: the Unity Test Framework runs it in Play Mode); or the method, its class or its assembly carries `[UnityTest]`, `[UnityPlatform]` or `[RequiresPlayMode]` (`UnityEngine.TestTools`, subclasses included; read from metadata). |
 | `skipped` | `[Explicit]` (never selected by name here), NUnit `Skipped` without the Ignored label, `Inconclusive` (`Assume`, `Assert.Inconclusive`). |
 | `ignored` | `[Ignore]`: NUnit `Skipped` with label `Ignored`. |
 | `passed` | NUnit `Passed` or `Warning`. |
@@ -158,6 +158,12 @@ Report formatting remains explicitly invariant.
 The test host runs with the project root as its working directory, including after a restart.
 Relative `Assets/...` paths resolve within that project; the parent process directory is unchanged.
 
+`LogAssert` requires Unity's log scope and is classified `needs-unity`, without running direct
+calls. Helpers reaching a missing scope are classified from the framework's exact
+`InvalidOperationException` message and its `LogScope`/`LogAssert` stack frame; unrelated
+exceptions remain failures. No log capture or expectation shim is provided.
+Source: [test-framework 1.4.5 LogScope.Current](https://github.com/needle-mirror/com.unity.test-framework/blob/117ede6d83ffc332b51c90d40df38451b914aabf/UnityEngine.TestRunner/Assertions/LogScope/LogScope.cs).
+
 ## Divergences: CoreCLR versus Mono
 
 `ucl test` runs on CoreCLR; the Editor runs tests on Mono with Unity's .NET Framework 4.8 class library. Known
@@ -199,5 +205,5 @@ numbers (docs/real-project-checklist.md) are the ones that matter.
 * EditMode only: Play Mode assemblies are classified unity-only, never run.
 * No per-test timeout: a test that never returns blocks the run (NUnit's timeout needs thread abort, which
   CoreCLR lacks).
-* `LogAssert` is detected in the test method's own IL, not in helpers or lambdas it calls.
+* Direct `LogAssert` calls are identified from IL; helper failures require the runtime scope exception and a framework frame.
 * Discovery failures before any case is known cannot identify an individual case; the host crash still returns exit 1.
