@@ -64,7 +64,20 @@ Open (item 4), with the evidence found so far:
   `ExcludedForRuntimeCode` for assemblies that are not Editor-only (the flag is native). Public Unity-generated
   project files: Windows 6000.0 to 6000.3 leave out AMD and NVIDIA (and Hierarchy on 6000.3); WebGL 6000.0.43 leaves
   out AMD, NVIDIA, AR, ClusterInput, ClusterRenderer and VirtualTexturing; the private 6000.3.19 WebGL run adds
-  Insights. Next: a per-platform table from these sources, with a fixture.
+  Insights. Audit for item 4d (Session 8):
+  [GetUnityReferences in Unity 6000.3](https://github.com/Unity-Technologies/UnityCsReference/blob/2f6cef60096cf50741d933becf101bf3186719dd/Editor/Mono/Scripting/ScriptCompilation/EditorBuildRules.cs)
+  explicitly excludes ExcludedForRuntimeCode modules for runtime code, including runtime assemblies
+  compiled for the Editor, while allowing them for Editor-only code. ucl models enabled built-in
+  package names but not this separate native flag. VirtualTexturing, Insights, ClusterRenderer,
+  ClusterInput and AR are not represented by matching package names in BuiltInModules.KnownPackages;
+  they therefore pass that filter regardless of manifest dependencies. This explains why manifest
+  filtering alone cannot reproduce the native exclusions. It does not prove a version/target table:
+  public generated project files show different sets, and the public C# source does not expose the
+  producer of the native flags. In particular, the 6000.0 WebGL sample does not establish Insights
+  membership in 6000.3.19. No global blacklist, deprecation guess or extrapolated table is added.
+  Open: obtain a public version/target-specific module flag list or compiler response-file corpus
+  sufficient to fixture the table, including both runtime and Editor-only assemblies. Counts-only
+  private reruns can confirm a public fixture's result, but are not the source of a new rule.
 * `nunit.framework.dll` missing on 22 assemblies: the published `com.unity.ext.nunit` 2.0.5 meta is Auto Reference on
   (`isExplicitlyReferenced: 0`), unlike the fixture's. ucl already references it on runtime assemblies with that meta,
   so the 22 are not explained yet; the maintainer could say what they have in common (overrideReferences,
