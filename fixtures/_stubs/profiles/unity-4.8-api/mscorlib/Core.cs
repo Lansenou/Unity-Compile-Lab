@@ -244,6 +244,9 @@ namespace System.Collections.Generic
         public int Count => 0;
         public T this[int index] { get => default; set { } }
         public void Add(T item) { }
+        public void RemoveAt(int index) { }
+        public void Clear() { }
+        public bool Contains(T item) => false;
         public Enumerator GetEnumerator() => default;
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
         IEnumerator IEnumerable.GetEnumerator() => null;
@@ -264,6 +267,8 @@ namespace System.Collections.Generic
         public int Count => 0;
         public TValue this[TKey key] { get => default; set { } }
         public void Add(TKey key, TValue value) { }
+        public bool ContainsKey(TKey key) => false;
+        public bool Remove(TKey key) => false;
         public bool TryGetValue(TKey key, out TValue value)
         {
             value = default;
