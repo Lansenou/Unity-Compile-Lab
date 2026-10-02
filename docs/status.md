@@ -32,6 +32,15 @@ No production Unity API shims are added. Logging needs expected/unexpected/missi
 parity tests; native Quaternion/Matrix math needs actual Unity CI comparison over 10,000 random
 inputs with per-member ULP bounds. Engine state and unpublished algorithms remain needs-unity.
 
+## Unity-only eligibility before IL scanning — merged in PR 33 after green three-OS CI
+
+The scope review found that a method-body load failure could overwrite a PlayMode/UnityTest
+case's unity-only decision with needs-unity. Two original missing-dependency fixtures were
+red for the wrong category before the fix. Check metadata eligibility and Explicit before
+scanning method bodies; excluded cases keep their category and are never scanned/run.
+For the EditMode fixture, the following ordinary case still passes; PlayMode cases stay
+unity-only. This is a separate small fix; normal scan-failure recovery remains covered.
+
 ## Test scope documentation — merged in PR 32 after green three-OS CI
 
 README now puts “What ucl test can and cannot run” directly below the test command row;

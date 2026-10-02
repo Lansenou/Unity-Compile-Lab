@@ -9,6 +9,9 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Fixed
 
+* Decide unity-only/Explicit eligibility before IL scans so excluded unloadable bodies keep
+  their category and are never scanned or run.
+
 * Classify CoreCLR's initialized readonly-static reflection restriction as needs-unity with
   a runtime-divergence reason; unrelated field-access errors remain failed.
 

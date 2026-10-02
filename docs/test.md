@@ -146,6 +146,9 @@ and `summary.needsUnityByMember` (top 20); text prints the same descending-count
 frames stay unknown; the tool does not infer a native member from a test name. Use counts across
 projects to choose shim candidates, then require Unity-equivalence evidence before patching them.
 
+Unity-only and Explicit eligibility is decided before method-body scanning; an unloadable
+body cannot overwrite that decision.
+
 ## Zero-loss accounting
 
 The sum of the categories equals the number of cases NUnit discovers in the compiled assemblies (after
