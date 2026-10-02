@@ -1,0 +1,7 @@
+{
+  "name": "com.unity.test-framework",
+  "version": "1.5.1",
+  "displayName": "Test Framework (fixture stand-in)",
+  "unity": "6000.0",
+  "dependencies": {}
+}

@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "com.example.input": "file:com.example.input",
+    "com.unity.test-framework": "1.5.1",
+    "com.unity.modules.physics": "1.0.0"
+  }
+}

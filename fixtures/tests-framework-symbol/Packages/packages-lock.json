@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "com.example.input": {
+      "version": "file:com.example.input",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.unity.test-framework": {
+      "version": "1.5.1",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {}
+    },
+    "com.unity.modules.physics": {
+      "version": "1.0.0",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {}
+    }
+  }
+}

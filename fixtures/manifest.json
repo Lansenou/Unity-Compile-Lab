@@ -26062,7 +26062,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -26207,7 +26208,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             }
           ],
@@ -26490,7 +26492,8 @@
                 "UNITY_64",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
-                "UNITY_STANDALONE_WIN"
+                "UNITY_STANDALONE_WIN",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -26617,7 +26620,8 @@
                 "UNITY_64",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
-                "UNITY_STANDALONE_WIN"
+                "UNITY_STANDALONE_WIN",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             }
           ],
@@ -31271,7 +31275,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -31412,7 +31417,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -31552,7 +31558,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -31693,7 +31700,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -31833,7 +31841,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -31974,7 +31983,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             }
           ],
@@ -34238,6 +34248,7 @@
                 "UNITY_GFX_USE_PLATFORM_VSYNC",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK",
                 "UNITY_WEBGL",
                 "UNITY_WEBGL_API"
               ]
@@ -34359,6 +34370,7 @@
                 "UNITY_GFX_USE_PLATFORM_VSYNC",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK",
                 "UNITY_WEBGL",
                 "UNITY_WEBGL_API"
               ]
@@ -34478,6 +34490,7 @@
                 "UNITY_GFX_USE_PLATFORM_VSYNC",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK",
                 "UNITY_WEBGL",
                 "UNITY_WEBGL_API"
               ]
@@ -35095,7 +35108,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -35239,7 +35253,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -35381,7 +35396,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             }
           ],
@@ -35532,7 +35548,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -35669,7 +35686,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -35804,7 +35822,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             }
           ],
@@ -35955,7 +35974,8 @@
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_LINUX",
                 "UNITY_STANDALONE_LINUX_API",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -36092,7 +36112,8 @@
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_LINUX",
                 "UNITY_STANDALONE_LINUX_API",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -36227,7 +36248,8 @@
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_LINUX",
                 "UNITY_STANDALONE_LINUX_API",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             }
           ],
@@ -36378,7 +36400,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_OSX",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -36515,7 +36538,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_OSX",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -36650,7 +36674,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_OSX",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             }
           ],
@@ -36817,6 +36842,7 @@
                 "UNITY_HAS_TANGO",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK",
                 "UNITY_UNITYADS_API"
               ]
             },
@@ -36970,6 +36996,7 @@
                 "UNITY_HAS_TANGO",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK",
                 "UNITY_UNITYADS_API"
               ]
             },
@@ -37121,6 +37148,7 @@
                 "UNITY_HAS_TANGO",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK",
                 "UNITY_UNITYADS_API"
               ]
             }
@@ -37250,7 +37278,8 @@
                 "UNITY_EDITOR_OSX",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_IOS",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -37365,7 +37394,8 @@
                 "UNITY_EDITOR_OSX",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_IOS",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -37478,7 +37508,8 @@
                 "UNITY_EDITOR_OSX",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_IOS",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             }
           ],
@@ -38812,7 +38843,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -38956,7 +38988,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -39245,7 +39278,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -39387,7 +39421,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -39531,7 +39566,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -39673,7 +39709,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -39817,7 +39854,8 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE"
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -40907,7 +40945,8 @@
                 "UNITY_64",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
-                "UNITY_STANDALONE_WIN"
+                "UNITY_STANDALONE_WIN",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -41035,7 +41074,8 @@
                 "UNITY_64",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
-                "UNITY_STANDALONE_WIN"
+                "UNITY_STANDALONE_WIN",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -41163,7 +41203,8 @@
                 "UNITY_64",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
-                "UNITY_STANDALONE_WIN"
+                "UNITY_STANDALONE_WIN",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -41291,7 +41332,8 @@
                 "UNITY_64",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
-                "UNITY_STANDALONE_WIN"
+                "UNITY_STANDALONE_WIN",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -41419,7 +41461,8 @@
                 "UNITY_64",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
-                "UNITY_STANDALONE_WIN"
+                "UNITY_STANDALONE_WIN",
+                "UNITY_TESTS_FRAMEWORK"
               ]
             },
             {
@@ -46176,6 +46219,735 @@
             }
           ],
           "excluded": [],
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "name": "tests-framework-symbol",
+      "description": "Session 4, item 3. Editor compiles define UNITY_TESTS_FRAMEWORK when com.unity.test-framework is installed (here a manifest dependency resolved from the editor, lock source builtin), so a test helper assembly constrained on it (shaped like com.unity.inputsystem's Unity.InputSystem.TestFramework) compiles in the Editor. Players leave test framework assemblies out.",
+      "requirements": [
+        "R2",
+        "R5"
+      ],
+      "materialize": [],
+      "cells": [
+        {
+          "unityVersion": "6000.3.2f1",
+          "target": "editor",
+          "platform": "StandaloneWindows64",
+          "editorOs": "windows",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [],
+              "definesExclude": [],
+              "defines": [
+                "CSHARP_7_3_OR_NEWER",
+                "CSHARP_7_OR_LATER",
+                "DEBUG",
+                "EDITOR_ONLY_NAVMESH_BUILDER_DEPRECATED",
+                "ENABLE_ACCELERATOR_CLIENT_DEBUGGING",
+                "ENABLE_ACCESSIBILITY_SCREEN_READER",
+                "ENABLE_AMD",
+                "ENABLE_AR",
+                "ENABLE_AUDIO",
+                "ENABLE_AUDIO_SCRIPTABLE_PIPELINE",
+                "ENABLE_BURST_AOT",
+                "ENABLE_CACHING",
+                "ENABLE_CLOTH",
+                "ENABLE_CLOUD_LICENSE",
+                "ENABLE_CLOUD_SERVICES",
+                "ENABLE_CLOUD_SERVICES_ADS",
+                "ENABLE_CLOUD_SERVICES_ANALYTICS",
+                "ENABLE_CLOUD_SERVICES_BUILD",
+                "ENABLE_CLOUD_SERVICES_CRASH_REPORTING",
+                "ENABLE_CLOUD_SERVICES_ENGINE_DIAGNOSTICS",
+                "ENABLE_CLOUD_SERVICES_NATIVE_CRASH_REPORTING",
+                "ENABLE_CLOUD_SERVICES_PURCHASING",
+                "ENABLE_CLOUD_SERVICES_USE_WEBREQUEST",
+                "ENABLE_CLUSTERINPUT",
+                "ENABLE_CLUSTER_SYNC",
+                "ENABLE_CRUNCH_TEXTURE_COMPRESSION",
+                "ENABLE_CUSTOM_RENDER_TEXTURE",
+                "ENABLE_DIRECTOR",
+                "ENABLE_DIRECTOR_AUDIO",
+                "ENABLE_DIRECTOR_TEXTURE",
+                "ENABLE_EDITOR_GAME_SERVICES",
+                "ENABLE_EDITOR_HUB_LICENSE",
+                "ENABLE_EVENT_QUEUE",
+                "ENABLE_GENERATE_NATIVE_PLUGINS_FOR_ASSEMBLIES_API",
+                "ENABLE_LEGACY_INPUT_MANAGER",
+                "ENABLE_LOCALIZATION",
+                "ENABLE_LZMA",
+                "ENABLE_MANAGED_ANIMATION_JOBS",
+                "ENABLE_MANAGED_AUDIO_JOBS",
+                "ENABLE_MANAGED_JOBS",
+                "ENABLE_MANAGED_TRANSFORM_JOBS",
+                "ENABLE_MANAGED_UNITYTLS",
+                "ENABLE_MARSHALLING_TESTS",
+                "ENABLE_MICROPHONE",
+                "ENABLE_MONO",
+                "ENABLE_MOVIES",
+                "ENABLE_MULTIPLE_DISPLAYS",
+                "ENABLE_NAVIGATION_OFFMESHLINK_TO_NAVMESHLINK",
+                "ENABLE_NETWORK",
+                "ENABLE_NVIDIA",
+                "ENABLE_OUT_OF_PROCESS_CRASH_HANDLER",
+                "ENABLE_PHYSICS",
+                "ENABLE_PROFILER",
+                "ENABLE_RUNTIME_GI",
+                "ENABLE_SCRIPTING_GC_WBARRIERS",
+                "ENABLE_SPRITES",
+                "ENABLE_TERRAIN",
+                "ENABLE_TEXTURE_STREAMING",
+                "ENABLE_TILEMAP",
+                "ENABLE_TIMELINE",
+                "ENABLE_UNITYEVENTS",
+                "ENABLE_UNITYWEBREQUEST",
+                "ENABLE_UNITY_CLOUD_IDENTIFIERS",
+                "ENABLE_UNITY_COLLECTIONS_CHECKS",
+                "ENABLE_UNITY_CONSENT",
+                "ENABLE_UNITY_GAME_SERVICES_ANALYTICS_SUPPORT",
+                "ENABLE_VIDEO",
+                "ENABLE_VIRTUALTEXTURING",
+                "ENABLE_VR",
+                "ENABLE_WEBCAM",
+                "ENABLE_WEBSOCKET_CLIENT",
+                "ENABLE_WWW",
+                "GFXDEVICE_WAITFOREVENT_MESSAGEPUMP",
+                "INCLUDE_DYNAMIC_GI",
+                "NETSTANDARD",
+                "NETSTANDARD2_1",
+                "NET_STANDARD",
+                "NET_STANDARD_2_0",
+                "NET_STANDARD_2_1",
+                "PLATFORM_ARCH_64",
+                "PLATFORM_STANDALONE",
+                "PLATFORM_STANDALONE_WIN",
+                "PLATFORM_SUPPORTS_MONO",
+                "PLATFORM_SUPPORTS_SPLIT_GRAPHICS_JOBS",
+                "PLATFORM_SUPPORTS_WAIT_FOR_PRESENTATION",
+                "PLATFORM_UPDATES_TIME_OUTSIDE_OF_PLAYER_LOOP",
+                "PLATFORM_USES_EXPLICIT_MEMORY_MANAGER_INITIALIZER",
+                "RENDER_SOFTWARE_CURSOR",
+                "TEXTCORE_1_0_OR_NEWER",
+                "TEXTCORE_FONT_ENGINE_1_5_OR_NEWER",
+                "TEXTCORE_FONT_ENGINE_1_6_OR_NEWER",
+                "TEXTCORE_TEXT_ENGINE_1_5_OR_NEWER",
+                "TRACE",
+                "UNITY_2017_1_OR_NEWER",
+                "UNITY_2017_2_OR_NEWER",
+                "UNITY_2017_3_OR_NEWER",
+                "UNITY_2017_4_OR_NEWER",
+                "UNITY_2018_1_OR_NEWER",
+                "UNITY_2018_2_OR_NEWER",
+                "UNITY_2018_3_OR_NEWER",
+                "UNITY_2018_4_OR_NEWER",
+                "UNITY_2019_1_OR_NEWER",
+                "UNITY_2019_2_OR_NEWER",
+                "UNITY_2019_3_OR_NEWER",
+                "UNITY_2019_4_OR_NEWER",
+                "UNITY_2020_1_OR_NEWER",
+                "UNITY_2020_2_OR_NEWER",
+                "UNITY_2020_3_OR_NEWER",
+                "UNITY_2021_1_OR_NEWER",
+                "UNITY_2021_2_OR_NEWER",
+                "UNITY_2021_3_OR_NEWER",
+                "UNITY_2022_1_OR_NEWER",
+                "UNITY_2022_2_OR_NEWER",
+                "UNITY_2022_3_OR_NEWER",
+                "UNITY_2023_1_OR_NEWER",
+                "UNITY_2023_2_OR_NEWER",
+                "UNITY_2023_3_OR_NEWER",
+                "UNITY_5_3_OR_NEWER",
+                "UNITY_5_4_OR_NEWER",
+                "UNITY_5_5_OR_NEWER",
+                "UNITY_5_6_OR_NEWER",
+                "UNITY_6000",
+                "UNITY_6000_0_OR_NEWER",
+                "UNITY_6000_1_OR_NEWER",
+                "UNITY_6000_2_OR_NEWER",
+                "UNITY_6000_3",
+                "UNITY_6000_3_2",
+                "UNITY_6000_3_OR_NEWER",
+                "UNITY_64",
+                "UNITY_ASSERTIONS",
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_64",
+                "UNITY_EDITOR_WIN",
+                "UNITY_INCLUDE_TESTS",
+                "UNITY_STANDALONE",
+                "UNITY_STANDALONE_WIN",
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
+              ]
+            },
+            {
+              "name": "Example.Input",
+              "definesInclude": [],
+              "definesExclude": [],
+              "defines": [
+                "CSHARP_7_3_OR_NEWER",
+                "CSHARP_7_OR_LATER",
+                "DEBUG",
+                "EDITOR_ONLY_NAVMESH_BUILDER_DEPRECATED",
+                "ENABLE_ACCELERATOR_CLIENT_DEBUGGING",
+                "ENABLE_ACCESSIBILITY_SCREEN_READER",
+                "ENABLE_AMD",
+                "ENABLE_AR",
+                "ENABLE_AUDIO",
+                "ENABLE_AUDIO_SCRIPTABLE_PIPELINE",
+                "ENABLE_BURST_AOT",
+                "ENABLE_CACHING",
+                "ENABLE_CLOTH",
+                "ENABLE_CLOUD_LICENSE",
+                "ENABLE_CLOUD_SERVICES",
+                "ENABLE_CLOUD_SERVICES_ADS",
+                "ENABLE_CLOUD_SERVICES_ANALYTICS",
+                "ENABLE_CLOUD_SERVICES_BUILD",
+                "ENABLE_CLOUD_SERVICES_CRASH_REPORTING",
+                "ENABLE_CLOUD_SERVICES_ENGINE_DIAGNOSTICS",
+                "ENABLE_CLOUD_SERVICES_NATIVE_CRASH_REPORTING",
+                "ENABLE_CLOUD_SERVICES_PURCHASING",
+                "ENABLE_CLOUD_SERVICES_USE_WEBREQUEST",
+                "ENABLE_CLUSTERINPUT",
+                "ENABLE_CLUSTER_SYNC",
+                "ENABLE_CRUNCH_TEXTURE_COMPRESSION",
+                "ENABLE_CUSTOM_RENDER_TEXTURE",
+                "ENABLE_DIRECTOR",
+                "ENABLE_DIRECTOR_AUDIO",
+                "ENABLE_DIRECTOR_TEXTURE",
+                "ENABLE_EDITOR_GAME_SERVICES",
+                "ENABLE_EDITOR_HUB_LICENSE",
+                "ENABLE_EVENT_QUEUE",
+                "ENABLE_GENERATE_NATIVE_PLUGINS_FOR_ASSEMBLIES_API",
+                "ENABLE_LEGACY_INPUT_MANAGER",
+                "ENABLE_LOCALIZATION",
+                "ENABLE_LZMA",
+                "ENABLE_MANAGED_ANIMATION_JOBS",
+                "ENABLE_MANAGED_AUDIO_JOBS",
+                "ENABLE_MANAGED_JOBS",
+                "ENABLE_MANAGED_TRANSFORM_JOBS",
+                "ENABLE_MANAGED_UNITYTLS",
+                "ENABLE_MARSHALLING_TESTS",
+                "ENABLE_MICROPHONE",
+                "ENABLE_MONO",
+                "ENABLE_MOVIES",
+                "ENABLE_MULTIPLE_DISPLAYS",
+                "ENABLE_NAVIGATION_OFFMESHLINK_TO_NAVMESHLINK",
+                "ENABLE_NETWORK",
+                "ENABLE_NVIDIA",
+                "ENABLE_OUT_OF_PROCESS_CRASH_HANDLER",
+                "ENABLE_PHYSICS",
+                "ENABLE_PROFILER",
+                "ENABLE_RUNTIME_GI",
+                "ENABLE_SCRIPTING_GC_WBARRIERS",
+                "ENABLE_SPRITES",
+                "ENABLE_TERRAIN",
+                "ENABLE_TEXTURE_STREAMING",
+                "ENABLE_TILEMAP",
+                "ENABLE_TIMELINE",
+                "ENABLE_UNITYEVENTS",
+                "ENABLE_UNITYWEBREQUEST",
+                "ENABLE_UNITY_CLOUD_IDENTIFIERS",
+                "ENABLE_UNITY_COLLECTIONS_CHECKS",
+                "ENABLE_UNITY_CONSENT",
+                "ENABLE_UNITY_GAME_SERVICES_ANALYTICS_SUPPORT",
+                "ENABLE_VIDEO",
+                "ENABLE_VIRTUALTEXTURING",
+                "ENABLE_VR",
+                "ENABLE_WEBCAM",
+                "ENABLE_WEBSOCKET_CLIENT",
+                "ENABLE_WWW",
+                "GFXDEVICE_WAITFOREVENT_MESSAGEPUMP",
+                "INCLUDE_DYNAMIC_GI",
+                "NETSTANDARD",
+                "NETSTANDARD2_1",
+                "NET_STANDARD",
+                "NET_STANDARD_2_0",
+                "NET_STANDARD_2_1",
+                "PLATFORM_ARCH_64",
+                "PLATFORM_STANDALONE",
+                "PLATFORM_STANDALONE_WIN",
+                "PLATFORM_SUPPORTS_MONO",
+                "PLATFORM_SUPPORTS_SPLIT_GRAPHICS_JOBS",
+                "PLATFORM_SUPPORTS_WAIT_FOR_PRESENTATION",
+                "PLATFORM_UPDATES_TIME_OUTSIDE_OF_PLAYER_LOOP",
+                "PLATFORM_USES_EXPLICIT_MEMORY_MANAGER_INITIALIZER",
+                "RENDER_SOFTWARE_CURSOR",
+                "TEXTCORE_1_0_OR_NEWER",
+                "TEXTCORE_FONT_ENGINE_1_5_OR_NEWER",
+                "TEXTCORE_FONT_ENGINE_1_6_OR_NEWER",
+                "TEXTCORE_TEXT_ENGINE_1_5_OR_NEWER",
+                "TRACE",
+                "UNITY_2017_1_OR_NEWER",
+                "UNITY_2017_2_OR_NEWER",
+                "UNITY_2017_3_OR_NEWER",
+                "UNITY_2017_4_OR_NEWER",
+                "UNITY_2018_1_OR_NEWER",
+                "UNITY_2018_2_OR_NEWER",
+                "UNITY_2018_3_OR_NEWER",
+                "UNITY_2018_4_OR_NEWER",
+                "UNITY_2019_1_OR_NEWER",
+                "UNITY_2019_2_OR_NEWER",
+                "UNITY_2019_3_OR_NEWER",
+                "UNITY_2019_4_OR_NEWER",
+                "UNITY_2020_1_OR_NEWER",
+                "UNITY_2020_2_OR_NEWER",
+                "UNITY_2020_3_OR_NEWER",
+                "UNITY_2021_1_OR_NEWER",
+                "UNITY_2021_2_OR_NEWER",
+                "UNITY_2021_3_OR_NEWER",
+                "UNITY_2022_1_OR_NEWER",
+                "UNITY_2022_2_OR_NEWER",
+                "UNITY_2022_3_OR_NEWER",
+                "UNITY_2023_1_OR_NEWER",
+                "UNITY_2023_2_OR_NEWER",
+                "UNITY_2023_3_OR_NEWER",
+                "UNITY_5_3_OR_NEWER",
+                "UNITY_5_4_OR_NEWER",
+                "UNITY_5_5_OR_NEWER",
+                "UNITY_5_6_OR_NEWER",
+                "UNITY_6000",
+                "UNITY_6000_0_OR_NEWER",
+                "UNITY_6000_1_OR_NEWER",
+                "UNITY_6000_2_OR_NEWER",
+                "UNITY_6000_3",
+                "UNITY_6000_3_2",
+                "UNITY_6000_3_OR_NEWER",
+                "UNITY_64",
+                "UNITY_ASSERTIONS",
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_64",
+                "UNITY_EDITOR_WIN",
+                "UNITY_INCLUDE_TESTS",
+                "UNITY_STANDALONE",
+                "UNITY_STANDALONE_WIN",
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
+              ]
+            },
+            {
+              "name": "Example.Input.TestFramework",
+              "definesInclude": [],
+              "definesExclude": [],
+              "defines": [
+                "CSHARP_7_3_OR_NEWER",
+                "CSHARP_7_OR_LATER",
+                "DEBUG",
+                "EDITOR_ONLY_NAVMESH_BUILDER_DEPRECATED",
+                "ENABLE_ACCELERATOR_CLIENT_DEBUGGING",
+                "ENABLE_ACCESSIBILITY_SCREEN_READER",
+                "ENABLE_AMD",
+                "ENABLE_AR",
+                "ENABLE_AUDIO",
+                "ENABLE_AUDIO_SCRIPTABLE_PIPELINE",
+                "ENABLE_BURST_AOT",
+                "ENABLE_CACHING",
+                "ENABLE_CLOTH",
+                "ENABLE_CLOUD_LICENSE",
+                "ENABLE_CLOUD_SERVICES",
+                "ENABLE_CLOUD_SERVICES_ADS",
+                "ENABLE_CLOUD_SERVICES_ANALYTICS",
+                "ENABLE_CLOUD_SERVICES_BUILD",
+                "ENABLE_CLOUD_SERVICES_CRASH_REPORTING",
+                "ENABLE_CLOUD_SERVICES_ENGINE_DIAGNOSTICS",
+                "ENABLE_CLOUD_SERVICES_NATIVE_CRASH_REPORTING",
+                "ENABLE_CLOUD_SERVICES_PURCHASING",
+                "ENABLE_CLOUD_SERVICES_USE_WEBREQUEST",
+                "ENABLE_CLUSTERINPUT",
+                "ENABLE_CLUSTER_SYNC",
+                "ENABLE_CRUNCH_TEXTURE_COMPRESSION",
+                "ENABLE_CUSTOM_RENDER_TEXTURE",
+                "ENABLE_DIRECTOR",
+                "ENABLE_DIRECTOR_AUDIO",
+                "ENABLE_DIRECTOR_TEXTURE",
+                "ENABLE_EDITOR_GAME_SERVICES",
+                "ENABLE_EDITOR_HUB_LICENSE",
+                "ENABLE_EVENT_QUEUE",
+                "ENABLE_GENERATE_NATIVE_PLUGINS_FOR_ASSEMBLIES_API",
+                "ENABLE_LEGACY_INPUT_MANAGER",
+                "ENABLE_LOCALIZATION",
+                "ENABLE_LZMA",
+                "ENABLE_MANAGED_ANIMATION_JOBS",
+                "ENABLE_MANAGED_AUDIO_JOBS",
+                "ENABLE_MANAGED_JOBS",
+                "ENABLE_MANAGED_TRANSFORM_JOBS",
+                "ENABLE_MANAGED_UNITYTLS",
+                "ENABLE_MARSHALLING_TESTS",
+                "ENABLE_MICROPHONE",
+                "ENABLE_MONO",
+                "ENABLE_MOVIES",
+                "ENABLE_MULTIPLE_DISPLAYS",
+                "ENABLE_NAVIGATION_OFFMESHLINK_TO_NAVMESHLINK",
+                "ENABLE_NETWORK",
+                "ENABLE_NVIDIA",
+                "ENABLE_OUT_OF_PROCESS_CRASH_HANDLER",
+                "ENABLE_PHYSICS",
+                "ENABLE_PROFILER",
+                "ENABLE_RUNTIME_GI",
+                "ENABLE_SCRIPTING_GC_WBARRIERS",
+                "ENABLE_SPRITES",
+                "ENABLE_TERRAIN",
+                "ENABLE_TEXTURE_STREAMING",
+                "ENABLE_TILEMAP",
+                "ENABLE_TIMELINE",
+                "ENABLE_UNITYEVENTS",
+                "ENABLE_UNITYWEBREQUEST",
+                "ENABLE_UNITY_CLOUD_IDENTIFIERS",
+                "ENABLE_UNITY_COLLECTIONS_CHECKS",
+                "ENABLE_UNITY_CONSENT",
+                "ENABLE_UNITY_GAME_SERVICES_ANALYTICS_SUPPORT",
+                "ENABLE_VIDEO",
+                "ENABLE_VIRTUALTEXTURING",
+                "ENABLE_VR",
+                "ENABLE_WEBCAM",
+                "ENABLE_WEBSOCKET_CLIENT",
+                "ENABLE_WWW",
+                "GFXDEVICE_WAITFOREVENT_MESSAGEPUMP",
+                "INCLUDE_DYNAMIC_GI",
+                "NETSTANDARD",
+                "NETSTANDARD2_1",
+                "NET_STANDARD",
+                "NET_STANDARD_2_0",
+                "NET_STANDARD_2_1",
+                "PLATFORM_ARCH_64",
+                "PLATFORM_STANDALONE",
+                "PLATFORM_STANDALONE_WIN",
+                "PLATFORM_SUPPORTS_MONO",
+                "PLATFORM_SUPPORTS_SPLIT_GRAPHICS_JOBS",
+                "PLATFORM_SUPPORTS_WAIT_FOR_PRESENTATION",
+                "PLATFORM_UPDATES_TIME_OUTSIDE_OF_PLAYER_LOOP",
+                "PLATFORM_USES_EXPLICIT_MEMORY_MANAGER_INITIALIZER",
+                "RENDER_SOFTWARE_CURSOR",
+                "TEXTCORE_1_0_OR_NEWER",
+                "TEXTCORE_FONT_ENGINE_1_5_OR_NEWER",
+                "TEXTCORE_FONT_ENGINE_1_6_OR_NEWER",
+                "TEXTCORE_TEXT_ENGINE_1_5_OR_NEWER",
+                "TRACE",
+                "UNITY_2017_1_OR_NEWER",
+                "UNITY_2017_2_OR_NEWER",
+                "UNITY_2017_3_OR_NEWER",
+                "UNITY_2017_4_OR_NEWER",
+                "UNITY_2018_1_OR_NEWER",
+                "UNITY_2018_2_OR_NEWER",
+                "UNITY_2018_3_OR_NEWER",
+                "UNITY_2018_4_OR_NEWER",
+                "UNITY_2019_1_OR_NEWER",
+                "UNITY_2019_2_OR_NEWER",
+                "UNITY_2019_3_OR_NEWER",
+                "UNITY_2019_4_OR_NEWER",
+                "UNITY_2020_1_OR_NEWER",
+                "UNITY_2020_2_OR_NEWER",
+                "UNITY_2020_3_OR_NEWER",
+                "UNITY_2021_1_OR_NEWER",
+                "UNITY_2021_2_OR_NEWER",
+                "UNITY_2021_3_OR_NEWER",
+                "UNITY_2022_1_OR_NEWER",
+                "UNITY_2022_2_OR_NEWER",
+                "UNITY_2022_3_OR_NEWER",
+                "UNITY_2023_1_OR_NEWER",
+                "UNITY_2023_2_OR_NEWER",
+                "UNITY_2023_3_OR_NEWER",
+                "UNITY_5_3_OR_NEWER",
+                "UNITY_5_4_OR_NEWER",
+                "UNITY_5_5_OR_NEWER",
+                "UNITY_5_6_OR_NEWER",
+                "UNITY_6000",
+                "UNITY_6000_0_OR_NEWER",
+                "UNITY_6000_1_OR_NEWER",
+                "UNITY_6000_2_OR_NEWER",
+                "UNITY_6000_3",
+                "UNITY_6000_3_2",
+                "UNITY_6000_3_OR_NEWER",
+                "UNITY_64",
+                "UNITY_ASSERTIONS",
+                "UNITY_EDITOR",
+                "UNITY_EDITOR_64",
+                "UNITY_EDITOR_WIN",
+                "UNITY_INCLUDE_TESTS",
+                "UNITY_STANDALONE",
+                "UNITY_STANDALONE_WIN",
+                "UNITY_TEAM_LICENSE",
+                "UNITY_TESTS_FRAMEWORK"
+              ]
+            }
+          ],
+          "excluded": [],
+          "diagnostics": []
+        },
+        {
+          "unityVersion": "6000.3.2f1",
+          "target": "player",
+          "platform": "StandaloneWindows64",
+          "extraArgs": [],
+          "exitCode": 0,
+          "oracle": "pending",
+          "realEditor": false,
+          "assemblies": [
+            {
+              "name": "Assembly-CSharp",
+              "definesInclude": [],
+              "definesExclude": [],
+              "defines": [
+                "CSHARP_7_3_OR_NEWER",
+                "CSHARP_7_OR_LATER",
+                "ENABLE_ACCESSIBILITY_SCREEN_READER",
+                "ENABLE_AMD",
+                "ENABLE_AR",
+                "ENABLE_AUDIO",
+                "ENABLE_AUDIO_SCRIPTABLE_PIPELINE",
+                "ENABLE_CACHING",
+                "ENABLE_CLOTH",
+                "ENABLE_CLOUD_SERVICES",
+                "ENABLE_CLOUD_SERVICES_ADS",
+                "ENABLE_CLOUD_SERVICES_ANALYTICS",
+                "ENABLE_CLOUD_SERVICES_BUILD",
+                "ENABLE_CLOUD_SERVICES_CRASH_REPORTING",
+                "ENABLE_CLOUD_SERVICES_ENGINE_DIAGNOSTICS",
+                "ENABLE_CLOUD_SERVICES_NATIVE_CRASH_REPORTING",
+                "ENABLE_CLOUD_SERVICES_PURCHASING",
+                "ENABLE_CLOUD_SERVICES_USE_WEBREQUEST",
+                "ENABLE_CLUSTERINPUT",
+                "ENABLE_CLUSTER_SYNC",
+                "ENABLE_CRUNCH_TEXTURE_COMPRESSION",
+                "ENABLE_CUSTOM_RENDER_TEXTURE",
+                "ENABLE_DIRECTOR",
+                "ENABLE_DIRECTOR_AUDIO",
+                "ENABLE_DIRECTOR_TEXTURE",
+                "ENABLE_EVENT_QUEUE",
+                "ENABLE_LEGACY_INPUT_MANAGER",
+                "ENABLE_LOCALIZATION",
+                "ENABLE_LZMA",
+                "ENABLE_MANAGED_ANIMATION_JOBS",
+                "ENABLE_MANAGED_AUDIO_JOBS",
+                "ENABLE_MANAGED_JOBS",
+                "ENABLE_MANAGED_TRANSFORM_JOBS",
+                "ENABLE_MANAGED_UNITYTLS",
+                "ENABLE_MICROPHONE",
+                "ENABLE_MONO",
+                "ENABLE_MOVIES",
+                "ENABLE_MULTIPLE_DISPLAYS",
+                "ENABLE_NAVIGATION_OFFMESHLINK_TO_NAVMESHLINK",
+                "ENABLE_NETWORK",
+                "ENABLE_NVIDIA",
+                "ENABLE_OUT_OF_PROCESS_CRASH_HANDLER",
+                "ENABLE_PHYSICS",
+                "ENABLE_RUNTIME_GI",
+                "ENABLE_SCRIPTING_GC_WBARRIERS",
+                "ENABLE_SPRITES",
+                "ENABLE_TERRAIN",
+                "ENABLE_TEXTURE_STREAMING",
+                "ENABLE_TILEMAP",
+                "ENABLE_TIMELINE",
+                "ENABLE_UNITYEVENTS",
+                "ENABLE_UNITYWEBREQUEST",
+                "ENABLE_UNITY_CLOUD_IDENTIFIERS",
+                "ENABLE_UNITY_COLLECTIONS_CHECKS",
+                "ENABLE_UNITY_CONSENT",
+                "ENABLE_UNITY_GAME_SERVICES_ANALYTICS_SUPPORT",
+                "ENABLE_VIDEO",
+                "ENABLE_VIRTUALTEXTURING",
+                "ENABLE_VR",
+                "ENABLE_WEBCAM",
+                "ENABLE_WEBSOCKET_CLIENT",
+                "ENABLE_WWW",
+                "GFXDEVICE_WAITFOREVENT_MESSAGEPUMP",
+                "INCLUDE_DYNAMIC_GI",
+                "NETSTANDARD",
+                "NETSTANDARD2_1",
+                "NET_STANDARD",
+                "NET_STANDARD_2_0",
+                "NET_STANDARD_2_1",
+                "PLATFORM_ARCH_64",
+                "PLATFORM_STANDALONE",
+                "PLATFORM_STANDALONE_WIN",
+                "PLATFORM_SUPPORTS_MONO",
+                "PLATFORM_SUPPORTS_SPLIT_GRAPHICS_JOBS",
+                "PLATFORM_SUPPORTS_WAIT_FOR_PRESENTATION",
+                "PLATFORM_UPDATES_TIME_OUTSIDE_OF_PLAYER_LOOP",
+                "PLATFORM_USES_EXPLICIT_MEMORY_MANAGER_INITIALIZER",
+                "RENDER_SOFTWARE_CURSOR",
+                "TEXTCORE_1_0_OR_NEWER",
+                "TEXTCORE_FONT_ENGINE_1_5_OR_NEWER",
+                "TEXTCORE_FONT_ENGINE_1_6_OR_NEWER",
+                "TEXTCORE_TEXT_ENGINE_1_5_OR_NEWER",
+                "UNITY_2017_1_OR_NEWER",
+                "UNITY_2017_2_OR_NEWER",
+                "UNITY_2017_3_OR_NEWER",
+                "UNITY_2017_4_OR_NEWER",
+                "UNITY_2018_1_OR_NEWER",
+                "UNITY_2018_2_OR_NEWER",
+                "UNITY_2018_3_OR_NEWER",
+                "UNITY_2018_4_OR_NEWER",
+                "UNITY_2019_1_OR_NEWER",
+                "UNITY_2019_2_OR_NEWER",
+                "UNITY_2019_3_OR_NEWER",
+                "UNITY_2019_4_OR_NEWER",
+                "UNITY_2020_1_OR_NEWER",
+                "UNITY_2020_2_OR_NEWER",
+                "UNITY_2020_3_OR_NEWER",
+                "UNITY_2021_1_OR_NEWER",
+                "UNITY_2021_2_OR_NEWER",
+                "UNITY_2021_3_OR_NEWER",
+                "UNITY_2022_1_OR_NEWER",
+                "UNITY_2022_2_OR_NEWER",
+                "UNITY_2022_3_OR_NEWER",
+                "UNITY_2023_1_OR_NEWER",
+                "UNITY_2023_2_OR_NEWER",
+                "UNITY_2023_3_OR_NEWER",
+                "UNITY_5_3_OR_NEWER",
+                "UNITY_5_4_OR_NEWER",
+                "UNITY_5_5_OR_NEWER",
+                "UNITY_5_6_OR_NEWER",
+                "UNITY_6000",
+                "UNITY_6000_0_OR_NEWER",
+                "UNITY_6000_1_OR_NEWER",
+                "UNITY_6000_2_OR_NEWER",
+                "UNITY_6000_3",
+                "UNITY_6000_3_2",
+                "UNITY_6000_3_OR_NEWER",
+                "UNITY_64",
+                "UNITY_STANDALONE",
+                "UNITY_STANDALONE_WIN"
+              ]
+            },
+            {
+              "name": "Example.Input",
+              "definesInclude": [],
+              "definesExclude": [],
+              "defines": [
+                "CSHARP_7_3_OR_NEWER",
+                "CSHARP_7_OR_LATER",
+                "ENABLE_ACCESSIBILITY_SCREEN_READER",
+                "ENABLE_AMD",
+                "ENABLE_AR",
+                "ENABLE_AUDIO",
+                "ENABLE_AUDIO_SCRIPTABLE_PIPELINE",
+                "ENABLE_CACHING",
+                "ENABLE_CLOTH",
+                "ENABLE_CLOUD_SERVICES",
+                "ENABLE_CLOUD_SERVICES_ADS",
+                "ENABLE_CLOUD_SERVICES_ANALYTICS",
+                "ENABLE_CLOUD_SERVICES_BUILD",
+                "ENABLE_CLOUD_SERVICES_CRASH_REPORTING",
+                "ENABLE_CLOUD_SERVICES_ENGINE_DIAGNOSTICS",
+                "ENABLE_CLOUD_SERVICES_NATIVE_CRASH_REPORTING",
+                "ENABLE_CLOUD_SERVICES_PURCHASING",
+                "ENABLE_CLOUD_SERVICES_USE_WEBREQUEST",
+                "ENABLE_CLUSTERINPUT",
+                "ENABLE_CLUSTER_SYNC",
+                "ENABLE_CRUNCH_TEXTURE_COMPRESSION",
+                "ENABLE_CUSTOM_RENDER_TEXTURE",
+                "ENABLE_DIRECTOR",
+                "ENABLE_DIRECTOR_AUDIO",
+                "ENABLE_DIRECTOR_TEXTURE",
+                "ENABLE_EVENT_QUEUE",
+                "ENABLE_LEGACY_INPUT_MANAGER",
+                "ENABLE_LOCALIZATION",
+                "ENABLE_LZMA",
+                "ENABLE_MANAGED_ANIMATION_JOBS",
+                "ENABLE_MANAGED_AUDIO_JOBS",
+                "ENABLE_MANAGED_JOBS",
+                "ENABLE_MANAGED_TRANSFORM_JOBS",
+                "ENABLE_MANAGED_UNITYTLS",
+                "ENABLE_MICROPHONE",
+                "ENABLE_MONO",
+                "ENABLE_MOVIES",
+                "ENABLE_MULTIPLE_DISPLAYS",
+                "ENABLE_NAVIGATION_OFFMESHLINK_TO_NAVMESHLINK",
+                "ENABLE_NETWORK",
+                "ENABLE_NVIDIA",
+                "ENABLE_OUT_OF_PROCESS_CRASH_HANDLER",
+                "ENABLE_PHYSICS",
+                "ENABLE_RUNTIME_GI",
+                "ENABLE_SCRIPTING_GC_WBARRIERS",
+                "ENABLE_SPRITES",
+                "ENABLE_TERRAIN",
+                "ENABLE_TEXTURE_STREAMING",
+                "ENABLE_TILEMAP",
+                "ENABLE_TIMELINE",
+                "ENABLE_UNITYEVENTS",
+                "ENABLE_UNITYWEBREQUEST",
+                "ENABLE_UNITY_CLOUD_IDENTIFIERS",
+                "ENABLE_UNITY_COLLECTIONS_CHECKS",
+                "ENABLE_UNITY_CONSENT",
+                "ENABLE_UNITY_GAME_SERVICES_ANALYTICS_SUPPORT",
+                "ENABLE_VIDEO",
+                "ENABLE_VIRTUALTEXTURING",
+                "ENABLE_VR",
+                "ENABLE_WEBCAM",
+                "ENABLE_WEBSOCKET_CLIENT",
+                "ENABLE_WWW",
+                "GFXDEVICE_WAITFOREVENT_MESSAGEPUMP",
+                "INCLUDE_DYNAMIC_GI",
+                "NETSTANDARD",
+                "NETSTANDARD2_1",
+                "NET_STANDARD",
+                "NET_STANDARD_2_0",
+                "NET_STANDARD_2_1",
+                "PLATFORM_ARCH_64",
+                "PLATFORM_STANDALONE",
+                "PLATFORM_STANDALONE_WIN",
+                "PLATFORM_SUPPORTS_MONO",
+                "PLATFORM_SUPPORTS_SPLIT_GRAPHICS_JOBS",
+                "PLATFORM_SUPPORTS_WAIT_FOR_PRESENTATION",
+                "PLATFORM_UPDATES_TIME_OUTSIDE_OF_PLAYER_LOOP",
+                "PLATFORM_USES_EXPLICIT_MEMORY_MANAGER_INITIALIZER",
+                "RENDER_SOFTWARE_CURSOR",
+                "TEXTCORE_1_0_OR_NEWER",
+                "TEXTCORE_FONT_ENGINE_1_5_OR_NEWER",
+                "TEXTCORE_FONT_ENGINE_1_6_OR_NEWER",
+                "TEXTCORE_TEXT_ENGINE_1_5_OR_NEWER",
+                "UNITY_2017_1_OR_NEWER",
+                "UNITY_2017_2_OR_NEWER",
+                "UNITY_2017_3_OR_NEWER",
+                "UNITY_2017_4_OR_NEWER",
+                "UNITY_2018_1_OR_NEWER",
+                "UNITY_2018_2_OR_NEWER",
+                "UNITY_2018_3_OR_NEWER",
+                "UNITY_2018_4_OR_NEWER",
+                "UNITY_2019_1_OR_NEWER",
+                "UNITY_2019_2_OR_NEWER",
+                "UNITY_2019_3_OR_NEWER",
+                "UNITY_2019_4_OR_NEWER",
+                "UNITY_2020_1_OR_NEWER",
+                "UNITY_2020_2_OR_NEWER",
+                "UNITY_2020_3_OR_NEWER",
+                "UNITY_2021_1_OR_NEWER",
+                "UNITY_2021_2_OR_NEWER",
+                "UNITY_2021_3_OR_NEWER",
+                "UNITY_2022_1_OR_NEWER",
+                "UNITY_2022_2_OR_NEWER",
+                "UNITY_2022_3_OR_NEWER",
+                "UNITY_2023_1_OR_NEWER",
+                "UNITY_2023_2_OR_NEWER",
+                "UNITY_2023_3_OR_NEWER",
+                "UNITY_5_3_OR_NEWER",
+                "UNITY_5_4_OR_NEWER",
+                "UNITY_5_5_OR_NEWER",
+                "UNITY_5_6_OR_NEWER",
+                "UNITY_6000",
+                "UNITY_6000_0_OR_NEWER",
+                "UNITY_6000_1_OR_NEWER",
+                "UNITY_6000_2_OR_NEWER",
+                "UNITY_6000_3",
+                "UNITY_6000_3_2",
+                "UNITY_6000_3_OR_NEWER",
+                "UNITY_64",
+                "UNITY_STANDALONE",
+                "UNITY_STANDALONE_WIN"
+              ]
+            }
+          ],
+          "excluded": [
+            "Example.Input.TestFramework"
+          ],
           "diagnostics": []
         }
       ]

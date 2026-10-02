@@ -134,6 +134,7 @@ open-ended. Missing components compare as 0 (`1.2` = `1.2.0`). Pre-release suffi
 | Id | Symbol | When | Status | Source |
 |---|---|---|---|---|
 | D60 | `UNITY_INCLUDE_TESTS` | target editor and `com.unity.test-framework` resolved; target player only with `--include-tests`. A compiler symbol like any other (until 0.6.0 `ucl` used it for `defineConstraints` only) | observed | test framework docs, [PUB], [REAL] |
+| D61 | `UNITY_TESTS_FRAMEWORK` | as D60. Test helper assemblies of other packages (such as `Unity.InputSystem.TestFramework`) are constrained on it | ucl rule | [REAL] (the Editor compiled such an assembly with `com.unity.test-framework` a manifest dependency) |
 
 ## Built-in symbols
 

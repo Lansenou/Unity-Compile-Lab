@@ -313,7 +313,7 @@ internal static class Planner
         foreach (var s in ForGroup("scriptingDefineSymbols")) global.UnionWith(s.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
         foreach (var arg in ForGroup("additionalCompilerArguments")) global.UnionWith(RspDefines(arg));
         // D60.
-        if ((packages.ContainsKey("com.unity.test-framework") && cell.Editor) || cell.IncludeTests) global.Add("UNITY_INCLUDE_TESTS");
+        if ((packages.ContainsKey("com.unity.test-framework") && cell.Editor) || cell.IncludeTests) global.UnionWith(["UNITY_INCLUDE_TESTS", "UNITY_TESTS_FRAMEWORK"]);
         // E01, E04-E15: docs/defines.md "Built-in symbols".
         global.Add("CSHARP_7_OR_LATER");
         foreach (var (row, symbols) in BuiltIn.Rows)
