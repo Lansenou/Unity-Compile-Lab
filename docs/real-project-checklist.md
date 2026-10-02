@@ -2,8 +2,10 @@
 
 What to run on a licensed machine with a real Unity 6 project, and what to send back. Everything here is
 read-only for the project: `ucl` writes only to `Library/ucl` (and to the file you pass to `-o`). Plan about
-15 minutes. Use the build from the commit you want to test (a release binary, or `dotnet build -c Release` and
-`dotnet src/Ucl.Cli/bin/Release/net10.0/ucl.dll` in place of `ucl` below).
+15 minutes. Which version to download: the release marked "Latest" on the GitHub releases page
+(`v0.<minor>.<run>`, built automatically from `main`), unless you were asked to test a specific `v0.x.y`; send
+back the `ucl --version` line. For an unreleased commit, `dotnet build -c Release` and use
+`dotnet src/Ucl.Cli/bin/Release/net10.0/ucl.dll` in place of `ucl` below.
 
 ## 0. Prepare
 

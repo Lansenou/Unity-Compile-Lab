@@ -3,12 +3,13 @@ name: ci
 on:
   pull_request:
   push:
-    branches: [main, 'claude/**']
-    tags: ['v*']
+    branches: [main]
 
 permissions:
   contents: read
 
+# Superseded pull request runs are cancelled. Each push to main gets its own group (the run id), so no later
+# push can cancel it, running or pending: each main run may be waiting to publish its release.
 concurrency:
   group: ${{ github.event_name == 'pull_request' && format('ci-{0}', github.ref) || format('ci-{0}-{1}', github.ref, github.run_id) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -35,13 +36,15 @@ jobs:
           path: .nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
       - run: dotnet --info
+      - name: Release version
+        run: echo "VERSION=$(scripts/release-version.sh "$GITHUB_EVENT_NAME" "$GITHUB_REF" "$GITHUB_RUN_NUMBER" "$GITHUB_SHA")" >> "$GITHUB_ENV"
       - run: scripts/check.sh --mutation
       - name: Benchmark (R11 targets)
         run: scripts/bench.sh
       - name: Smoke test the release binary
         run: |
-          scripts/build-release.sh "dev-${GITHUB_SHA::12}" dist linux-x64
-          scripts/smoke.sh dist/ucl-linux-x64/ucl
+          scripts/build-release.sh "$VERSION" dist linux-x64
+          scripts/smoke.sh dist/ucl-linux-x64/ucl "$VERSION"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
@@ -91,16 +94,18 @@ jobs:
         with:
           path: .nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+      - name: Release version
+        run: echo "VERSION=$(scripts/release-version.sh "$GITHUB_EVENT_NAME" "$GITHUB_REF" "$GITHUB_RUN_NUMBER" "$GITHUB_SHA")" >> "$GITHUB_ENV"
       - name: Build release binary and smoke test it
         run: |
-          scripts/build-release.sh "dev-${GITHUB_SHA::12}" dist osx-arm64
-          scripts/smoke.sh dist/ucl-osx-arm64/ucl
+          scripts/build-release.sh "$VERSION" dist osx-arm64
+          scripts/smoke.sh dist/ucl-osx-arm64/ucl "$VERSION"
 
-  # On a v* tag pushed by a maintainer, after all gates: build the four single-file binaries and the
-  # global tool package, and attach them to a GitHub release. The only job with write permission.
-  # Publishing to NuGet is not automated (no API key is configured); see docs/status.md.
+  # On a push to main, after all three gates: build the four single-file binaries and the global tool package
+  # and publish them as release v0.<minor>.<run number> (scripts/release-version.sh). The only job with write
+  # permission. Publishing to NuGet is not automated (no API key is configured); see docs/status.md.
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [linux, windows, macos]
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -113,17 +118,55 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
+      - name: Release version
+        run: echo "VERSION=$(scripts/release-version.sh "$GITHUB_EVENT_NAME" "$GITHUB_REF" "$GITHUB_RUN_NUMBER" "$GITHUB_SHA")" >> "$GITHUB_ENV"
       - name: Build release artifacts
-        run: scripts/build-release.sh "$GITHUB_REF_NAME" dist
-      - name: Verify checksums
-        run: (cd dist && sha256sum --check SHA256SUMS)
-      - name: Create the GitHub release (never replaces an existing one)
+        run: scripts/build-release.sh "$VERSION" dist
+      - name: Verify the artifacts
+        run: |
+          case $VERSION in v0.[0-9]*.[0-9]*) ;; *) echo "bad version $VERSION"; exit 1 ;; esac
+          (cd dist && sha256sum --check SHA256SUMS)
+          test "$(ls dist | wc -l)" -eq 8
+          ls -l dist
+      - name: Create the release (idempotent; never moves a tag)
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            echo "release $GITHUB_REF_NAME already exists; not touching it"; exit 0
+          set -euo pipefail
+          tag=$VERSION
+          # An existing tag must already point at this commit.
+          if sha=$(gh api "repos/$GH_REPO/commits/tags/$tag" --jq .sha 2>/dev/null); then
+            if [ "$sha" != "$GITHUB_SHA" ]; then
+              echo "tag $tag exists at $sha, not $GITHUB_SHA; refusing to move it"; exit 1
+            fi
+            echo "tag $tag already exists at this commit"
           fi
-          notes=$(awk -v v="${GITHUB_REF_NAME#v}" '$0 ~ "^## \\[" v "\\]" {p=1; next} /^## \[/ {p=0} p' CHANGELOG.md)
-          gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --notes "${notes:-See CHANGELOG.md}"
+          notes="Automatic release of $GITHUB_SHA after the Linux, Windows and macOS CI gates passed (run $GITHUB_RUN_ID). 'ucl --version' prints $tag. Changes: CHANGELOG.md. Verify downloads with: sha256sum --check SHA256SUMS"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            # A rerun. Published assets are never deleted or replaced; release builds are not byte-for-byte
+            # reproducible, so a rerun uploads only assets that are missing and leaves the rest as they are.
+            names=$(gh release view "$tag" --json assets --jq '.assets[].name')
+            missing=()
+            for f in dist/*; do
+              grep -qxF "$(basename "$f")" <<<"$names" || missing+=("$f")
+            done
+            if [ ${#missing[@]} -gt 0 ] && [ ${#missing[@]} -lt "$(ls dist | wc -l)" ]; then
+              echo "$tag: some assets exist and some are missing; refusing to mix two builds under one SHA256SUMS"; exit 1
+            fi
+            if [ ${#missing[@]} -gt 0 ]; then
+              gh release upload "$tag" "${missing[@]}"
+            fi
+            if [ "$(gh release view "$tag" --json isDraft --jq .isDraft)" = true ]; then
+              gh release edit "$tag" --draft=false
+            fi
+            echo "release $tag already existed; ${#missing[@]} asset(s) uploaded"
+          else
+            gh release create "$tag" dist/* --target "$GITHUB_SHA" --title "$tag" --notes "$notes" --latest=false
+          fi
+          # Mark as latest only if no higher v0.x.y release exists (main runs can finish out of order).
+          highest=$(gh release list --limit 200 --exclude-drafts --json tagName --jq '.[].tagName' | grep -E '^v0\.[0-9]+\.[0-9]+$' | sort -t. -k2,2n -k3,3n | tail -1)
+          if [ "$highest" = "$tag" ]; then
+            gh release edit "$tag" --latest
+          fi
+          gh release view "$tag"
