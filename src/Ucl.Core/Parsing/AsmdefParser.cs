@@ -45,6 +45,19 @@ public static class AsmdefParser
                 NoEngineReferences = Bool(root, "noEngineReferences", false),
                 OptionalUnityReferences = StrList(root, "optionalUnityReferences"),
             };
+            // A legacy test assembly (optionalUnityReferences) is rewritten on load, as Unity does (UnityCsReference
+            // CustomScriptAssemblyWithLegacyData.UpdateLegacyData); its test runner references are added by the graph builder.
+            if (data.OptionalUnityReferences.Count > 0)
+            {
+                data = data with
+                {
+                    AutoReferenced = false,
+                    OverrideReferences = true,
+                    PrecompiledReferences = [.. data.PrecompiledReferences, "nunit.framework.dll"],
+                    DefineConstraints = [.. data.DefineConstraints, "UNITY_INCLUDE_TESTS"],
+                };
+            }
+
             if (data.IncludePlatforms.Count > 0 && data.ExcludePlatforms.Count > 0)
             {
                 return Result<AsmdefData>.Failure("asmdef sets both 'includePlatforms' and 'excludePlatforms'");

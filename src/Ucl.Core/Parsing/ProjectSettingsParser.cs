@@ -32,6 +32,7 @@ public static class ProjectSettingsParser
             ActiveInputHandler = Int(player.Get("activeInputHandler"), 0),
             AllowUnsafeCode = player.Get("allowUnsafeCode") == "1",
             SuppressCommonWarnings = player.Get("suppressCommonWarnings") != "0",
+            PlayModeTestRunnerEnabled = player.Get("playModeTestRunnerEnabled") == "1",
         };
     }
 

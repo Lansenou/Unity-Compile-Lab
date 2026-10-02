@@ -98,3 +98,34 @@ one failure made 73 of 100 assemblies "skipped". The report listed every diagnos
 cell with "root failures": every failed assembly, ranked by how many assemblies it blocks, with its three most
 frequent error ids and the first instance of each. `ucl check --summary` prints only that block and the result
 line. Tests: `CascadeReportTests`.
+
+# Session 3: real-project compile parity (0.7.0)
+
+The maintainer ran docs/real-project-checklist.md with 0.6.0 on a private 6000.3.19f1 project that the Editor
+compiles cleanly (one editor dag, WebGL active; player checked as StandaloneWindows64) and reported counts
+only: `bee-diff` exit 1 (104 assemblies, 0 agree, 8128 differences); `check` editor exit 1 (1286 errors, 10
+failed, 63 skipped); player exit 1 (1151 errors); `ucl test` 0 cases. Six root causes, in order of blocked
+assemblies. Every fixture below is synthetic, built from public package layouts and `.meta` settings; each
+rule cites its source (UnityCsReference, the Unity manual, or public Unity-generated project files, [PUB] in
+docs/defines.md). Red runs are 0.6.0's rules (`e3bde47`) on the 0.7.0 stub editor, which only adds files 0.6.0
+ignores.
+
+| Cause | Rule (source) | Fixture | Red run (0.6.0) | Green (0.7.0) |
+|---|---|---|---|---|
+| 1. uGUI assemblies missing | `UnityEngine.UI` (and `UnityEditor.UI` in editor cells) reach every asmdef assembly but the UI, test runner, `noEngineReferences` and code-gen ones (UnityCsReference `AutoReferencedPackageAssemblies`) | `ugui-auto-reference` | editor and player exit 1: `Example.Input` (lists only `"Unity.ugui"`, like `com.unity.inputsystem`) fails with CS0234 x3, CS0246 x2, CS0103 x1 on `EventSystems`, `UI`, `Selectable`, `PointerEventData`, `EventSystem` | exit 0; the `UCL1001` warning for `Unity.ugui` stays |
+| 2. built-in symbols missing | E01-E15, `ENABLE_MONO` in every editor cell, D60 a compiler symbol (UnityCsReference `s_CSharpVersionDefines`, `UNITY_EDITOR_ONLY_COMPILATION`; [PUB] for the native lists) | `editor-builtin-defines` (10 cells) | every cell exit 1, `Example.Collections` fails with CS1029 (2 to 7 probe `#error`s per cell: E01, E04, E05, E06, D31, E14, D60) | exit 0 in all 10 cells; manifest holds each assembly's full set |
+| 3. three `Unsafe.dll` copies | one precompiled DLL per file name, the highest assembly version wins (UnityCsReference `PrecompiledAssemblyProvider`; which copy wins: [REAL]) | `plugin-same-name` | exit 1: CS1704 (same simple name imported twice) in `Example.Pipeline` and `Unity.Collections` | exit 0; only the 6.0.1.0 copy is referenced; `UCL1005` info names the 4.0.4.1 and 6.0.0.0 copies |
+| 4. package tests compiled, test framework helper omitted | package test assemblies only when embedded or in `testables`; `UNITY_TESTS_FRAMEWORK` assemblies out of players unless `--include-tests` (UnityCsReference `CustomScriptAssembly.IsCompatibleWith`; manual) | `package-testables` | exit 0 but wrong assembly sets: editor compiles `Example.Tools.Tests` and `Example.Tools.LegacyTests` (package not testable); player compiles `Example.Input.TestFramework` and `UnityEngine.TestRunner` | assembly sets as the manifest states |
+| 5. editor references missing | `UnityEngine.dll` facade, platform module (`PlaybackEngines/<support>/Managed`), `UnityEditor.Graphs.dll`, every installed platform's `UnityEditor.*.Extensions.dll`, `Unity.CompilationPipeline.Common.dll` for code-gen ([PUB]; UnityCsReference `CompilationPipelineCommonHelper`) | `editor-reference-set` | editor WebGL exit 1: CS0012 (facade), CS0234 (`WebGLInput`), CS0246 x8 and CS0103 (Graphs, extensions, `ILPostProcessor`, `DiagnosticType`); players: CS0012 (and CS0234 on WebGL) | exit 0 in all 4 cells |
+| 6. analyzers missing | owner-less analyzers reach every assembly, owned ones reach transitive referrers; the editor's own generators run everywhere (UnityCsReference `RoslynAnalyzers.SetAnalyzers`) | `analyzer-reach` | exit 1: CS0103 x2 in `Game.Core` and `Game.Tools` (no NuGet-style generator output); `Game.UI`'s `UFX001` missing | exit 0; `UFX001` on `Game.UI` |
+
+Not reproduced with public shapes: the Editor compiled `Unity.InputSystem.TestFramework` and 0.6.0 left it out.
+The fixture copies its asmdef (constraint `UNITY_TESTS_FRAMEWORK`, defined by its own `versionDefines` entry with an
+empty expression) and 0.6.0 already compiled it in the Editor. If the next private run still lists it under
+`assembly` differences, `ucl graph path/to/Project | grep "excluded Unity.InputSystem.TestFramework"` prints the reason without sharing project data.
+
+Rules changed on the way, with the fixtures that assert them: analyzers outside every asmdef folder now reach
+asmdef assemblies (`analyzer-global`) and owned analyzers reach transitive referrers (`analyzer-scoped`); with
+the facade, a type of a disabled module is CS1069 rather than CS0246 (`builtin-module-disabled`); editor cells of
+an IL2CPP project define `ENABLE_MONO` (`backend-il2cpp`); Editor-only assemblies get the test runners and
+`nunit.framework.dll` (`test-editmode`, `test-assembly` unchanged).

@@ -154,11 +154,32 @@ public sealed class EditorLocator(IFileSystem fs, IEnvironment env)
 
         var managed = Path.Combine(data, "Managed", "UnityEngine");
         var engineFiles = Dlls(managed);
+
+        // PlaybackEngines is under the data folder on Windows and Linux, beside Unity.app on macOS.
+        var enginesParent = fs.DirectoryExists(Path.Combine(data, EditorFiles.PlaybackEngines)) ? data : Path.GetDirectoryName(root) ?? root;
+        var engines = Path.Combine(enginesParent, EditorFiles.PlaybackEngines);
+        var platformModules = new Dictionary<BuildPlatform, IReadOnlyList<string>>();
+        var extensions = Existing(data, [EditorFiles.EditorGraphs]);
+        foreach (var platform in PlatformInfo.All.Select(p => p.Platform))
+        {
+            var support = Path.Combine(engines, EditorFiles.SupportFolder(platform));
+            platformModules[platform] = Dlls(Path.Combine(support, "Managed")).Where(f => Path.GetFileName(f).StartsWith("UnityEngine.", StringComparison.Ordinal)).ToList();
+            extensions.AddRange(Dlls(support).Where(f =>
+                (Path.GetFileName(f).StartsWith("UnityEditor.", StringComparison.Ordinal) && f.EndsWith(".Extensions.dll", StringComparison.Ordinal))
+                || (platform == BuildPlatform.Android && EditorFiles.AndroidEditorLibraries.Contains(Path.GetFileName(f)))));
+        }
+
         return new EditorInstall
         {
             Version = version,
             Root = root,
             DataPath = data,
+            EngineFacade = Existing(data, [EditorFiles.EngineFacade]).FirstOrDefault(),
+            PlatformModules = platformModules,
+            EditorExtensions = extensions.Distinct().Order(StringComparer.Ordinal).ToList(),
+            CompilationPipeline = Existing(data, [EditorFiles.CompilationPipeline]).FirstOrDefault(),
+            SourceGenerators = EditorFiles.SourceGeneratorFolders.Select(f => Dlls(Under(data, f))).FirstOrDefault(l => l.Count > 0) ?? [],
+            PlaybackEnginesParent = enginesParent,
             EngineModules = engineFiles
                 .Where(f => Path.GetFileName(f).StartsWith("UnityEngine.", StringComparison.Ordinal)
                     && !Path.GetFileName(f).Equals("UnityEngine.dll", StringComparison.OrdinalIgnoreCase))

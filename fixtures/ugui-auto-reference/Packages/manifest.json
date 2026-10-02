@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "com.unity.ugui": "2.0.0",
+    "com.example.input": "1.4.0",
+    "com.unity.modules.physics": "1.0.0"
+  }
+}

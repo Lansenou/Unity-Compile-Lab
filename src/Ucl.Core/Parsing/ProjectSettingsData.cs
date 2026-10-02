@@ -38,6 +38,12 @@ public sealed record ProjectSettingsData
     /// <summary><c>suppressCommonWarnings</c> (CS0169, CS0649); default on.</summary>
     public bool SuppressCommonWarnings { get; init; } = true;
 
+    /// <summary>
+    /// <c>playModeTestRunnerEnabled</c> ("Enable playmode tests for all assemblies"): every assembly, not only Editor-only
+    /// ones, gets the test runner assemblies and <c>nunit.framework.dll</c> (docs/architecture.md, "Test runner references").
+    /// </summary>
+    public bool PlayModeTestRunnerEnabled { get; init; }
+
     /// <summary>True when the API compatibility level for <paramref name="group"/> is .NET Framework.</summary>
     public bool IsNetFramework(string group) =>
         (ApiCompatibilityPerGroup.TryGetValue(group, out var level) ? level : ApiCompatibilityLevel) == 3;

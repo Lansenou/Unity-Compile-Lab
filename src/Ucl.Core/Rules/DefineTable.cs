@@ -40,12 +40,14 @@ public static class DefineTable
         return settings.ScriptingBackend.TryGetValue(info.TargetGroup, out var b) ? b : info.DefaultBackend;
     }
 
-    /// <summary>Computes rows D01-D51 and D60 for a cell. Per-assembly rows (D52, D53) are added by the graph builder.</summary>
+    /// <summary>
+    /// Computes rows D01-D51, D60 and the built-in rows E01, E04-E15 for a cell. Per-assembly rows (D52, D53, E02) are added
+    /// by the graph builder.
+    /// </summary>
     /// <param name="cell">The compile cell.</param>
     /// <param name="settings">Player settings.</param>
     /// <param name="testFrameworkPresent">Whether <c>com.unity.test-framework</c> is resolved.</param>
-    /// <param name="constraintOnly">Receives constraint-only symbols (D60), which are not passed to the compiler.</param>
-    public static DefineSet Compute(CompileCell cell, ProjectSettingsData settings, bool testFrameworkPresent, out DefineSet constraintOnly)
+    public static DefineSet Compute(CompileCell cell, ProjectSettingsData settings, bool testFrameworkPresent)
     {
         var d = new DefineSet();
         var v = cell.UnityVersion;
@@ -107,7 +109,11 @@ public static class DefineTable
         }
 
         d.Add("CSHARP_7_3_OR_NEWER", "D30");
-        d.Add(BackendOf(cell, settings) == ScriptingBackend.IL2CPP ? "ENABLE_IL2CPP" : "ENABLE_MONO", BackendOf(cell, settings) == ScriptingBackend.IL2CPP ? "D32" : "D31");
+        d.Add(BuiltInDefines.CSharp7OrLater, "E01");
+
+        // The Editor runs scripts on Mono whatever the platform's backend: editor cells always get ENABLE_MONO.
+        var il2cpp = !cell.IsEditor && BackendOf(cell, settings) == ScriptingBackend.IL2CPP;
+        d.Add(il2cpp ? "ENABLE_IL2CPP" : "ENABLE_MONO", il2cpp ? "D32" : "D31");
         AddProfile(d, settings.IsNetFramework(info.TargetGroup));
 
         if (settings.ActiveInputHandler is 0 or 2)
@@ -143,12 +149,12 @@ public static class DefineTable
             d.Add(s, "D51");
         }
 
-        constraintOnly = new DefineSet();
         if ((cell.IsEditor && testFrameworkPresent) || cell.IncludeTests)
         {
-            constraintOnly.Add("UNITY_INCLUDE_TESTS", "D60");
+            d.Add("UNITY_INCLUDE_TESTS", "D60");
         }
 
+        BuiltInDefines.Add(d, cell);
         return d;
     }
 

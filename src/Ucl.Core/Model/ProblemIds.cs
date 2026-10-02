@@ -12,8 +12,11 @@ public static class ProblemIds
     /// <summary>asmref whose target assembly does not exist (warning).</summary>
     public const string MissingAsmrefTarget = "UCL1003";
 
-    /// <summary>precompiledReferences entry with no such DLL (error).</summary>
+    /// <summary>precompiledReferences entry with no such DLL (info: Unity skips it silently).</summary>
     public const string MissingPrecompiledReference = "UCL1004";
+
+    /// <summary>A precompiled DLL left out because another DLL with its file name wins (info: Unity keeps one per name).</summary>
+    public const string ShadowedPrecompiledReference = "UCL1005";
 
     /// <summary>Script in a package outside any asmdef; Unity does not compile it (warning).</summary>
     public const string PackageScriptWithoutAsmdef = "UCL1010";

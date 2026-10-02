@@ -1,0 +1,16 @@
+{
+    "name": "Game.UI",
+    "rootNamespace": "",
+    "references": [
+        "Game.Chat"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -26,7 +26,7 @@ internal static class PluginResolver
             .Select(p => (p.Path, Meta: p.MetaText is null ? null : MetaParser.Parse(p.MetaText)))
             .ToList();
 
-        var compatible = new List<(string Path, bool Auto)>();
+        var candidates = new List<(string Path, bool Auto)>();
         foreach (var (path, meta) in all)
         {
             if (meta?.IsRoslynAnalyzer == true)
@@ -38,10 +38,11 @@ internal static class PluginResolver
             var settings = meta?.Plugin ?? PluginSettings.Default;
             if (settings.IsCompatibleWith(key) && DefineConstraints.AreSatisfied(settings.DefineConstraints, baseDefines.Contains))
             {
-                compatible.Add((path, !settings.IsExplicitlyReferenced));
+                candidates.Add((path, !settings.IsExplicitlyReferenced));
             }
         }
 
+        var compatible = OnePerFileName(candidates, inventory.PluginVersions, diagnostics);
         foreach (var draft in drafts.Values.OrderBy(d => d.Name, StringComparer.Ordinal))
         {
             var data = draft.Entry?.Data;
@@ -72,12 +73,12 @@ internal static class PluginResolver
                 references[draft.Name].AddRange(compatible.Where(c => c.Auto).Select(c => c.Path));
             }
 
-            // Legacy test assemblies also get nunit.framework.dll, Auto Reference or not (UnityCsReference
-            // EditorBuildRules.AddTestRunnerPrecompiledReferences).
-            if (draft.Entry?.IsTestAssembly == true)
+            // Editor-only assemblies (every assembly with playModeTestRunnerEnabled) also get nunit.framework.dll, Auto Reference
+            // or not, unless they list it themselves (UnityCsReference TestRunnerHelpers.ShouldAddNunitReferences).
+            if ((inventory.Settings.PlayModeTestRunnerEnabled || draft.IsEditorOnly) && !ListsNUnit(data))
             {
                 references[draft.Name].AddRange(compatible
-                    .Where(c => ProjectPaths.FileName(c.Path).Equals(NUnitFramework, StringComparison.OrdinalIgnoreCase) && !references[draft.Name].Contains(c.Path))
+                    .Where(c => ProjectPaths.FileName(c.Path) == NUnitFramework && !references[draft.Name].Contains(c.Path))
                     .Select(c => c.Path));
             }
         }
@@ -85,25 +86,49 @@ internal static class PluginResolver
         return new PluginResolution(references, analyzers);
     }
 
-    // Unity analyzer scope: an analyzer under an asmdef folder applies to that assembly and its direct referrers;
-    // anywhere else it applies to the predefined assemblies.
-    private static void AddAnalyzer(string path, DefinitionIndex index, Dictionary<string, Draft> drafts, Dictionary<string, List<string>> analyzers)
-    {
-        var owner = index.AsmdefFolderOwner(path);
-        if (owner is null)
-        {
-            foreach (var name in SpecialFolders.Predefined.Where(drafts.ContainsKey))
-            {
-                analyzers[name].Add(path);
-            }
+    private static bool ListsNUnit(AsmdefData? data) =>
+        data is { OverrideReferences: true } && data.PrecompiledReferences.Contains(NUnitFramework, StringComparer.Ordinal);
 
-            return;
+    // Unity keeps one precompiled assembly per file name (UnityCsReference PrecompiledAssemblyProvider); of DLLs that share a
+    // name it keeps the highest assembly version, then the first path (docs/architecture.md, "Precompiled DLLs").
+    private static List<(string Path, bool Auto)> OnePerFileName(
+        List<(string Path, bool Auto)> candidates, IReadOnlyDictionary<string, string> versions, List<Diagnostic> diagnostics)
+    {
+        var kept = new List<(string Path, bool Auto)>();
+        foreach (var group in candidates.GroupBy(c => ProjectPaths.FileName(c.Path), StringComparer.Ordinal))
+        {
+            var ordered = group
+                .OrderByDescending(c => System.Version.TryParse(versions.GetValueOrDefault(c.Path), out var v) ? v : new System.Version(0, 0))
+                .ThenBy(c => c.Path, StringComparer.Ordinal)
+                .ToList();
+            var winner = ordered[0];
+            kept.Add(winner);
+            foreach (var loser in ordered.Skip(1))
+            {
+                diagnostics.Add(new Diagnostic(ProblemIds.ShadowedPrecompiledReference, Severity.Info, DiagnosticOrigin.Ucl, null, loser.Path, 0, 0,
+                    $"'{loser.Path}' ({Shown(versions, loser.Path)}) has the same file name as '{winner.Path}' ({Shown(versions, winner.Path)}); "
+                    + "Unity keeps one precompiled DLL per file name, the highest version, so this copy is not referenced"));
+            }
         }
 
-        var ownerName = owner.Data.Name;
-        foreach (var draft in drafts.Values.Where(d => d.Name == ownerName || d.References.Contains(ownerName)))
+        return kept.OrderBy(c => c.Path, StringComparer.Ordinal).ToList();
+    }
+
+    private static string Shown(IReadOnlyDictionary<string, string> versions, string path) =>
+        versions.GetValueOrDefault(path) is { Length: > 0 } v ? $"version {v}" : "no version";
+
+    // Unity's analyzer scope (UnityCsReference RoslynAnalyzers.SetAnalyzers): an analyzer owned by an assembly (its folder is under
+    // that assembly's asmdef or asmref folder) applies to that assembly and to every assembly that references it, directly or
+    // through others; an analyzer outside every such folder applies to every assembly.
+    private static void AddAnalyzer(string path, DefinitionIndex index, Dictionary<string, Draft> drafts, Dictionary<string, List<string>> analyzers)
+    {
+        var owner = index.OwnerOf(path);
+        foreach (var draft in drafts.Values.Where(d => string.IsNullOrEmpty(owner) || d.Name == owner || Reaches(d, owner, drafts, [])))
         {
             analyzers[draft.Name].Add(path);
         }
     }
+
+    private static bool Reaches(Draft from, string target, Dictionary<string, Draft> drafts, HashSet<string> seen) =>
+        from.References.Any(r => r == target || (seen.Add(r) && drafts.TryGetValue(r, out var next) && Reaches(next, target, drafts, seen)));
 }

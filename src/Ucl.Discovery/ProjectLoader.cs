@@ -53,7 +53,7 @@ public sealed class ProjectLoader(IFileSystem fs, IEnvironment env)
         return new ProjectContext
         {
             Root = root,
-            Inventory = scanner.ToInventory(version, settings, resolution.Packages),
+            Inventory = scanner.ToInventory(version, settings, resolution.Packages, manifest.Testables),
             PackageRoots = resolution.Roots,
             Problems = problems,
         };

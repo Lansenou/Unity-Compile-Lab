@@ -240,12 +240,13 @@ are ignored. The assembly name is the `-out:` file name.
 | defines | UCL5004 | set |
 | options | UCL5005 | `-langversion`, `-unsafe` |
 | nowarn | UCL5006 | set of `CSxxxx` (`0169` and `CS0169` are equal) |
-| analyzers | UCL5007 | set of locations; includes Unity's own source generators, which `ucl` does not run yet (docs/proposals.md, item 1) |
+| analyzers | UCL5007 | set of locations, Unity's own source generators (`editor:Tools/...`) included |
 | additionalfiles | UCL5008 | set of logical paths; files Bee generates under `Library/Bee` (`<Name>.UnityAdditionalFile.txt`) are left out |
 
 Output follows R9: text, JSON (schema `ucl-beediff/1`, `schema/beediff.schema.json`) or SARIF (one result per
 difference, located at the asmdef or the response file), sorted, without timestamps or machine paths of the
-`ucl` side. Exit codes: 0 every compared assembly agrees, 1 any difference, 3 no Bee folder (`UCL3010`), no
+`ucl` side. The text ends with `by category:` (differences per category) and `result:` lines; the JSON has the
+same counts under `summary.byCategory`, so a private project can report numbers only. Exit codes: 0 every compared assembly agrees, 1 any difference, 3 no Bee folder (`UCL3010`), no
 editor install, or a project that does not load.
 
 **Using a difference.** A difference is a bug in `ucl` or in a documented rule until shown otherwise: find the

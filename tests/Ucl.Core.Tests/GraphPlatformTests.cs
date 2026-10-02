@@ -171,8 +171,8 @@ public class GraphPlatformTests
         p.Package("com.unity.test-framework", "1.4.5");
         var g = p.Editor();
         Assert.NotNull(g.Find("Mod"));
-        Assert.False(g.Find("Mod")!.Defines.Contains("UNITY_INCLUDE_TESTS"));
-        Assert.False(g.BaseDefines.Contains("UNITY_INCLUDE_TESTS"));
+        Assert.Equal("D60", g.Find("Mod")!.Defines.Reasons["UNITY_INCLUDE_TESTS"]);
+        Assert.True(g.BaseDefines.Contains("UNITY_INCLUDE_TESTS"));
         Assert.Null(p.Player().Find("Mod"));
         Assert.NotNull(p.Graph(Cells.Player(includeTests: true)).Find("Mod"));
     }

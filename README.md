@@ -17,7 +17,7 @@ prompts), then for developers who want a pre-commit check, and for package autho
 every platform without a Unity install per platform.
 
 Status: see [docs/status.md](docs/status.md). Every rule is implemented from Unity's documentation and
-tested against a 62-project conformance corpus (153 matrix cells); recording those cells with a real,
+tested against a 68-project conformance corpus (176 matrix cells); recording those cells with a real,
 licensed Unity Editor (the [oracle](docs/oracle.md)) is still pending, so rows marked "observed" in
 [docs/defines.md](docs/defines.md) are not yet confirmed by Unity itself.
 

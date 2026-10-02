@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "com.unity.modules.physics": {
+      "version": "1.0.0",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {}
+    },
+    "com.example.weaver": {
+      "version": "file:com.example.weaver",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    }
+  }
+}

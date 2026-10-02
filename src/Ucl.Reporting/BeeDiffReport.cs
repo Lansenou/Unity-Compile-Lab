@@ -84,8 +84,21 @@ public static class BeeDiffReport
         }
 
         var assemblies = result.Dags.SelectMany(d => d.Assemblies).ToList();
+        if (result.DifferenceCount > 0)
+        {
+            sb.Append("by category: ").Append(string.Join(", ", ByCategory(result).Select(c => $"{Name(c.Key)} {c.Value}"))).Append('\n');
+        }
+
         sb.Append($"result: {Plural(result.Dags.Count, "dag")}, {Plural(assemblies.Count, "assembly", "assemblies")} ({assemblies.Count(a => a.Agrees)} agree), {Plural(result.DifferenceCount, "difference")}, exit {result.ExitCode}\n");
         return sb.ToString();
+    }
+
+    /// <summary>Difference counts per category, in category order, categories with differences only.</summary>
+    public static IReadOnlyList<KeyValuePair<BeeCategory, int>> ByCategory(BeeDiffResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        return [.. result.Dags.SelectMany(d => d.Assemblies).SelectMany(a => a.Differences)
+            .GroupBy(d => d.Category).OrderBy(g => g.Key).Select(g => new KeyValuePair<BeeCategory, int>(g.Key, g.Count()))];
     }
 
     /// <summary>JSON report, schema <c>ucl-beediff/1</c>.</summary>
@@ -107,6 +120,13 @@ public static class BeeDiffReport
             w.WriteNumber("assemblies", assemblies.Count);
             w.WriteNumber("agree", assemblies.Count(a => a.Agrees));
             w.WriteNumber("differences", result.DifferenceCount);
+            w.WriteStartObject("byCategory");
+            foreach (var (category, count) in ByCategory(result))
+            {
+                w.WriteNumber(Name(category), count);
+            }
+
+            w.WriteEndObject();
             w.WriteEndObject();
             w.WriteStartArray("problems");
             foreach (var p in result.Problems)

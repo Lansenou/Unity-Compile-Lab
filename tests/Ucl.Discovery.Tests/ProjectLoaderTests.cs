@@ -20,6 +20,25 @@ public sealed class ProjectLoaderTests : IDisposable
         new ProjectLoader(new PhysicalFileSystem(), env ?? new FakeEnvironment(t["home"])).Load(t[project]);
 
     [Fact]
+    public void Managed_DLLs_that_share_a_file_name_carry_their_assembly_versions()
+    {
+        MakeProject(tree)
+            .Write("Project/Assets/A/Same.dll")
+            .Write("Project/Assets/B/Same.dll")
+            .Write("Project/Assets/C/Unique.dll");
+        var managed = File.ReadAllBytes(typeof(ProjectLoader).Assembly.Location);
+        foreach (var path in new[] { "Project/Assets/A/Same.dll", "Project/Assets/B/Same.dll", "Project/Assets/C/Unique.dll" })
+        {
+            File.WriteAllBytes(tree[path], managed);
+        }
+
+        var inv = Load(tree).Inventory!;
+        var version = typeof(ProjectLoader).Assembly.GetName().Version!.ToString();
+        Assert.Equal(["Assets/A/Same.dll", "Assets/B/Same.dll"], inv.PluginVersions.Keys);
+        Assert.All(inv.PluginVersions.Values, v => Assert.Equal(version, v));
+    }
+
+    [Fact]
     public void FolderWithoutProjectLayoutIsUcl3001()
     {
         tree.Dir("Project/Assets");

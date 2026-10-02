@@ -28,6 +28,13 @@ Sources (Unity 6 manual, retrieved 2026-10-01):
   (enum values), `Editor/Mono/Scripting/ScriptCompilation/EditorBuildRules.cs` and `EditorCompilation.cs` (which
   assemblies use which level), `MonoLibraryHelpers.cs` and `Editor/Mono/Utils/NetStandardFinder.cs` (reference
   folders)
+* [PUB] Unity-generated `.csproj` files committed to public GitHub repositories (the symbols and references
+  Unity compiles each assembly with; read 2026-10-02): 6000.3.10f1 Windows editor, StandaloneWindows64
+  (MasterAirscrachDev/Anki-Partydrive); 6000.3.5f2 Windows editor, StandaloneWindows (32-bit)
+  (PierreMervaillie/GreasePencilToUnity); 6000.3.10f1 Linux editor, StandaloneLinux64
+  (PizzaLovers007/AdofaiTweaks); 6000.0.43f1 Windows editor, WebGL (Nethereum/Unity3dSampleTemplate);
+  6000.0.76f1 macOS editor, Android (videokit-ai/videokit); 6000.0.68f1 macOS editor, StandaloneOSX
+  (JetBrains/resharper-unity test data). Only symbol names were taken; no project content.
 * [REAL] the compiler command lines (`Library/Bee/artifacts/*.rsp`) of a real 6000.3.19f1 project on Windows,
   reported by the maintainer on 2026-10-02
 
@@ -73,8 +80,8 @@ build target, which is the cell's `--platform`.
 | Id | Symbol | When | Status | Source |
 |---|---|---|---|---|
 | D30 | `CSHARP_7_3_OR_NEWER` | always | doc | [SYM] |
-| D31 | `ENABLE_MONO` | backend mono | doc | [SYM] |
-| D32 | `ENABLE_IL2CPP` | backend il2cpp | doc | [SYM] |
+| D31 | `ENABLE_MONO` | target editor (always: the Editor runs scripts on Mono), or backend mono | doc (backend), observed (editor: a WebGL editor compile, whose only backend is IL2CPP, has `ENABLE_MONO`) | [SYM], [PUB] |
+| D32 | `ENABLE_IL2CPP` | target player and backend il2cpp | doc | [SYM] |
 | D33 | `NET_STANDARD_2_0`, `NET_STANDARD_2_1`, `NET_STANDARD`, `NETSTANDARD2_1`, `NETSTANDARD` | the assembly's API compatibility is .NET Standard 2.1 (see "API compatibility level") | doc | [SYM], [NET] |
 | D34 | `NET_4_6`, `NET_UNITY_4_8` | the assembly's API compatibility is .NET Framework (see "API compatibility level") | doc (`NET_4_6`), observed (`NET_UNITY_4_8`, [REAL]) | [SYM], [REAL] |
 | D35 | `ENABLE_LEGACY_INPUT_MANAGER` | `activeInputHandler` 0 or 2 (absent means 0) | doc | [SYM] |
@@ -85,7 +92,7 @@ build target, which is the cell's `--platform`.
 
 Scripting backend: `scriptingBackend` in `ProjectSettings.asset` per build target group (0 Mono, 1 IL2CPP),
 overridden by `--backend`. Defaults when absent: Standalone Mono; Android IL2CPP; iOS and WebGL IL2CPP
-(the only backend those platforms support). Editor cells use the platform's backend (observed).
+(the only backend those platforms support). The backend only picks D31/D32 in player cells: editor cells always define `ENABLE_MONO` (D31).
 
 ## API compatibility level
 
@@ -122,13 +129,43 @@ combination. The stub editor's `unity-4.8-api` (`fixtures/_stubs/profiles/`) has
 open-ended. Missing components compare as 0 (`1.2` = `1.2.0`). Pre-release suffixes order below the release
 (`2.1.0-preview.7 < 2.1.0`). An empty expression matches any present version (observed).
 
-## Constraint-only symbols
+## Test symbols
 
 | Id | Symbol | When | Status | Source |
 |---|---|---|---|---|
-| D60 | `UNITY_INCLUDE_TESTS` | target editor and `com.unity.test-framework` resolved; target player only with `--include-tests` | observed | test framework docs |
+| D60 | `UNITY_INCLUDE_TESTS` | target editor and `com.unity.test-framework` resolved; target player only with `--include-tests`. A compiler symbol like any other (until 0.6.0 `ucl` used it for `defineConstraints` only) | observed | test framework docs, [PUB], [REAL] |
 
-`defineConstraints` ([ASM]) are evaluated against the cell's full define set (D01-D53, plus D60). Each
+## Built-in symbols
+
+Symbols Unity 6 defines that the manual does not list. They come from the editor's native code, so the
+lists are what [PUB] shows, per platform; [REAL] confirms many of them for a 6000.3 WebGL project. Player
+rows are inferred (no public player command line was found): engine feature and platform symbols apply to
+players too, editor service symbols do not, and E04 follows the Collections and Profiler documentation
+("Editor and development builds"). Until `oracle/` records a real run, the manifest marks these
+assertions `oracle: pending`.
+
+| Id | Symbols | When | Status | Source |
+|---|---|---|---|---|
+| E01 | `CSHARP_7_OR_LATER` | always | [UCR] (`EditorBuildRules.s_CSharpVersionDefines`) | [UCR], [PUB] |
+| E02 | `UNITY_EDITOR_ONLY_COMPILATION` | Editor-only assemblies (asmdef `includePlatforms` exactly `["Editor"]`, `Assembly-CSharp-Editor`, `Assembly-CSharp-Editor-firstpass`) | [UCR] (`EditorBuildRules.ToScriptAssemblies`) | [UCR], [PUB] |
+| E04 | `ENABLE_PROFILER`, `ENABLE_UNITY_COLLECTIONS_CHECKS` | target editor, or player with `--development` | observed | [PUB], Collections and Profiler docs |
+| E05 | `EDITOR_ONLY_NAVMESH_BUILDER_DEPRECATED`, `ENABLE_ACCELERATOR_CLIENT_DEBUGGING`, `ENABLE_BURST_AOT`, `ENABLE_CLOUD_LICENSE`, `ENABLE_EDITOR_GAME_SERVICES`, `ENABLE_EDITOR_HUB_LICENSE`, `ENABLE_GENERATE_NATIVE_PLUGINS_FOR_ASSEMBLIES_API`, `ENABLE_MARSHALLING_TESTS`, `UNITY_TEAM_LICENSE` | target editor | observed | [PUB] |
+| E06 | `ENABLE_AUDIO`, `ENABLE_CLOTH`, `ENABLE_CLOUD_SERVICES`, `ENABLE_CLOUD_SERVICES_ADS`, `ENABLE_CLOUD_SERVICES_ANALYTICS`, `ENABLE_CLOUD_SERVICES_BUILD`, `ENABLE_CLOUD_SERVICES_CRASH_REPORTING`, `ENABLE_CLOUD_SERVICES_PURCHASING`, `ENABLE_CLOUD_SERVICES_USE_WEBREQUEST`, `ENABLE_CRUNCH_TEXTURE_COMPRESSION`, `ENABLE_CUSTOM_RENDER_TEXTURE`, `ENABLE_DIRECTOR`, `ENABLE_DIRECTOR_AUDIO`, `ENABLE_DIRECTOR_TEXTURE`, `ENABLE_LOCALIZATION`, `ENABLE_MANAGED_ANIMATION_JOBS`, `ENABLE_MANAGED_AUDIO_JOBS`, `ENABLE_MANAGED_JOBS`, `ENABLE_MANAGED_TRANSFORM_JOBS`, `ENABLE_MANAGED_UNITYTLS`, `ENABLE_MULTIPLE_DISPLAYS`, `ENABLE_NAVIGATION_OFFMESHLINK_TO_NAVMESHLINK`, `ENABLE_PHYSICS`, `ENABLE_SPRITES`, `ENABLE_TERRAIN`, `ENABLE_TEXTURE_STREAMING`, `ENABLE_TILEMAP`, `ENABLE_TIMELINE`, `ENABLE_UNITYEVENTS`, `ENABLE_UNITYWEBREQUEST`, `ENABLE_UNITY_GAME_SERVICES_ANALYTICS_SUPPORT`, `ENABLE_VIDEO`, `ENABLE_VR`, `ENABLE_WEBCAM`, `ENABLE_WEBSOCKET_CLIENT`, `ENABLE_WWW`, `TEXTCORE_1_0_OR_NEWER`, `TEXTCORE_FONT_ENGINE_1_5_OR_NEWER`, `TEXTCORE_TEXT_ENGINE_1_5_OR_NEWER` | always (all six samples) | observed | [PUB] |
+| E07 | `ENABLE_UNITY_CLOUD_IDENTIFIERS`, `ENABLE_UNITY_CONSENT` | Unity 6000.0.76 or newer (seen from 6000.0.76; absent in 6000.0.68 and 6000.0.43) | observed | [PUB] |
+| E08 | `ENABLE_AUDIO_SCRIPTABLE_PIPELINE`, `TEXTCORE_FONT_ENGINE_1_6_OR_NEWER` | Unity 6000.3 or newer (every 6000.3 sample, no 6000.0 one) | observed | [PUB] |
+| E10 | `ENABLE_CACHING`, `ENABLE_CLUSTERINPUT`, `ENABLE_CLUSTER_SYNC`, `ENABLE_LZMA`, `ENABLE_MICROPHONE`, `ENABLE_MOVIES`, `ENABLE_NETWORK`, `ENABLE_RUNTIME_GI`, `ENABLE_SCRIPTING_GC_WBARRIERS`, `ENABLE_VIRTUALTEXTURING`, `INCLUDE_DYNAMIC_GI`, `PLATFORM_ARCH_64`, `PLATFORM_SUPPORTS_MONO`, `RENDER_SOFTWARE_CURSOR` | every Standalone platform (all 64-bit) | observed | [PUB] |
+| E11 | `ENABLE_ACCESSIBILITY_SCREEN_READER`, `ENABLE_AMD`, `ENABLE_AR`, `ENABLE_CLOUD_SERVICES_ENGINE_DIAGNOSTICS`, `ENABLE_CLOUD_SERVICES_NATIVE_CRASH_REPORTING`, `ENABLE_EVENT_QUEUE`, `ENABLE_NVIDIA`, `ENABLE_OUT_OF_PROCESS_CRASH_HANDLER`, `GFXDEVICE_WAITFOREVENT_MESSAGEPUMP`, `PLATFORM_SUPPORTS_SPLIT_GRAPHICS_JOBS`, `PLATFORM_SUPPORTS_WAIT_FOR_PRESENTATION`, `PLATFORM_UPDATES_TIME_OUTSIDE_OF_PLAYER_LOOP`, `PLATFORM_USES_EXPLICIT_MEMORY_MANAGER_INITIALIZER` | StandaloneWindows64 | observed | [PUB] |
+| E12 | `ENABLE_MODULAR_UNITYENGINE_ASSEMBLIES`, `ENABLE_SPATIALTRACKING`, `PLATFORM_SUPPORTS_DISPLAYINFO_API`, `PLATFORM_SUPPORTS_SPLIT_GRAPHICS_JOBS`, `PLATFORM_USES_EXPLICIT_MEMORY_MANAGER_INITIALIZER`, `UNITY_STANDALONE_LINUX_API` | StandaloneLinux64 | observed (one sample) | [PUB] |
+| E13 | `ENABLE_AR`, `ENABLE_CLOUD_SERVICES_NATIVE_CRASH_REPORTING`, `ENABLE_GAMECENTER`, `ENABLE_SPATIALTRACKING`, `PLATFORM_HAS_CUSTOM_MUTEX`, `PLATFORM_UPDATES_TIME_OUTSIDE_OF_PLAYER_LOOP` | StandaloneOSX | observed (one sample) | [PUB] |
+| E14 | `ENABLE_ENGINE_CODE_STRIPPING`, `ENABLE_ONSCREEN_KEYBOARD`, `ENABLE_SPATIALTRACKING`, `RENDER_SOFTWARE_CURSOR`, `UNITY_DISABLE_WEB_VERIFICATION`, `UNITY_GFX_USE_PLATFORM_VSYNC`, `UNITY_WEBGL_API` | WebGL | observed (one 6000.0 sample) | [PUB], [REAL] (`UNITY_WEBGL_API`) |
+| E15 | `ENABLE_ACCESSIBILITY`, `ENABLE_ANDROID_ADVERTISING_IDS`, `ENABLE_ANDROID_APP_SET_ID`, `ENABLE_AR`, `ENABLE_CACHING`, `ENABLE_CLOUD_SERVICES_ENGINE_DIAGNOSTICS`, `ENABLE_CLOUD_SERVICES_NATIVE_CRASH_REPORTING`, `ENABLE_EGL`, `ENABLE_ENGINE_CODE_STRIPPING`, `ENABLE_ETC_COMPRESSION`, `ENABLE_EVENT_QUEUE`, `ENABLE_FIREBASE_IDENTIFIERS`, `ENABLE_INSIGHTS_PLATFORM_SPECIFIC_RESOURCES`, `ENABLE_LZMA`, `ENABLE_MICROPHONE`, `ENABLE_NETWORK`, `ENABLE_ONSCREEN_KEYBOARD`, `ENABLE_RUNTIME_GI`, `ENABLE_SCRIPTING_GC_WBARRIERS`, `ENABLE_SPATIALTRACKING`, `ENABLE_UNITYADS_RUNTIME`, `INCLUDE_DYNAMIC_GI`, `PLATFORM_EXTENDS_VULKAN_DEVICE`, `PLATFORM_EXTENDS_VULKAN_PIPELINE_CACHE`, `PLATFORM_HAS_ADDITIONAL_API_CHECKS`, `PLATFORM_HAS_BUGGY_MSAA_RESOLVE`, `PLATFORM_HAS_MULTIPLE_SWAPCHAINS`, `PLATFORM_IMPLEMENTS_INSIGHTS_ANR`, `PLATFORM_REQUIRES_TETHERED_VULKAN_COMMAND_POOL`, `PLATFORM_SUPPORTS_INSIGHTS_DEVICE_INFO`, `PLATFORM_SUPPORTS_MONO`, `PLATFORM_SUPPORTS_SPLIT_GRAPHICS_JOBS`, `PLATFORM_UPDATES_TIME_OUTSIDE_OF_PLAYER_LOOP`, `UNITY_ANDROID_API`, `UNITY_ANDROID_SUPPORTS_SHADOWFILES`, `UNITY_CAN_SHOW_SPLASH_SCREEN`, `UNITY_HAS_GOOGLEVR`, `UNITY_HAS_TANGO`, `UNITY_UNITYADS_API` | Android | observed (one 6000.0 sample) | [PUB] |
+
+iOS has no public sample: an iOS cell gets E01-E08 only. Symbols seen in a sample whose condition is a project
+setting or package (`UNITY_POST_PROCESSING_STACK_V2`, `ENABLE_INPUT_SYSTEM`) are not built-in and are left out.
+The 32-bit StandaloneWindows sample lacks `UNITY_64` and `PLATFORM_ARCH_64`, which is why `PLATFORM_ARCH_64`
+is in E10 (64-bit Standalone) rather than in E06.
+
+`defineConstraints` ([ASM]) are evaluated against the cell's full define set (D01-D60, E01-E15). Each
 entry must hold. An entry is one or more terms joined by `||`; a term is `SYMBOL` or `!SYMBOL`. An empty
 entry is ignored.
 

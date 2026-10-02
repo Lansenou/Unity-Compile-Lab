@@ -1,0 +1,7 @@
+{
+  "name": "com.example.collections",
+  "version": "2.6.2",
+  "displayName": "Example Collections (shaped like com.unity.collections)",
+  "unity": "6000.0",
+  "dependencies": {}
+}

@@ -2,10 +2,9 @@
 
 Things that are not in the task description, recorded instead of built. Each has a recommended default.
 
-1. **Unity's built-in source generators.** Unity 6 ships `Editor/Data/Tools/Unity.SourceGenerators/*.dll`
-   (for example the UI Toolkit `[UxmlElement]` generator). Code that uses generated members fails under
-   `ucl` until these run. Recommended: load them from the editor install for every assembly when present,
-   behind `--unity-generators on|off` (default on), and record which ones ran in the JSON.
+1. **Unity's built-in source generators.** Done in 0.7.0: the DLLs in `Tools/BuildPipeline/Unity.SourceGenerators/`
+   (`Tools/Unity.SourceGenerators/` before 6000.3) run on every assembly when analyzers are on, are listed as
+   `editor:` analyzers in the JSON, and `--analyzers off` turns them off with the project's. No separate flag.
 2. **`ucl` as a pre-review gate for many worktrees.** A shared content-addressed cache across worktrees
    (`--cache-dir ~/.cache/ucl/build`) would make the second worktree's cold run warm. Recommended: allow it,
    since the cache key already contains every input; document it in integration.md.

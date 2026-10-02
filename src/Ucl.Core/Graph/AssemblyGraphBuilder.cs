@@ -22,7 +22,8 @@ public static class AssemblyGraphBuilder
         var settings = inventory.Settings;
         var packages = inventory.Packages.ToDictionary(p => p.Name, StringComparer.Ordinal);
 
-        var baseDefines = DefineTable.Compute(cell, settings, packages.ContainsKey("com.unity.test-framework"), out var constraintOnly);
+        var baseDefines = DefineTable.Compute(cell, settings, packages.ContainsKey("com.unity.test-framework"));
+        var testables = inventory.Testables.ToHashSet(StringComparer.Ordinal);
         var playerArgs = RspParser.Parse(settings.AdditionalCompilerArguments.GetValueOrDefault(info.TargetGroup) ?? []);
         var rspByFolder = new Dictionary<string, (string Path, RspOptions Options)>(StringComparer.Ordinal);
         foreach (var rsp in inventory.ResponseFiles.OrderBy(r => r.Path, StringComparer.Ordinal))
@@ -107,17 +108,37 @@ public static class AssemblyGraphBuilder
             bool platformOk = data.IncludePlatforms.Count > 0
                 ? data.IncludePlatforms.Contains(platformKey, StringComparer.OrdinalIgnoreCase)
                 : !data.ExcludePlatforms.Contains(platformKey, StringComparer.OrdinalIgnoreCase);
-            var constraints = entry.IsTestAssembly ? data.DefineConstraints.Append("UNITY_INCLUDE_TESTS") : data.DefineConstraints;
             if (!platformOk)
             {
                 excluded[data.Name] = $"platform {platformKey} is not compatible with {entry.Path}";
                 continue;
             }
 
-            if (!DefineConstraints.AreSatisfied(constraints, s => defines.Contains(s) || constraintOnly.Contains(s)))
+            // Test assemblies and the test framework's own (UNITY_TESTS_FRAMEWORK) stay out of a player unless tests are
+            // included (UnityCsReference CustomScriptAssembly.IsCompatibleWith).
+            if (!cell.IsEditor && !cell.IncludeTests && (entry.IsTestAssembly || entry.IsTestFrameworkAssembly))
             {
-                excluded[data.Name] = $"defineConstraints [{string.Join(", ", constraints)}] not satisfied";
+                excluded[data.Name] = "test assemblies are not part of a player build unless --include-tests";
                 continue;
+            }
+
+            if (!DefineConstraints.AreSatisfied(data.DefineConstraints, defines.Contains))
+            {
+                excluded[data.Name] = $"defineConstraints [{string.Join(", ", data.DefineConstraints)}] not satisfied";
+                continue;
+            }
+
+            // A package's test assemblies compile only when the package is embedded or listed in "testables".
+            if (entry.IsTestAssembly && entry.PackageName is { } package && packages.TryGetValue(package, out var owner)
+                && owner.Source != "embedded" && !testables.Contains(package))
+            {
+                excluded[data.Name] = $"package {package} is not testable: its tests compile only when it is embedded in Packages/ or listed in Packages/manifest.json \"testables\"";
+                continue;
+            }
+
+            if (editorOnly)
+            {
+                defines.Add(BuiltInDefines.EditorOnlyCompilation, "E02");
             }
 
             drafts[data.Name] = new Draft(data.Name, AssemblyKind.Asmdef, entry, defines, rsp, data.AllowUnsafeCode, editorOnly, netFramework);
@@ -141,10 +162,15 @@ public static class AssemblyGraphBuilder
                 defines.Add(d, globalRsp.Path);
             }
 
+            if (editorOnly)
+            {
+                defines.Add(BuiltInDefines.EditorOnlyCompilation, "E02");
+            }
+
             drafts[name] = new Draft(name, AssemblyKind.Predefined, null, defines, globalRsp, settings.AllowUnsafeCode, editorOnly, netFramework);
         }
 
-        ReferenceResolver.Resolve(index, drafts, diagnostics);
+        ReferenceResolver.Resolve(index, drafts, diagnostics, cell, settings.PlayModeTestRunnerEnabled);
         var edges = drafts.ToDictionary(d => d.Key, d => (IReadOnlyList<string>)d.Value.References, StringComparer.Ordinal);
         foreach (var name in GraphOrdering.FindCycles(edges).Order(StringComparer.Ordinal))
         {
@@ -162,14 +188,7 @@ public static class AssemblyGraphBuilder
             draft.Dropped.AddRange(gone);
         }
 
-        // Plugin defineConstraints see the full define set, constraint-only symbols (D60) included, like asmdef constraints.
-        var pluginDefines = baseDefines.Copy();
-        foreach (var (symbol, reason) in constraintOnly.Reasons)
-        {
-            pluginDefines.Add(symbol, reason);
-        }
-
-        var plugins = PluginResolver.Resolve(inventory, index, cell, pluginDefines, drafts, diagnostics);
+        var plugins = PluginResolver.Resolve(inventory, index, cell, baseDefines, drafts, diagnostics);
         var plans = new Dictionary<string, AssemblyPlan>(StringComparer.Ordinal);
         foreach (var draft in drafts.Values)
         {

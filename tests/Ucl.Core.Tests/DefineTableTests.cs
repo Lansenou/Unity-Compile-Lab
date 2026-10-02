@@ -10,7 +10,7 @@ public class DefineTableTests
     private static readonly string[] Standalone = ["UNITY_STANDALONE", "UNITY_STANDALONE_WIN", "UNITY_STANDALONE_OSX", "UNITY_STANDALONE_LINUX", "PLATFORM_STANDALONE", "PLATFORM_STANDALONE_WIN", "PLATFORM_STANDALONE_OSX", "PLATFORM_STANDALONE_LINUX"];
 
     private static DefineSet Compute(CompileCell cell, ProjectSettingsData? settings = null, bool testFramework = false) =>
-        DefineTable.Compute(cell, settings ?? ProjectSettingsData.Default, testFramework, out _);
+        DefineTable.Compute(cell, settings ?? ProjectSettingsData.Default, testFramework);
 
     private static CompileCell WithVersion(string version) => Cells.Editor() with { UnityVersion = UnityVersion.Parse(version).Value! };
 
@@ -221,9 +221,19 @@ public class DefineTableTests
         Assert.Equal("D32", d.Reasons["ENABLE_IL2CPP"]);
         Assert.False(d.Contains("ENABLE_MONO"));
         Assert.True(Compute(Cells.Player(BuildPlatform.StandaloneWindows64, backend: ScriptingBackend.IL2CPP)).Contains("ENABLE_IL2CPP"));
-        Assert.True(Compute(Cells.Editor(BuildPlatform.WebGL)).Contains("ENABLE_IL2CPP"));
         var settings = ProjectSettingsParser.Parse("PlayerSettings:\n  scriptingBackend:\n    Standalone: 1\n");
-        Assert.Equal("D32", Compute(Cells.Editor(), settings).Reasons["ENABLE_IL2CPP"]);
+        Assert.Equal("D32", Compute(Cells.Player(), settings).Reasons["ENABLE_IL2CPP"]);
+    }
+
+    [Fact]
+    public void D31_editor_cells_always_ENABLE_MONO_whatever_the_backend()
+    {
+        var settings = ProjectSettingsParser.Parse("PlayerSettings:\n  scriptingBackend:\n    Standalone: 1\n");
+        foreach (var d in new[] { Compute(Cells.Editor(BuildPlatform.WebGL)), Compute(Cells.Editor(), settings), Compute(Cells.Editor(BuildPlatform.iOS, backend: ScriptingBackend.IL2CPP)) })
+        {
+            Assert.Equal("D31", d.Reasons["ENABLE_MONO"]);
+            Assert.False(d.Contains("ENABLE_IL2CPP"));
+        }
     }
 
     [Fact]
@@ -409,26 +419,80 @@ public class DefineTableTests
     }
 
     [Fact]
-    public void D60_UNITY_INCLUDE_TESTS_is_constraint_only()
+    public void D60_UNITY_INCLUDE_TESTS_in_the_Editor_with_the_test_framework_or_with_include_tests()
     {
-        var d = DefineTable.Compute(Cells.Editor(), ProjectSettingsData.Default, testFrameworkPresent: true, out var constraintOnly);
-        Assert.Equal("D60", constraintOnly.Reasons["UNITY_INCLUDE_TESTS"]);
-        Assert.False(d.Contains("UNITY_INCLUDE_TESTS"));
+        Assert.Equal("D60", Compute(Cells.Editor(), testFramework: true).Reasons["UNITY_INCLUDE_TESTS"]);
+        Assert.False(Compute(Cells.Editor()).Contains("UNITY_INCLUDE_TESTS"));
+        Assert.False(Compute(Cells.Player(), testFramework: true).Contains("UNITY_INCLUDE_TESTS"));
+        Assert.Equal("D60", Compute(Cells.Player(includeTests: true)).Reasons["UNITY_INCLUDE_TESTS"]);
+    }
 
-        DefineTable.Compute(Cells.Editor(), ProjectSettingsData.Default, testFrameworkPresent: false, out var none);
-        Assert.Empty(none.Symbols);
+    [Fact]
+    public void E01_CSHARP_7_OR_LATER_always()
+    {
+        Assert.Equal("E01", Compute(Cells.Editor()).Reasons["CSHARP_7_OR_LATER"]);
+        Assert.Equal("E01", Compute(Cells.Player(BuildPlatform.Android)).Reasons["CSHARP_7_OR_LATER"]);
+    }
 
-        DefineTable.Compute(Cells.Player(), ProjectSettingsData.Default, testFrameworkPresent: true, out var player);
-        Assert.Empty(player.Symbols);
+    [Fact]
+    public void E04_profiler_and_collections_checks_in_the_Editor_and_development_players()
+    {
+        Assert.Equal("E04", Compute(Cells.Editor(BuildPlatform.WebGL)).Reasons["ENABLE_UNITY_COLLECTIONS_CHECKS"]);
+        Assert.Equal("E04", Compute(Cells.Player(development: true)).Reasons["ENABLE_PROFILER"]);
+        Assert.False(Compute(Cells.Player()).Contains("ENABLE_PROFILER"));
+        Assert.False(Compute(Cells.Player()).Contains("ENABLE_UNITY_COLLECTIONS_CHECKS"));
+    }
 
-        DefineTable.Compute(Cells.Player(includeTests: true), ProjectSettingsData.Default, testFrameworkPresent: false, out var included);
-        Assert.Equal("D60", included.Reasons["UNITY_INCLUDE_TESTS"]);
+    [Fact]
+    public void E05_editor_services_in_editor_cells_only()
+    {
+        Assert.Equal("E05", Compute(Cells.Editor()).Reasons["ENABLE_BURST_AOT"]);
+        Assert.Equal("E05", Compute(Cells.Editor()).Reasons["UNITY_TEAM_LICENSE"]);
+        Assert.False(Compute(Cells.Player(development: true)).Contains("ENABLE_BURST_AOT"));
+    }
+
+    [Fact]
+    public void E06_engine_features_in_every_cell()
+    {
+        foreach (var cell in new[] { Cells.Editor(BuildPlatform.WebGL), Cells.Player(BuildPlatform.iOS), Cells.Player(BuildPlatform.Android) })
+        {
+            Assert.Equal("E06", Compute(cell).Reasons["ENABLE_PHYSICS"]);
+            Assert.Equal("E06", Compute(cell).Reasons["TEXTCORE_1_0_OR_NEWER"]);
+        }
+    }
+
+    [Fact]
+    public void E07_consent_symbols_from_6000_0_76()
+    {
+        Assert.False(Compute(WithVersion("6000.0.68f1")).Contains("ENABLE_UNITY_CONSENT"));
+        Assert.Equal("E07", Compute(WithVersion("6000.0.76f1")).Reasons["ENABLE_UNITY_CONSENT"]);
+        Assert.Equal("E07", Compute(WithVersion("6000.1.0f1")).Reasons["ENABLE_UNITY_CLOUD_IDENTIFIERS"]);
+    }
+
+    [Fact]
+    public void E08_6000_3_symbols()
+    {
+        Assert.False(Compute(WithVersion("6000.2.9f1")).Contains("TEXTCORE_FONT_ENGINE_1_6_OR_NEWER"));
+        Assert.Equal("E08", Compute(WithVersion("6000.3.0f1")).Reasons["ENABLE_AUDIO_SCRIPTABLE_PIPELINE"]);
+    }
+
+    [Fact]
+    public void E10_to_E15_platform_sets()
+    {
+        Assert.Equal("E10", Compute(Cells.Player(BuildPlatform.StandaloneOSX)).Reasons["ENABLE_MICROPHONE"]);
+        Assert.Equal("E11", Compute(Cells.Player(BuildPlatform.StandaloneWindows64)).Reasons["ENABLE_NVIDIA"]);
+        Assert.Equal("E12", Compute(Cells.Player(BuildPlatform.StandaloneLinux64)).Reasons["UNITY_STANDALONE_LINUX_API"]);
+        Assert.Equal("E13", Compute(Cells.Player(BuildPlatform.StandaloneOSX)).Reasons["ENABLE_GAMECENTER"]);
+        Assert.Equal("E14", Compute(Cells.Editor(BuildPlatform.WebGL)).Reasons["UNITY_WEBGL_API"]);
+        Assert.Equal("E15", Compute(Cells.Player(BuildPlatform.Android)).Reasons["UNITY_ANDROID_API"]);
+        Assert.False(Compute(Cells.Player(BuildPlatform.WebGL)).Contains("ENABLE_MICROPHONE"));
+        Assert.Empty(BuiltInDefines.ForPlatform(BuildPlatform.iOS));
     }
 
     [Fact]
     public void Every_symbol_has_a_row_reason()
     {
         var d = Compute(Cells.Editor(), ProjectSettingsParser.Parse(ProjectSettingsParserTests.Unity6Asset));
-        Assert.All(d.Reasons.Values, r => Assert.Matches("^D[0-9]{2}$", r));
+        Assert.All(d.Reasons.Values, r => Assert.Matches("^[DE][0-9]{2}$", r));
     }
 }

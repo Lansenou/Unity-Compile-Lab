@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "com.unity.test-framework": "1.4.5",
+    "com.unity.ext.nunit": "2.0.5",
+    "com.example.tools": "3.1.0",
+    "com.example.lib": "1.2.0",
+    "com.example.input": "1.4.0",
+    "com.unity.modules.physics": "1.0.0"
+  },
+  "testables": [
+    "com.example.lib"
+  ]
+}

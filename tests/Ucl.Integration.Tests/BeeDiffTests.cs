@@ -102,6 +102,7 @@ public class BeeDiffTests
               assembly extra in ucl: Vendor.Tools.CodeGen
             == 2000b0aP.dag (6000.3.2f1 player StandaloneWindows64)
             Assembly-CSharp: agrees
+            by category: assembly 2, sources 1, references 2, defines 1, options 2, nowarn 1, analyzers 1, additionalfiles 1
             result: 2 dags, 5 assemblies (2 agree), 11 differences, exit 1
 
             """.Replace("\r\n", "\n", StringComparison.Ordinal),
@@ -110,6 +111,9 @@ public class BeeDiffTests
         var json = JsonDocument.Parse(Run(temp, project, "--format", "json").Stdout).RootElement;
         Assert.Equal("ucl-beediff/1", json.GetProperty("schema").GetString());
         Assert.Equal(11, json.GetProperty("summary").GetProperty("differences").GetInt32());
+        var byCategory = json.GetProperty("summary").GetProperty("byCategory").EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetInt32());
+        Assert.Equal(2, byCategory["references"]);
+        Assert.Equal(11, byCategory.Values.Sum());
         var categories = json.GetProperty("dags")[0].GetProperty("assemblies").EnumerateArray()
             .SelectMany(a => a.GetProperty("differences").EnumerateArray())
             .Select(d => d.GetProperty("category").GetString())

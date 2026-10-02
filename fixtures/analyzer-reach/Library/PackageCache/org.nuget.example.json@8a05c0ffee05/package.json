@@ -1,0 +1,7 @@
+{
+  "name": "org.nuget.example.json",
+  "version": "8.0.5",
+  "displayName": "Example.Json (NuGet)",
+  "unity": "6000.0",
+  "dependencies": {}
+}

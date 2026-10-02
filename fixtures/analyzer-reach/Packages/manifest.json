@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "org.nuget.example.json": "8.0.5",
+    "com.unity.modules.physics": "1.0.0"
+  }
+}

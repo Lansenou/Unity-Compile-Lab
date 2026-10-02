@@ -243,4 +243,12 @@ public class ProjectSettingsParserTests
         Assert.Contains("no m_EditorVersion", missing.Error);
         Assert.False(ProjectSettingsParser.ParseProjectVersion("m_EditorVersion: banana\n").Ok);
     }
+
+    [Fact]
+    public void PlayMode_test_runner_for_all_assemblies_defaults_off()
+    {
+        Assert.False(ProjectSettingsData.Default.PlayModeTestRunnerEnabled);
+        Assert.True(ProjectSettingsParser.Parse("PlayerSettings:\n  playModeTestRunnerEnabled: 1\n").PlayModeTestRunnerEnabled);
+        Assert.False(ProjectSettingsParser.Parse("PlayerSettings:\n  playModeTestRunnerEnabled: 0\n").PlayModeTestRunnerEnabled);
+    }
 }

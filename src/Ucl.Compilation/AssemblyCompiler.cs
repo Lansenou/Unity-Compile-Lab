@@ -68,6 +68,13 @@ internal sealed class AssemblyCompiler
         }
 
         var analyzerPaths = _settings.Analyzers ? plan.Analyzers : [];
+        var editorAnalyzers = _settings.Analyzers ? _catalog.EditorAnalyzers() : [];
+        foreach (var (display, path) in editorAnalyzers)
+        {
+            hash.Add("analyzer", display, _hasher.HashFile(path));
+        }
+
+        var analyzerDisplays = analyzerPaths.Concat(editorAnalyzers.Select(a => a.Display)).ToList();
         var configs = plan.AnalyzerConfigs.Select(c => (Logical: c, Physical: _project.ToPhysical(c))).Where(c => _fs.FileExists(c.Physical)).ToList();
         var extraInputs = analyzerPaths.Select(a => ("analyzer", a))
             .Concat(configs.Select(c => ("analyzerconfig", c.Logical)))
@@ -89,7 +96,7 @@ internal sealed class AssemblyCompiler
         if (_cache?.TryLoad(inputsHash) is { } hit)
         {
             return new AssemblyOutcome(
-                Result(plan, hit.Failed, inputsHash, displays, analyzerPaths, hit.Diagnostics, clock.ElapsedMilliseconds, cached: true),
+                Result(plan, hit.Failed, inputsHash, displays, analyzerDisplays, hit.Diagnostics, clock.ElapsedMilliseconds, cached: true),
                 hit.Image is null ? null : MetadataReference.CreateFromImage(hit.Image),
                 hit.ImageHash,
                 hit.Image);
@@ -121,9 +128,10 @@ internal sealed class AssemblyCompiler
 
         Microsoft.CodeAnalysis.Compilation compilation = CSharpCompilation.Create(plan.Name, trees, references, options);
         var raw = new List<(Microsoft.CodeAnalysis.Diagnostic Diagnostic, DiagnosticOrigin Origin)>();
-        if (analyzerPaths.Count > 0)
+        if (analyzerDisplays.Count > 0)
         {
-            compilation = AnalyzerHost.Run(compilation, analyzerPaths.Select(_project.ToPhysical).ToList(), plan, _project, _fs, _loader, parseOptions, configSet, raw);
+            var physical = analyzerPaths.Select(_project.ToPhysical).Concat(editorAnalyzers.Select(a => a.Path)).ToList();
+            compilation = AnalyzerHost.Run(compilation, physical, plan, _project, _fs, _loader, parseOptions, configSet, raw);
         }
 
         raw.InsertRange(0, compilation.GetDiagnostics().Select(d => (d, DiagnosticOrigin.Compiler)));
@@ -155,7 +163,7 @@ internal sealed class AssemblyCompiler
         var sorted = DiagnosticOrder.Sort(diagnostics);
         _cache?.Store(inputsHash, failed, sorted, imageBytes, imageHash);
         return new AssemblyOutcome(
-            Result(plan, failed, inputsHash, displays, analyzerPaths, sorted, clock.ElapsedMilliseconds, cached: false),
+            Result(plan, failed, inputsHash, displays, analyzerDisplays, sorted, clock.ElapsedMilliseconds, cached: false),
             imageBytes is null ? null : MetadataReference.CreateFromImage(imageBytes),
             imageHash,
             imageBytes);

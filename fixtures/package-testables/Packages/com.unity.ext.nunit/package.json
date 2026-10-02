@@ -1,0 +1,7 @@
+{
+  "name": "com.unity.ext.nunit",
+  "version": "2.0.5",
+  "displayName": "Custom NUnit (fixture stand-in)",
+  "unity": "2019.4",
+  "dependencies": {}
+}

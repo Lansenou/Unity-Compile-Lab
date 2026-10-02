@@ -34,6 +34,6 @@ public sealed class UclCommandLine
     public IReadOnlyList<string> AnalyzerPaths(AssemblyPlan plan)
     {
         ArgumentNullException.ThrowIfNull(plan);
-        return [.. plan.Analyzers.Select(_project.ToPhysical)];
+        return [.. plan.Analyzers.Select(_project.ToPhysical), .. _catalog.EditorAnalyzers().Select(a => a.Path)];
     }
 }

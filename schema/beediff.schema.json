@@ -23,7 +23,22 @@
         "dags": { "type": "integer", "minimum": 0 },
         "assemblies": { "type": "integer", "minimum": 0 },
         "agree": { "type": "integer", "minimum": 0 },
-        "differences": { "type": "integer", "minimum": 0 }
+        "differences": { "type": "integer", "minimum": 0 },
+        "byCategory": {
+          "type": "object",
+          "description": "Difference counts per category; categories without differences are left out.",
+          "additionalProperties": false,
+          "properties": {
+            "assembly": { "type": "integer", "minimum": 1 },
+            "sources": { "type": "integer", "minimum": 1 },
+            "references": { "type": "integer", "minimum": 1 },
+            "defines": { "type": "integer", "minimum": 1 },
+            "options": { "type": "integer", "minimum": 1 },
+            "nowarn": { "type": "integer", "minimum": 1 },
+            "analyzers": { "type": "integer", "minimum": 1 },
+            "additionalfiles": { "type": "integer", "minimum": 1 }
+          }
+        }
       }
     },
     "problems": {

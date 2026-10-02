@@ -76,11 +76,11 @@ internal sealed record ProfileStubs(
                 + string.Join(Environment.NewLine, result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error)));
     }
 
-    private static (string Path, string Text) Forwarders(IEnumerable<string> types) =>
+    internal static (string Path, string Text) Forwarders(IEnumerable<string> types) =>
         ("Forwarders.cs", string.Concat(types.Select(t => $"[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof({t}))]\n")));
 
     // Top-level public types as typeof() operands (List<> for generics); nested types forward with their parent.
-    private static List<string> PublicTypes(MetadataReference library)
+    internal static List<string> PublicTypes(MetadataReference library)
     {
         var compilation = CSharpCompilation.Create("probe", references: [library]);
         var assembly = (IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(library)!;

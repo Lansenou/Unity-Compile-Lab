@@ -26,6 +26,27 @@ public sealed record EditorInstall
     /// <summary><c>NetStandard/EditorExtensions</c> DLLs, referenced by Editor-only assemblies compiled against .NET Standard.</summary>
     public IReadOnlyList<string> NetStandardEditorExtensions { get; init; } = [];
 
+    /// <summary><c>Managed/UnityEngine/UnityEngine.dll</c>, the facade over the module DLLs, or null when absent.</summary>
+    public string? EngineFacade { get; init; }
+
+    /// <summary>Engine modules of each installed platform: <c>UnityEngine.*.dll</c> in <c>PlaybackEngines/&lt;support&gt;/Managed</c>.</summary>
+    public IReadOnlyDictionary<BuildPlatform, IReadOnlyList<string>> PlatformModules { get; init; } = new Dictionary<BuildPlatform, IReadOnlyList<string>>();
+
+    /// <summary>
+    /// Editor-cell references outside <c>Managed/UnityEngine</c>: <c>Managed/UnityEditor.Graphs.dll</c> and every installed platform's
+    /// <c>PlaybackEngines/&lt;support&gt;/UnityEditor.*.Extensions.dll</c> (plus the Android support's editor libraries); sorted.
+    /// </summary>
+    public IReadOnlyList<string> EditorExtensions { get; init; } = [];
+
+    /// <summary><c>Managed/Unity.CompilationPipeline.Common.dll</c>, or null when absent.</summary>
+    public string? CompilationPipeline { get; init; }
+
+    /// <summary>The editor's own source generators (<c>Tools/BuildPipeline/Unity.SourceGenerators/*.dll</c>); sorted.</summary>
+    public IReadOnlyList<string> SourceGenerators { get; init; } = [];
+
+    /// <summary>The folder that holds <c>PlaybackEngines</c>; display paths of platform files are relative to it.</summary>
+    public string PlaybackEnginesParent { get; init; } = string.Empty;
+
     /// <summary>.NET Framework 4.8 reference assemblies (<c>unity-4.8-api</c>: the listed core libraries and every facade).</summary>
     public IReadOnlyList<string> NetFrameworkReferences { get; init; } = [];
 }

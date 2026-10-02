@@ -16,6 +16,8 @@ internal sealed class InventoryBuilder
     private readonly List<string> _configs = [];
     private readonly List<ResolvedPackage> _packages = [];
     private ProjectSettingsData _settings = ProjectSettingsData.Default;
+    private readonly List<string> _testables = [];
+    private readonly Dictionary<string, string> _pluginVersions = new(StringComparer.Ordinal);
     private UnityVersion _version = Cells.Version;
 
     public InventoryBuilder Scripts(params string[] paths)
@@ -80,6 +82,18 @@ internal sealed class InventoryBuilder
         return this;
     }
 
+    public InventoryBuilder Testables(params string[] names)
+    {
+        _testables.AddRange(names);
+        return this;
+    }
+
+    public InventoryBuilder PluginVersion(string path, string version)
+    {
+        _pluginVersions[path] = version;
+        return this;
+    }
+
     public InventoryBuilder Settings(ProjectSettingsData settings)
     {
         _settings = settings;
@@ -106,6 +120,8 @@ internal sealed class InventoryBuilder
         AnalyzerConfigs = [.. _configs],
         Settings = _settings,
         Packages = [.. _packages],
+        Testables = [.. _testables],
+        PluginVersions = _pluginVersions,
     };
 
     /// <summary>Same inventory with every list in reverse order (determinism checks).</summary>
@@ -121,6 +137,8 @@ internal sealed class InventoryBuilder
         AnalyzerConfigs = Rev(_configs),
         Settings = _settings,
         Packages = Rev(_packages),
+        Testables = Rev(_testables),
+        PluginVersions = _pluginVersions,
     };
 
     public AssemblyGraph Graph(CompileCell cell) => AssemblyGraphBuilder.Build(Build(), cell);

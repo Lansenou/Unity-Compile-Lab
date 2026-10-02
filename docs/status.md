@@ -3,6 +3,66 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
+## Session 3 (2026-10-02): real-project compile parity, `0.7.0`
+
+Input: the maintainer's counts from a private 6000.3.19f1 project (WebGL active) with 0.6.0: `bee-diff` exit 1
+(104 assemblies, 0 agree, 8128 differences), `check` editor exit 1 (1286 errors, 10 failed, 63 skipped),
+player exit 1 (1151 errors), `ucl test` 0 cases. Six root causes, all fixed, each with a synthetic fixture that
+was red on 0.6.0 (red runs and sources in docs/real-project-fixes.md, "Session 3"):
+
+| Cause | Fixture | State |
+|---|---|---|
+| 1 uGUI assemblies not auto-referenced | `ugui-auto-reference` | fixed (UnityCsReference `AutoReferencedPackageAssemblies`) |
+| 2 ~70 built-in symbols missing | `editor-builtin-defines` (10 cells) | fixed: rows E01-E15, `ENABLE_MONO` in editor cells, D60 a compiler symbol |
+| 3 three `Unsafe.dll` copies (CS0433) | `plugin-same-name` | fixed: one DLL per file name, highest version; `UCL1005` info |
+| 4 package test assemblies, test framework helper | `package-testables` | fixed: `testables`; test framework assemblies out of players. The `Unity.InputSystem.TestFramework` omission did not reproduce with its public asmdef |
+| 5 editor references missing | `editor-reference-set` | fixed: facade, platform module, Graphs, platform extensions, `Unity.CompilationPipeline.Common` |
+| 6 analyzers missing | `analyzer-reach` | fixed: Unity's analyzer scope; the editor's own source generators run |
+
+Sources: UnityCsReference (rules), the Unity 6.3 manual (`testables`), and six public Unity-generated `.csproj`
+files for the native symbol lists and reference folders (docs/defines.md, [PUB]); nothing from the private project.
+
+Gate (2026-10-02, Linux): `scripts/check.sh --mutation`: Core 595, Discovery 75, Integration 247 tests; 68
+fixtures, 176 cells; verify 176 cells agree; benchmark cold 8.63 s, warm 0.41 s, body edit 2.30 s, API edit
+4.21 s (targets 60 / 3 / 10 / 10).
+
+### Maintainer: rerun privately, report counts only
+
+docs/real-project-checklist.md, "Private project: counts only":
+
+```sh
+ucl bee-diff path/to/Project > bee.txt; echo "exit $?"; tail -2 bee.txt
+ucl check path/to/Project --summary > editor.txt; echo "exit $?"; tail -1 editor.txt
+ucl check path/to/Project --target player --platform StandaloneWindows64 --summary > player.txt; echo "exit $?"; tail -1 player.txt
+ucl test path/to/Project > test.txt; echo "exit $?"; tail -1 test.txt
+```
+
+`bee-diff` now ends with `by category: ...` (also `summary.byCategory` in JSON).
+
+### Tag
+
+| Tag | Commit | Note |
+|---|---|---|
+| `v0.7.0` | the "Version 0.7.0" commit (see `git log`) | session 3 |
+
+```sh
+git tag -a v0.7.0 <commit> -m v0.7.0 && git push origin v0.7.0
+```
+
+Not `v1.0.0`.
+
+### Open questions (recommended default first)
+
+1. Player rows of the built-in symbols are inferred (no public player command line): feature and platform
+   symbols in players too, editor service symbols not. Recommended: keep until the private rerun's player
+   `bee-diff` (a player build's dag) shows otherwise.
+2. iOS has no public sample, so iOS cells get only E01-E08. Recommended: add E-rows when an iOS command line
+   is available.
+3. Which same-name DLL wins is observed once (highest version). Recommended: keep; `UCL1005` names every copy
+   left out, so a wrong pick is visible.
+4. `Unity.InputSystem.TestFramework`: if still listed by `bee-diff` (`assembly` category), run
+   `ucl graph path/to/Project | grep "excluded Unity.InputSystem.TestFramework"` and report only that line.
+
 ## Session 2 (2026-10-02): real-project correctness, Bee oracle, `ucl test`
 
 Budget 93 USD (83 for work, 10 reserve). Cumulative phase caps: A 40, B 80, C 83.

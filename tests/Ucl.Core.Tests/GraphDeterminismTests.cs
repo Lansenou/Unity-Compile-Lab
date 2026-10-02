@@ -125,6 +125,6 @@ public class GraphDeterminismTests
         Assert.True(g.Find("Game")!.Defines.Contains("R2"));
         Assert.False(g.Find("Game")!.Defines.Contains("R1"));
         Assert.NotNull(g.Find("Tests"));
-        Assert.Equal(["Assets/Core/Analyzers/Core.Analyzers.dll"], g.Find("Game")!.Analyzers);
+        Assert.Equal(["Assets/Analyzers/Global.dll", "Assets/Core/Analyzers/Core.Analyzers.dll"], g.Find("Game")!.Analyzers);
     }
 }

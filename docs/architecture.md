@@ -74,9 +74,27 @@ Nothing is compiled or written. Details: [oracle.md](oracle.md#bee-oracle-ucl-be
   assemblies reference every `autoReferenced` asmdef that is compiled in the cell (the runtime ones,
   `Assembly-CSharp` and `Assembly-CSharp-firstpass`, only those that are not Editor-only), earlier predefined
   phases, and every auto-referenced precompiled DLL. asmdefs never see predefined assemblies.
+* **Auto-referenced uGUI.** When the project has the asmdefs `UnityEngine.UI` (and, in editor cells,
+  `UnityEditor.UI`), every asmdef assembly references them without listing them, except the UI assemblies
+  themselves, `UnityEngine.TestRunner`, `UnityEditor.TestRunner`, `noEngineReferences` assemblies and
+  code-gen assemblies (`Unity.*.CodeGen`, `Unity.*.Compiler`). In editor cells runtime asmdefs get
+  `UnityEditor.UI` too. This is why `com.unity.inputsystem` can list `"Unity.ugui"` (a name no asmdef has)
+  and still use `UnityEngine.UI` (UnityCsReference `AutoReferencedPackageAssemblies`,
+  `EditorBuildRules.ToScriptAssemblies`; fixture `ugui-auto-reference`).
+* **Test runner references.** Editor-only assemblies (every assembly when `playModeTestRunnerEnabled: 1`)
+  that list neither test runner get `UnityEngine.TestRunner` and `UnityEditor.TestRunner`, except code-gen
+  assemblies and the runners themselves; they also get `nunit.framework.dll`, Auto Reference or not, unless
+  they list it themselves (UnityCsReference `TestRunnerHelpers`). That is how scripts in an `Editor` folder
+  can hold NUnit tests. A legacy asmdef with `optionalUnityReferences` is rewritten on load: not
+  auto-referenced, `overrideReferences` with `nunit.framework.dll`, the two runners, and `UNITY_INCLUDE_TESTS`
+  (UnityCsReference `CustomScriptAssemblyWithLegacyData`).
 * **Cell membership.** An asmdef is compiled in a cell when its platforms match (editor target: the
   `Editor` platform only; player target: the build platform; see [platforms.md](platforms.md)) and its
-  `defineConstraints` hold against the cell's defines. A reference to an assembly not compiled in the cell
+  `defineConstraints` hold against the cell's defines. A test assembly (`defineConstraints` has the entry
+  `UNITY_INCLUDE_TESTS`) or a test framework assembly (the entry `UNITY_TESTS_FRAMEWORK`) is left out of a
+  player unless `--include-tests`. A test assembly in a package compiles only when the package is embedded
+  in `Packages/` or listed in `Packages/manifest.json` `testables` (UnityCsReference
+  `CustomScriptAssembly.IsCompatibleWith`; manual, "Add tests to your package"; fixture `package-testables`). A reference to an assembly not compiled in the cell
   is dropped silently, as Unity does; the resulting compile errors are the user's signal. Player cells
   never contain Editor assemblies or `Editor` folders.
 * **Cycles** are error `UCL1002` on every assembly in the cycle; those assemblies are not compiled.
@@ -90,15 +108,35 @@ Nothing is compiled or written. Details: [oracle.md](oracle.md#bee-oracle-ucl-be
   looks a listed name up among the precompiled assemblies it knows and skips it without a message when it
   is absent (UnityCsReference `EditorBuildRules`, the `ExplicitPrecompiledReferences` lookup); `ucl` does the
   same and reports `UCL1004` as info only, so it never changes the exit code. Packages' code-gen asmdefs list
-  `Unity.IL2CPP.dll` and similar names this way.
+  `Unity.IL2CPP.dll` and similar names this way. Unity keeps one precompiled DLL per file name
+  (UnityCsReference `PrecompiledAssemblyProvider`, a dictionary by file name): of the compatible DLLs that
+  share a name `ucl` keeps the highest assembly version, then the first path, and reports each copy left
+  out as `UCL1005` (info). Which copy wins is observed, not read from source: on the maintainer's project
+  the Editor passed only the newest `System.Runtime.CompilerServices.Unsafe.dll` of three (fixture
+  `plugin-same-name`).
 * **Analyzers.** A DLL labelled `RoslynAnalyzer` is an analyzer and source generator, never a reference.
-  Scope: if its folder (or an ancestor) holds an asmdef, it applies to that assembly and to every assembly
-  that references it directly; otherwise it applies to all predefined assemblies.
+  Scope (UnityCsReference `RoslynAnalyzers.SetAnalyzers`): its owner is the assembly whose asmdef or asmref
+  folder is its nearest ancestor; it applies to the owner and to every assembly that reaches the owner
+  through references, directly or not. An analyzer with no owner (in `Assets/` outside every asmdef
+  folder, or in a package folder without an asmdef, such as a NuGet package's
+  `analyzers/dotnet/roslyn4.0/cs/`) applies to every assembly. The editor's own source generators
+  (`Tools/BuildPipeline/Unity.SourceGenerators/*.dll`, `Tools/Unity.SourceGenerators/` before 6000.3) run
+  on every assembly (fixture `analyzer-reach`).
 * **Engine references.** `noEngineReferences: true` removes the editor's UnityEngine and UnityEditor DLLs.
   Built-in modules come from `com.unity.modules.*` packages: a module DLL whose name matches a
   `com.unity.modules.<x>` package is referenced only when that package is resolved; modules with no
   package (CoreModule, SharedInternalsModule, ...) are always referenced. Editor cells also reference the
   `UnityEditor` DLLs, for every assembly (runtime code may use `#if UNITY_EDITOR`).
+* **Editor references** (observed in public Unity-generated project files; fixture `editor-reference-set`).
+  With engine references: the facade `Managed/UnityEngine/UnityEngine.dll` (DLLs built against the old
+  single `UnityEngine` assembly need it) and the cell platform's engine modules,
+  `PlaybackEngines/<support>/Managed/UnityEngine.*.dll` (`UnityEngine.WebGLModule` for WebGL). In editor
+  cells, for every assembly: `Managed/UnityEditor.Graphs.dll` and each installed platform's
+  `PlaybackEngines/<support>/UnityEditor.*.Extensions.dll` (with `Unity.Android.Gradle.dll` and
+  `Unity.Android.Types.dll` for Android). Code-gen assemblies (`Unity.*.CodeGen`, `Unity.*.Compiler`, their
+  `.Tests`, `Unity.*.Compiler.Client`) also get `Managed/Unity.CompilationPipeline.Common.dll`
+  (UnityCsReference `CompilationPipelineCommonHelper`). `PlaybackEngines` is under the data folder on
+  Windows and Linux and beside `Unity.app` on macOS.
 
 ## Compiler options
 

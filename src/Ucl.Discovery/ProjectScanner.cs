@@ -14,6 +14,7 @@ internal sealed class ProjectScanner
     private readonly List<TextFile> asmdefs = [];
     private readonly List<TextFile> asmrefs = [];
     private readonly List<TextFile> plugins = [];
+    private readonly Dictionary<string, string> pluginFiles = new(StringComparer.Ordinal);
     private readonly List<string> nativePlugins = [];
     private readonly List<TextFile> responseFiles = [];
     private readonly List<string> ruleSets = [];
@@ -71,8 +72,10 @@ internal sealed class ProjectScanner
     }
 
     /// <summary>Builds the inventory from everything scanned so far, every list sorted ordinal.</summary>
-    public ProjectInventory ToInventory(UnityVersion version, ProjectSettingsData settings, IReadOnlyList<ResolvedPackage> packages) => new()
+    public ProjectInventory ToInventory(UnityVersion version, ProjectSettingsData settings, IReadOnlyList<ResolvedPackage> packages, IReadOnlyList<string> testables) => new()
     {
+        PluginVersions = DuplicateNameVersions(),
+        Testables = testables,
         ProjectVersion = version,
         Scripts = Sorted(scripts),
         Asmdefs = Sorted(asmdefs),
@@ -85,6 +88,22 @@ internal sealed class ProjectScanner
         Settings = settings,
         Packages = packages,
     };
+
+    // Unity keeps one precompiled DLL per file name (the highest version), so only DLLs that share a name need a version.
+    private SortedDictionary<string, string> DuplicateNameVersions()
+    {
+        var reader = new AssemblyIdentityReader(fs);
+        var versions = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var group in pluginFiles.GroupBy(p => ProjectPaths.FileName(p.Key), StringComparer.Ordinal).Where(g => g.Count() > 1))
+        {
+            foreach (var (logical, physical) in group)
+            {
+                versions[logical] = reader.Version(physical);
+            }
+        }
+
+        return versions;
+    }
 
     private static bool IsAnalyzerConfig(string name) =>
         name.Equals(".editorconfig", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".globalconfig", StringComparison.OrdinalIgnoreCase);
@@ -113,6 +132,7 @@ internal sealed class ProjectScanner
                 if (PluginBinary.IsManaged(fs.ReadPrefix(physical, PluginBinary.HeaderBytes)))
                 {
                     plugins.Add(new TextFile(logical, string.Empty, Meta(physical)));
+                    pluginFiles[logical] = physical;
                 }
                 else
                 {

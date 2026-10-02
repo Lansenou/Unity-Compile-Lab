@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "com.unity.collections": "2.5.7",
+    "org.nuget.system.runtime.compilerservices.unsafe": "6.0.0",
+    "com.unity.modules.physics": "1.0.0"
+  }
+}

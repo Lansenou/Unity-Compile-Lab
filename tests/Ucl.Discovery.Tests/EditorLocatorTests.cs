@@ -92,6 +92,53 @@ public sealed class EditorLocatorTests : IDisposable
     }
 
     [Fact]
+    public void Editor_references_beyond_the_modules_follow_Unity_folders()
+    {
+        WindowsLinuxInstall("home/Unity/Hub/Editor/6000.0.30f1");
+        var data = "home/Unity/Hub/Editor/6000.0.30f1/Editor/Data";
+        tree.Write($"{data}/Managed/UnityEditor.Graphs.dll")
+            .Write($"{data}/Managed/Unity.CompilationPipeline.Common.dll")
+            .Write($"{data}/PlaybackEngines/WebGLSupport/Managed/UnityEngine.WebGLModule.dll")
+            .Write($"{data}/PlaybackEngines/WebGLSupport/Managed/Other.dll")
+            .Write($"{data}/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll")
+            .Write($"{data}/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Other.dll")
+            .Write($"{data}/PlaybackEngines/AndroidPlayer/UnityEditor.Android.Extensions.dll")
+            .Write($"{data}/PlaybackEngines/AndroidPlayer/Unity.Android.Gradle.dll")
+            .Write($"{data}/PlaybackEngines/AndroidPlayer/Unity.Android.Types.dll")
+            .Write($"{data}/Tools/BuildPipeline/Unity.SourceGenerators/Unity.SourceGenerators.dll")
+            .Write($"{data}/Tools/BuildPipeline/Unity.SourceGenerators/Unity.Properties.SourceGenerator.dll");
+        var install = Locator(Env()).Locate(V30, null).Value!;
+        string P(string relative) => tree[$"{data}/{relative}"];
+
+        Assert.Equal(P("Managed/UnityEngine/UnityEngine.dll"), install.EngineFacade);
+        Assert.Equal([P("PlaybackEngines/WebGLSupport/Managed/UnityEngine.WebGLModule.dll")], install.PlatformModules[BuildPlatform.WebGL]);
+        Assert.Empty(install.PlatformModules[BuildPlatform.iOS]);
+        Assert.Equal(
+            [P("Managed/UnityEditor.Graphs.dll"), P("PlaybackEngines/AndroidPlayer/Unity.Android.Gradle.dll"), P("PlaybackEngines/AndroidPlayer/Unity.Android.Types.dll"),
+             P("PlaybackEngines/AndroidPlayer/UnityEditor.Android.Extensions.dll"), P("PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll")],
+            install.EditorExtensions);
+        Assert.Equal(P("Managed/Unity.CompilationPipeline.Common.dll"), install.CompilationPipeline);
+        Assert.Equal(
+            [P("Tools/BuildPipeline/Unity.SourceGenerators/Unity.Properties.SourceGenerator.dll"), P("Tools/BuildPipeline/Unity.SourceGenerators/Unity.SourceGenerators.dll")],
+            install.SourceGenerators);
+        Assert.Equal(tree[data], install.PlaybackEnginesParent);
+    }
+
+    [Fact]
+    public void Mac_platform_support_lives_beside_Unity_app_and_old_generators_under_Tools()
+    {
+        MacInstall("Applications/Unity/Hub/Editor/6000.0.30f1");
+        var root = "Applications/Unity/Hub/Editor/6000.0.30f1";
+        tree.Write($"{root}/PlaybackEngines/MacStandaloneSupport/UnityEditor.OSXStandalone.Extensions.dll")
+            .Write($"{root}/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.SourceGenerators.dll");
+        var install = Locator(Env(HostOs.MacOS)).Locate(V30, tree[$"{root}/Unity.app"]).Value!;
+        Assert.Equal([tree[$"{root}/PlaybackEngines/MacStandaloneSupport/UnityEditor.OSXStandalone.Extensions.dll"]], install.EditorExtensions);
+        Assert.Equal(tree[root], install.PlaybackEnginesParent);
+        Assert.Equal([tree[$"{root}/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.SourceGenerators.dll"]], install.SourceGenerators);
+        Assert.Null(install.CompilationPipeline);
+    }
+
+    [Fact]
     public void WindowsHubDefaultUnderProgramFiles()
     {
         WindowsLinuxInstall("Program Files/Unity/Hub/Editor/6000.0.30f1", exe: true);

@@ -34,8 +34,9 @@ ucl bee-diff path/to/Project > ucl-bee-diff.txt
 Exit 0: `ucl`'s command line equals the Editor's for every assembly in every dag. Exit 1: the differences are
 listed per dag and assembly. Exit 3: no `Library/Bee` (step 0) or no editor.
 
-Known, expected differences until they are implemented: Unity's own source generators
-(`analyzers missing in ucl: editor:Tools/Unity.SourceGenerators/...`, docs/proposals.md item 1).
+There are no known, expected differences any more (0.7.0 runs Unity's own source generators). For a private
+project, report counts only: the number of differences per category (`assembly`, `sources`, `references`,
+`defines`, `options`, `nowarn`, `analyzers`, `additionalfiles`), which `--format json` gives per assembly.
 
 ## 3. The compile itself
 
@@ -70,6 +71,16 @@ Attach to an issue (or the PR thread) on `Lansenou/unity-compile-lab`:
 * `ucl-doctor.txt`, `ucl-bee-diff.txt`, `ucl-bee-diff.json`, the two `--summary` files and the two JSON reports;
 * the cold and warm times, the machine (CPU, cores, OS), and the two `git status` hashes;
 * the Editor version and the list of dag folders (`ls Library/Bee/artifacts/*.dag`).
+
+### Private project: counts only
+
+When the project's files, logs and names must stay private, send only these numbers (no file):
+
+* `ucl bee-diff`: the exit code and the last two lines of `ucl-bee-diff.txt` (`by category: ...` and
+  `result: ...`); the JSON has the same counts under `summary.byCategory`;
+* `ucl check`, editor and player: the exit code and the `result:` line (errors, warnings, assemblies, skipped);
+* `ucl test`: its `result:` line (case totals by category);
+* the cold and warm times.
 
 Privacy: the JSON files contain project-relative paths, assembly names, define names, and editor-relative
 paths only for the editor side; reference locations outside the project and the editor appear as absolute

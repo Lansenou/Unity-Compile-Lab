@@ -47,15 +47,15 @@ Every cell starts as `oracle: pending`; see [oracle.md](oracle.md).
 | 25 | `csc-rsp-nowarn` | `-nowarn:` silences a warning | R6 |
 | 26 | `csc-rsp-asmdef-local` | `csc.rsp` beside an asmdef replaces the global one for it | R6 |
 | 27 | `csc-rsp-warnaserror` | `-warnaserror` turns a warning into exit 2 | R6, R10 |
-| 28 | `analyzer-scoped` | `RoslynAnalyzer` DLL in an asmdef folder only analyses that assembly and its referrers | R8 |
-| 29 | `analyzer-global` | analyzer outside any asmdef folder analyses predefined assemblies | R8 |
+| 28 | `analyzer-scoped` | `RoslynAnalyzer` DLL in an asmdef folder analyses that assembly and every assembly that reaches it | R8 |
+| 29 | `analyzer-global` | analyzer outside any asmdef folder analyses every assembly | R8 |
 | 30 | `scripting-defines-per-platform` | `scriptingDefineSymbols` differ per build target group | R5 |
 | 31 | `unity-minor-paths` | `UNITY_6000_3_OR_NEWER` branch differs between 6000.0 and 6000.3 | R5, R7 |
 | 32 | `package-embedded` | embedded package asmdef with a `versionDefines` entry | R3 |
 | 33 | `package-scoped-registry` | scoped registry package from `Library/PackageCache` | R3 |
 | 34 | `package-local-file` | `file:` package | R3 |
 | 35 | `package-missing` | unresolvable package: UCL3006, exit 3 | R3, R10 |
-| 36 | `builtin-module-disabled` | no `com.unity.modules.physics`: `Rigidbody` is CS0246 | R3 |
+| 36 | `builtin-module-disabled` | no `com.unity.modules.physics`: `Rigidbody` is CS1069 (the `UnityEngine.dll` facade forwards it to a module that is not referenced) | R3 |
 | 37 | `player-editor-type` | runtime script uses `UnityEditor` unguarded: fine in editor, CS0246 in player | R7 |
 | 38 | `langversion-too-new` | C# 10 file-scoped namespace fails under C# 9 | R6 |
 | 39 | `asmref-sources` | `.asmref` adds a folder to another assembly | R2 |
@@ -68,7 +68,7 @@ Every cell starts as `oracle: pending`; see [oracle.md](oracle.md).
 | 46 | `hidden-assets` | `Samples~/` and `.hidden/` are ignored | R2 |
 | 47 | `package-script-no-asmdef` | package script outside an asmdef: UCL1010, not compiled | R3 |
 | 48 | `input-system-defines` | `activeInputHandler: 2` defines both input symbols | R5 |
-| 49 | `backend-il2cpp` | `scriptingBackend` IL2CPP for Standalone | R5 |
+| 49 | `backend-il2cpp` | `scriptingBackend` IL2CPP for Standalone players; editor cells stay `ENABLE_MONO` | R5 |
 | 50 | `development-build` | `--development` defines `DEVELOPMENT_BUILD` | R5 |
 | 51 | `nullable-rsp` | `-nullable:enable` gives CS8600-family warnings | R6 |
 | 52 | `path-unicode` | `Assets/My Scripts/Ünïcode/` with a space and non-ASCII | R9 |
@@ -82,3 +82,9 @@ Every cell starts as `oracle: pending`; see [oracle.md](oracle.md).
 | 60 | `facade-system-runtime` | G4: a DLL built against System.Runtime resolves through the 4.8 facades and the NetStandard shims | R4 |
 | 61 | `realistic-netfx-nuget` | G1-G4 together, shaped like the maintainer's real project; clean in every Standalone cell | R2-R5 |
 | 62 | `test-editmode` | `ucl test`: every kind of case (pure, parameterised, guarded by defines, engine, unity-only, failing, ignored, explicit, inconclusive, divergent); `tests` in the manifest lists all 31 | B |
+| 63 | `ugui-auto-reference` | session 3, cause 1: `UnityEngine.UI` (and `UnityEditor.UI` in the Editor) reach every asmdef assembly without being listed | R2, R3 |
+| 64 | `editor-builtin-defines` | session 3, cause 2: built-in symbols E01-E15, `ENABLE_MONO` in every editor cell, `UNITY_INCLUDE_TESTS` as a compiler symbol | R5 |
+| 65 | `plugin-same-name` | session 3, cause 3: one precompiled DLL per file name, the highest version (UCL1005 info for the others) | R2, R3 |
+| 66 | `package-testables` | session 3, cause 4: package tests only when embedded or in `testables`; test framework assemblies out of players | R2, R3 |
+| 67 | `editor-reference-set` | session 3, cause 5: `UnityEngine.dll` facade, platform module, `UnityEditor.Graphs`, platform editor extensions, `Unity.CompilationPipeline.Common` for code-gen | R4 |
+| 68 | `analyzer-reach` | session 3, cause 6: global analyzers reach asmdefs, owned ones reach transitive referrers, the editor's own generators run everywhere | R8 |

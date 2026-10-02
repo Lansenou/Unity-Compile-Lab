@@ -7,6 +7,46 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ## [Unreleased]
 
+## [0.7.0]
+
+Session 3: real-project compile parity. The six root causes of the second real-project run
+(docs/real-project-fixes.md, "Session 3"), each with a fixture that was red on 0.6.0.
+
+### Added
+
+* Built-in symbols (docs/defines.md, rows E01-E15): `CSHARP_7_OR_LATER`, `UNITY_EDITOR_ONLY_COMPILATION` for
+  Editor-only assemblies, and the engine feature, editor service and per-platform sets Unity 6 defines
+  (`ENABLE_UNITY_COLLECTIONS_CHECKS`, `ENABLE_PROFILER`, `ENABLE_PHYSICS`, `UNITY_WEBGL_API`, ...).
+* Auto-referenced uGUI: `UnityEngine.UI` (and `UnityEditor.UI` in editor cells) reach every asmdef assembly
+  without being listed, as in Unity.
+* Test runner references: Editor-only assemblies (all with `playModeTestRunnerEnabled`) get
+  `UnityEngine.TestRunner`, `UnityEditor.TestRunner` and `nunit.framework.dll`.
+* Editor references: the `UnityEngine.dll` facade, the platform's engine module from
+  `PlaybackEngines/<support>/Managed`, and in editor cells `UnityEditor.Graphs.dll` and every installed
+  platform's `UnityEditor.*.Extensions.dll`; `Unity.CompilationPipeline.Common.dll` for code-gen assemblies.
+* The editor's own source generators (`Tools/BuildPipeline/Unity.SourceGenerators`) run on every assembly
+  (docs/proposals.md, item 1).
+* `UCL1005` (info): a precompiled DLL left out because another DLL with the same file name wins.
+* `ucl bee-diff`: a `by category:` line in text and `summary.byCategory` in JSON (`ucl-beediff/1`, additive), so a
+  private project can report counts only.
+* Fixtures `ugui-auto-reference`, `editor-builtin-defines`, `plugin-same-name`, `package-testables`,
+  `editor-reference-set`, `analyzer-reach` (68 fixtures, 176 cells); the stub editor gains the facade, a
+  WebGL module, editor extensions, `UnityEditor.Graphs`, `Unity.CompilationPipeline.Common` and a stub
+  source generator (`fixtures/_stubs/editor-extra/`).
+
+### Changed
+
+* Editor cells always define `ENABLE_MONO` (the Editor runs Mono), also for IL2CPP-only platforms.
+* `UNITY_INCLUDE_TESTS` (D60) is passed to the compiler, no longer used for `defineConstraints` only.
+* A package's test assemblies compile only when the package is embedded or listed in `testables`; test
+  framework assemblies (`UNITY_TESTS_FRAMEWORK`) are left out of players unless `--include-tests`.
+* One precompiled DLL per file name: the highest assembly version wins (no more CS1704/CS0433 from copies).
+* Analyzer scope follows UnityCsReference: an analyzer outside every asmdef folder applies to every assembly
+  (it applied to predefined assemblies only), and an owned analyzer reaches transitive referrers (it reached
+  direct ones only).
+* Legacy test assemblies (`optionalUnityReferences`) are rewritten on load as Unity does: `overrideReferences`
+  with `nunit.framework.dll` only.
+
 ## [0.6.0]
 
 Session 2, phase B: `ucl test`.

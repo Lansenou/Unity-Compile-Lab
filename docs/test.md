@@ -25,13 +25,15 @@ branch is compiled as the Editor compiles it (`UNITY_EDITOR`, `UNITY_5_3_OR_NEWE
 Editor-only assemblies, ...). `UNITY_INCLUDE_TESTS` holds when `com.unity.test-framework` is resolved
 (docs/defines.md, D60).
 
-* **Test assemblies** are the assemblies compiled against `nunit.framework.dll`: asmdefs that list it in
-  `precompiledReferences` (the modern form, with `UnityEngine.TestRunner`/`UnityEditor.TestRunner` in
-  `references` and `defineConstraints: ["UNITY_INCLUDE_TESTS"]`), and legacy asmdefs with
-  `optionalUnityReferences: ["TestAssemblies"]`, which Unity gives the test runner assemblies and
-  `nunit.framework.dll` implicitly (UnityCsReference `EditorBuildRules.AddTestRunnerCustomReferences` and
+* **Test assemblies** are the assemblies compiled against `nunit.framework.dll`, as for the Unity Test Runner:
+  asmdefs that list it in `precompiledReferences` (the modern form, with `UnityEngine.TestRunner`/
+  `UnityEditor.TestRunner` in `references` and `defineConstraints: ["UNITY_INCLUDE_TESTS"]`), legacy asmdefs
+  with `optionalUnityReferences: ["TestAssemblies"]`, and every Editor-only assembly (`Assembly-CSharp-Editor`
+  included), which Unity gives the test runner assemblies and `nunit.framework.dll` without listing them
+  (UnityCsReference `TestRunnerHelpers`, `EditorBuildRules.AddTestRunnerCustomReferences` and
   `AddTestRunnerPrecompiledReferences`; `ucl` does the same in `ReferenceResolver` and `PluginResolver`, and
-  `verify/` independently).
+  `verify/` independently; docs/architecture.md, "Test runner references"). A package's test assemblies exist
+  only when the package is embedded or listed in `testables`.
 * `nunit.framework.dll` comes from the project: the `com.unity.ext.nunit` package (or wherever the project has it).
 * Test assemblies and their dependencies are emitted as full images (IL included) and cached under their own
   inputs hash (`image full`), so a warm run recompiles nothing.

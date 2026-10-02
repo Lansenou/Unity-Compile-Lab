@@ -43,9 +43,10 @@ public class AsmdefParserTests
         Assert.Equal(["Android", "WebGL"], a.ExcludePlatforms);
         Assert.True(a.AllowUnsafeCode);
         Assert.True(a.OverrideReferences);
-        Assert.Equal(["Newtonsoft.Json.dll"], a.PrecompiledReferences);
+        // optionalUnityReferences: the legacy test assembly gets nunit.framework.dll and UNITY_INCLUDE_TESTS on load.
+        Assert.Equal(["Newtonsoft.Json.dll", "nunit.framework.dll"], a.PrecompiledReferences);
         Assert.False(a.AutoReferenced);
-        Assert.Equal(["UNITY_2021_1_OR_NEWER", "A || B", "!C"], a.DefineConstraints);
+        Assert.Equal(["UNITY_2021_1_OR_NEWER", "A || B", "!C", "UNITY_INCLUDE_TESTS"], a.DefineConstraints);
         Assert.Equal(
             [new VersionDefine("com.unity.inputsystem", "1.4.0", "HAS_INPUT_SYSTEM"), new VersionDefine("Unity", "[6000.0,6000.1)", "")],
             a.VersionDefines);

@@ -46,7 +46,10 @@ internal sealed class ReferenceCatalog
 
         if (engine != EngineReferences.None)
         {
-            foreach (var p in _editor.EngineModules.Where(p => BuiltInModules.IsReferenced(Path.GetFileName(p), graph.EnabledModules, _modulePackages)))
+            var modules = _editor.EngineModules.Where(p => BuiltInModules.IsReferenced(Path.GetFileName(p), graph.EnabledModules, _modulePackages))
+                .Concat(_editor.PlatformModules.GetValueOrDefault(graph.Cell.Platform) ?? [])
+                .Concat(_editor.EngineFacade is { } facade ? [facade] : []);
+            foreach (var p in modules)
             {
                 result.Add(($"editor:{Relative(p)}", p));
             }
@@ -60,12 +63,33 @@ internal sealed class ReferenceCatalog
             }
         }
 
+        // Editor-cell references every assembly gets, noEngineReferences or not (UnityCsReference EditorAssemblyReferences).
+        if (graph.Cell.IsEditor)
+        {
+            foreach (var p in _editor.EditorExtensions)
+            {
+                result.Add(($"editor:{Relative(p)}", p));
+            }
+        }
+
+        if (_editor.CompilationPipeline is { } pipeline && CodeGenAssemblies.UsesCompilationPipeline(plan.Name))
+        {
+            result.Add(($"editor:{Relative(pipeline)}", pipeline));
+        }
+
         return result.OrderBy(r => r.Item1, StringComparer.Ordinal).ToList();
     }
+
+    /// <summary>The editor's own source generators, which run on every assembly: (display string, absolute path).</summary>
+    public IReadOnlyList<(string Display, string Path)> EditorAnalyzers() =>
+        [.. _editor.SourceGenerators.Select(p => ($"editor:{Relative(p)}", p))];
 
     /// <summary>A shared reference to a DLL on disk.</summary>
     public PortableExecutableReference Get(string path) =>
         _byPath.GetOrAdd(path, p => MetadataReference.CreateFromImage(_fs.ReadAllBytes(p), filePath: p));
 
-    private string Relative(string path) => Path.GetRelativePath(_editor.DataPath, path).Replace('\\', '/');
+    // Platform support lives beside Unity.app on macOS, outside the data folder.
+    private string Relative(string path) =>
+        Path.GetRelativePath(path.StartsWith(_editor.DataPath, StringComparison.Ordinal) || _editor.PlaybackEnginesParent.Length == 0 ? _editor.DataPath : _editor.PlaybackEnginesParent, path)
+            .Replace('\\', '/');
 }

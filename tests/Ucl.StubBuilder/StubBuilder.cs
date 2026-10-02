@@ -18,7 +18,7 @@ public static class StubBuilder
     public static IReadOnlyList<string> EditorVersions { get; } = ["6000.0.30f1", "6000.3.2f1"];
 
     /// <summary>Bump when the layout or compile settings change, so existing stamps are invalidated.</summary>
-    private const string BuilderVersion = "ucl-stubs/3";
+    private const string BuilderVersion = "ucl-stubs/4";
 
     private const string CoreModule = "UnityEngine.CoreModule";
 
@@ -91,6 +91,27 @@ public static class StubBuilder
             modules[name] = Compile(name, dir, [netstandard, coreReference]);
         }
 
+        var moduleReferences = modules.ToDictionary(m => m.Key, m => (MetadataReference)MetadataReference.CreateFromImage(m.Value), StringComparer.Ordinal);
+
+        // Managed/UnityEngine/UnityEngine.dll: the facade that forwards every public engine type to its module.
+        var engineModules = moduleReferences.Where(m => m.Key.StartsWith("UnityEngine.", StringComparison.Ordinal)).Select(m => m.Value).ToList();
+        var facade = CompileSources(
+            "UnityEngine",
+            [ProfileStubs.Forwarders(engineModules.SelectMany(ProfileStubs.PublicTypes).Distinct().Order(StringComparer.Ordinal))],
+            [netstandard, .. engineModules]);
+
+        // Editor files outside Managed/UnityEngine (editor-extra/<Name>/, stub.ini path=).
+        var extras = new List<(string DataPath, string Name, byte[] Image)>();
+        foreach (var dir in SubDirectories(Path.Combine(stubs, "editor-extra")))
+        {
+            var name = Path.GetFileName(dir);
+            var ini = StubIni.Read(dir);
+            var image = ini.Kind == "analyzer"
+                ? CompileAnalyzer(name, dir, netstandard)
+                : Compile(name, dir, [netstandard, .. ini.References.Select(r => moduleReferences[r])]);
+            extras.Add((ini.DataPath ?? throw new InvalidOperationException($"{dir}/stub.ini: path= is required"), name, image));
+        }
+
         foreach (var version in EditorVersions)
         {
             var data = Path.Combine(outDir, "editors", version, "Editor", "Data");
@@ -99,6 +120,14 @@ public static class StubBuilder
             foreach (var (name, image) in modules)
             {
                 File.WriteAllBytes(Path.Combine(managed, name + ".dll"), image);
+            }
+
+            File.WriteAllBytes(Path.Combine(managed, "UnityEngine.dll"), facade);
+            foreach (var (dataPath, name, image) in extras)
+            {
+                var folder = Path.Combine(data, dataPath.Replace('/', Path.DirectorySeparatorChar));
+                Directory.CreateDirectory(folder);
+                File.WriteAllBytes(Path.Combine(folder, name + ".dll"), image);
             }
 
             var reference = Path.Combine(data, "NetStandard", "ref", "2.1.0");
@@ -120,9 +149,12 @@ public static class StubBuilder
 
         var dlls = Path.Combine(outDir, "dlls");
         Directory.CreateDirectory(dlls);
+
+        // A monolithic "UnityEngine" (CoreModule's sources under the old single-assembly name), for engine=UnityEngine stubs.
+        var monolithic = MetadataReference.CreateFromImage(Compile("UnityEngine", Path.Combine(editorDir, CoreModule), [netstandard]));
         foreach (var dir in SubDirectories(Path.Combine(stubs, "dlls")))
         {
-            var name = Path.GetFileName(dir);
+            var file = Path.GetFileName(dir);
             var ini = StubIni.Read(dir);
             var usesEngine = SourceFiles(dir).Any(f => File.ReadAllText(f).Contains("UnityEngine", StringComparison.Ordinal));
             MetadataReference baseReference = ini.Profile switch
@@ -131,8 +163,9 @@ public static class StubBuilder
                 "System.Runtime" => MetadataReference.CreateFromImage(profile.SystemRuntimeContract),
                 _ => netstandard,
             };
-            MetadataReference[] references = usesEngine ? [baseReference, coreReference] : [baseReference];
-            File.WriteAllBytes(Path.Combine(dlls, name + ".dll"), Compile(name, dir, references, ini.Version));
+            var engine = ini.Engine == "UnityEngine" ? monolithic : coreReference;
+            MetadataReference[] references = usesEngine ? [baseReference, engine] : [baseReference];
+            File.WriteAllBytes(Path.Combine(dlls, file + ".dll"), Compile(ini.Name ?? file, dir, references, ini.Version));
         }
 
         File.Copy(Path.Combine(AppContext.BaseDirectory, "nunit", "nunit.framework.dll"), Path.Combine(dlls, "nunit.framework.dll"), overwrite: true);
@@ -179,6 +212,18 @@ public static class StubBuilder
         }
 
         throw new InvalidOperationException($"stub {name} does not compile:{Environment.NewLine}{errors}");
+    }
+
+    private static byte[] CompileSources(string name, IEnumerable<(string Path, string Text)> sources, IEnumerable<MetadataReference> references)
+    {
+        var trees = sources.Select(s => CSharpSyntaxTree.ParseText(s.Text, ParseOptions, path: $"{name}/{s.Path}", encoding: Encoding.UTF8));
+        var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, deterministic: true);
+        using var pe = new MemoryStream();
+        var result = CSharpCompilation.Create(name, trees, references, options).Emit(pe);
+        return result.Success
+            ? pe.ToArray()
+            : throw new InvalidOperationException($"stub {name} does not compile:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error)));
     }
 
     private static byte[] Compile(string name, string dir, IEnumerable<MetadataReference> references, string? version = null) =>

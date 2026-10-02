@@ -38,4 +38,13 @@ public sealed record ProjectInventory
 
     /// <summary>Resolved packages, sorted by name.</summary>
     public IReadOnlyList<ResolvedPackage> Packages { get; init; } = [];
+
+    /// <summary>Packages listed in <c>Packages/manifest.json</c> <c>testables</c>.</summary>
+    public IReadOnlyList<string> Testables { get; init; } = [];
+
+    /// <summary>
+    /// Assembly versions (<c>6.0.0.0</c>, empty when unreadable) of the managed DLLs that share their file name with another
+    /// one, keyed by path; Unity keeps the highest (docs/architecture.md, "Precompiled DLLs").
+    /// </summary>
+    public IReadOnlyDictionary<string, string> PluginVersions { get; init; } = new Dictionary<string, string>();
 }

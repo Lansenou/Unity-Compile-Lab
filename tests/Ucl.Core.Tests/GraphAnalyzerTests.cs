@@ -1,6 +1,6 @@
 namespace Ucl.Core.Tests;
 
-/// <summary>DLLs labelled <c>RoslynAnalyzer</c>: never a reference; scoped by asmdef folder.</summary>
+/// <summary>DLLs labelled <c>RoslynAnalyzer</c>: never a reference; scoped as UnityCsReference RoslynAnalyzers.SetAnalyzers does.</summary>
 public class GraphAnalyzerTests
 {
     [Fact]
@@ -16,7 +16,7 @@ public class GraphAnalyzerTests
     }
 
     [Fact]
-    public void Analyzer_outside_any_asmdef_folder_applies_to_all_predefined_assemblies_only()
+    public void Analyzer_outside_any_asmdef_folder_applies_to_every_assembly()
     {
         var g = new InventoryBuilder()
             .Plugin("Assets/Analyzers/MyAnalyzer.dll", Metas.Analyzer())
@@ -28,7 +28,7 @@ public class GraphAnalyzerTests
             Assert.Equal(["Assets/Analyzers/MyAnalyzer.dll"], g.Find(name)!.Analyzers);
         }
 
-        Assert.Empty(g.Find("Mod")!.Analyzers);
+        Assert.Equal(["Assets/Analyzers/MyAnalyzer.dll"], g.Find("Mod")!.Analyzers);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class GraphAnalyzerTests
     }
 
     [Fact]
-    public void Analyzer_in_asmdef_folder_applies_to_that_asmdef_and_its_direct_referrers()
+    public void Analyzer_in_asmdef_folder_applies_to_that_asmdef_and_everything_that_reaches_it()
     {
         var g = new InventoryBuilder()
             .Plugin("Assets/Core/Analyzers/Core.Analyzers.dll", Metas.Analyzer())
@@ -56,10 +56,10 @@ public class GraphAnalyzerTests
 
         Assert.Equal(["Assets/Core/Analyzers/Core.Analyzers.dll"], g.Find("Core")!.Analyzers);
         Assert.Equal(["Assets/Core/Analyzers/Core.Analyzers.dll"], g.Find("Game")!.Analyzers);
-        Assert.Empty(g.Find("Top")!.Analyzers);
+        Assert.Equal(["Assets/Core/Analyzers/Core.Analyzers.dll"], g.Find("Top")!.Analyzers);
         Assert.Empty(g.Find("Other")!.Analyzers);
 
-        // Assembly-CSharp references every auto-referenced asmdef, so it is a direct referrer too.
+        // Assembly-CSharp references every auto-referenced asmdef, so it reaches Core too.
         Assert.Equal(["Assets/Core/Analyzers/Core.Analyzers.dll"], g.Find("Assembly-CSharp")!.Analyzers);
         Assert.Equal(["Assets/Core/Analyzers/Core.Analyzers.dll"], g.Find("Assembly-CSharp-Editor")!.Analyzers);
     }
