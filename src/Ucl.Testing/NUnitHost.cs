@@ -88,7 +88,10 @@ public static class NUnitHost
                     }
                     else if (method is not null && IlScanner.Constructs(method, HasEngineFinalizer, a => IsProject(a, projectNames), ScanFailed) is { } finalizable)
                     {
-                        decided = Case(test.Name, leaf, TestCategory.NeedsUnity, TestClassifier.FinalizerReason(finalizable.FullName ?? finalizable.Name));
+                        var typeName = finalizable.FullName ?? finalizable.Name;
+                        decided = Case(test.Name, leaf, TestCategory.NeedsUnity, TestClassifier.FinalizerReason(typeName))
+                            with
+                        { EngineMember = $"{typeName}..ctor (finalizer prescan)" };
                     }
 
                     if (scanFailures.Count > 0)

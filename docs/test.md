@@ -140,6 +140,8 @@ its case and the replacement host skips that case and resumes the remainder. All
 dependency, then load an original replacement without that type: GetMethodBody throws TypeLoadException
 for both a test body and a helper reached during scanning. No external binaries are used.
 
+Finalizer prescans name the constructed engine type as `Type..ctor (finalizer prescan)` in
+`engineMember`, so cases that never execute still contribute to the member ranking.
 For native failures, the reason includes the first UnityEngine/UnityEditor type and member from
 NUnit's exception stack, including calls made through helpers. JSON exposes nullable `engineMember`
 and `summary.needsUnityByMember` (top 20); text prints the same descending-count ranking. Unknown

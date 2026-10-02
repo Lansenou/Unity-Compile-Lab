@@ -9,6 +9,6 @@ namespace Ucl.Core.Testing;
 /// <param name="DurationMs">Wall-clock milliseconds; reported only with <c>--timings</c>.</param>
 public sealed record TestCaseResult(string Assembly, string ClassName, string FullName, TestCategory Category, string Reason, long DurationMs = 0)
 {
-    /// <summary>First UnityEngine/UnityEditor member in a needs-unity exception stack, or null when unavailable.</summary>
+    /// <summary>First engine exception frame, or the engine constructor found by finalizer prescan; null when unavailable.</summary>
     public string? EngineMember { get; init; }
 }

@@ -3,6 +3,17 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
+## v0.8.109 follow-up
+
+Counts-only rerun: 5950 discovered, 3066 passed, 57 failed, 2316 needs-unity,
+417 unity-only; the supplied categories omit 94 cases, whose categories are unknown.
+Player compilation still reports 344 errors. Finalizer prescan member attribution is in
+progress: the original CommandBuffer fixture was red for a null engineMember, and now names
+the constructor with `(finalizer prescan)` provenance. Player filtering and project-value
+shims require real licensed-editor evidence; no rule or comparison output is invented.
+Failure details and synchronization-context divergence remain next. Logging and native math
+shims are deferred: reported counts are under 50 versus 686 GameObject creation cases.
+
 ## Test-host false-failure follow-up (2026-10-02)
 
 Counts-only PR 24 rerun: 5943 discovered; reported categories 3057 passed, 2104 needs-unity,
