@@ -11,16 +11,17 @@ CS1503 and CS1705 for a 4.2.1.0 dependency versus a referenced 4.2.0.1 copy. Tim
 this run are not comparable because assemblies were skipped; a clean-project rerun is pending.
 No private project identity, location or package inventory is recorded.
 
-1. Editor plugin exclusion: synthetic `plugin-exclude-editor` and parser tests reproduce
+1. Editor plugin exclusion: fixed in PR 19, merged after green Linux, Windows and macOS CI. Synthetic `plugin-exclude-editor` and parser tests reproduce
    ignored Exclude Editor settings under the Any entry. Sources and importer semantics are in
    docs/architecture.md. The new Any-entry parser case and Editor fixture fail before the fix,
    then pass after parsing exclusions from both supported entries. Validate References does not
    grant compatibility. The ordinary player fixture receives the plugin; profile suppression
    is a separate unresolved rule. Full gate: Core 614, Discovery 75, Integration 284; coverage
-   gates and independent verification of 205 cells pass. Merge requires three-platform CI.
+   gates and independent verification of 205 cells pass. A two-core run also passes the mutation check.
 2. Player API-profile suppression: open after public-rule audit; evidence below. No assembly-name blacklist added.
-3. Duplicate dependency selection: public-rule audit in progress, related to the Session 8 open
-   precedence question. No package-versus-Assets or version selection change is inferred from CS1705.
+3. Duplicate dependency selection: open after public-rule audit, related to the Session 8
+   precedence question; evidence below. No package-versus-Assets or version selection change
+   is inferred from CS1705.
 
 ### Item 2: player API-profile plugin suppression — open
 
@@ -50,6 +51,40 @@ redirection implementation/table. The private rerun confirms a difference but ca
 Unity rule. Maintainer follow-up stays counts/booleans only (API profile, affected cell count, plugin
 compatible/auto-reference/constraint result, and whether a profile reference supplies the memory types).
 Do not infer this rule from the NuGet installer choosing not to install an already-provided library.
+
+### Item 3: CS1705 and duplicate dependency selection — open
+
+CS1705 establishes an assembly identity/version mismatch; it does not identify why the lower copy
+was selected. The reported 4.2.1.0 versus 4.2.0.1 dependency versions cannot prove package precedence,
+Assets precedence or a highest-version rule. A file, NuGet package or target-framework version is not
+necessarily its CLR assembly version. Import compatibility, constraints, Auto Reference and explicit
+precompiledReferences must be considered before comparing candidates. A profile/facade copy may also
+participate separately from the project plugin candidates.
+
+The pinned [Unity 6000.3 PrecompiledAssemblyProvider](https://github.com/Unity-Technologies/UnityCsReference/blob/2f6cef60096cf50741d933becf101bf3186719dd/Editor/Mono/Scripting/ScriptCompilation/PrecompiledAssembly.cs)
+`FilenameToPrecompiledAssembly` iterates the native provider's list: it keeps the first file-name
+candidate and replaces it only if the existing candidate has `Redirected` set. It does not read or sort
+assembly versions, and does not test package-versus-Assets paths. The native list order and redirected
+classification remain unavailable. This public dictionary behavior therefore cannot establish the
+winning physical System.Threading.Tasks.Extensions copy in the reported case.
+
+ucl currently picks the highest CLR assembly version among discovered compatible same-file-name
+plugins, with lexical path as a tie-breaker, and retains the separate observed untestable-package-test
+copy exclusion. `plugin-same-name` records the earlier observed newest-copy case;
+`plugin-untestable-tests` records that test-folder case. Neither fixture establishes a general
+package-versus-Assets precedence rule, and neither proves this CS1705 cause. If two discovered,
+compatible candidates survive those filters and expose 4.2.1.0/4.2.0.1 CLR versions, ucl's current
+sort already chooses 4.2.1.0. A lower reference can therefore require investigating filtering,
+identity/version reading, or a separate profile reference before changing precedence.
+
+No selector change or claimed CS1705 fix is made, and no red fixture is fabricated with a guessed
+winner. Needed public evidence: a minimal package/Assets duplicate project with original plugin
+sources, CLR identities and importer settings, recorded compiler reference selection for Editor
+and player, and a same-version control (also reverse locations to distinguish version from source).
+Counts-only maintainer follow-up can report candidate counts grouped by discovered/managed,
+compatible, constraints satisfied, Auto Reference/explicit selection, CLR version and redirected
+status, plus whether the selected copy is profile/package/Assets; no paths or inventories are needed.
+This is the Session 8 duplicate-precedence question, not a new dependency-version workaround.
 
 ## Session 8 (2026-10-02): references and analyzer execution
 
