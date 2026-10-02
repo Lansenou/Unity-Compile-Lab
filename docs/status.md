@@ -9,27 +9,84 @@ Budget 93 USD (83 for work, 10 reserve). Cumulative phase caps: A 40, B 80, C 83
 
 | Phase | Cap (USD, cumulative) | Estimated spend (cumulative) | State |
 |---|---|---|---|
-| A real-project correctness, `ucl bee-diff` | 40 | ~27 | done (`v0.5.0`, commit `f06fd51`) |
-| B `ucl test` | 80 | | in progress |
-| C mutation testing (proposal only) | 83 | | not started |
+| A real-project correctness, `ucl bee-diff` | 40 | ~27 | done, `v0.5.0` (`f06fd51`, CI run 25 green on Linux, Windows, macOS) |
+| B `ucl test` | 80 | ~45 | done, `v0.6.0` (`d96c285`, CI run 26 green on Linux, Windows, macOS) |
+| C `ucl mutate` (proposal only) | 83 | ~47 | done: docs/proposals.md, item 4 |
+| final status | (reserve 10) | ~49 | this file |
+
+### Maintainer: what to run on the real machine
+
+docs/real-project-checklist.md, in short (add `--editor "<install>"` if `doctor` does not find the editor):
+
+```sh
+ucl doctor   path/to/Project > ucl-doctor.txt
+ucl bee-diff path/to/Project > ucl-bee-diff.txt
+ucl bee-diff path/to/Project --format json -o ucl-bee-diff.json
+ucl check    path/to/Project --summary > ucl-check-editor-summary.txt
+ucl check    path/to/Project --target player --platform StandaloneWindows64 --summary > ucl-check-player-summary.txt
+ucl test     path/to/Project --format json -o ucl-test.json
+ucl test     path/to/Project --emit-unity-filter ucl-unity-filter.txt > ucl-test.txt
+```
 
 ### Phase A
 
 | Finding | State | Fixture | Proof |
 |---|---|---|---|
-| G1 API compatibility level ignored | fixed (wrapped YAML lines; per-assembly level; Unity's reference sets) | `api-compat-netfx`, `realistic-netfx-nuget` | red run in docs/real-project-fixes.md; `A01`-`A06` unit tests; verify agrees |
-| G2 native plugin passed as reference | fixed (PE CLI header) | `plugin-native` | red run; `PluginBinaryTests` |
-| G3 missing precompiled reference was an error | fixed (UCL1004 is info, as Unity is silent) | `precompiled-reference-absent`, `override-references-missing` | red run; `GraphPluginTests` |
-| G4 facade gap (CS0012 System.Runtime) | fixed (profile facades and NetStandard shims) | `facade-system-runtime` | red run |
-| G5 cascades | report improved, behaviour unchanged | (project built in the test) | `CascadeReportTests` |
+| G1 API compatibility level ignored | fixed: wrapped YAML lines lost every later key; level is per assembly (Editor-only assemblies follow `editorAssembliesCompatibilityLevel`); Unity's reference sets | `api-compat-netfx`, `realistic-netfx-nuget` | red run in docs/real-project-fixes.md; rows A01-A06 tested; verify agrees |
+| G2 native plugin passed as reference | fixed: PE CLI header decides | `plugin-native` | red run; `PluginBinaryTests` |
+| G3 missing precompiled reference was an error | fixed: `UCL1004` is info, as Unity is silent | `precompiled-reference-absent`, `override-references-missing` | red run; `GraphPluginTests` |
+| G4 facade gap (CS0012 System.Runtime) | fixed: profile facades and NetStandard shims | `facade-system-runtime` | red run |
+| G5 cascades | report improved (root failures first, `blockedBy`, `--summary`); behaviour unchanged | built in the test | `CascadeReportTests` |
 
-`ucl bee-diff` (the Bee oracle) is built and documented (docs/oracle.md); tested on hand-written response
-files. The maintainer runs docs/real-project-checklist.md next. What the stubs cannot show: whether the real
-Editor's reference lists match `ucl`'s (the 125 `unity-4.8-api` references, the module DLLs, Unity's 16
-analyzers); `bee-diff` on the real project answers that.
+`ucl bee-diff` is built, documented (docs/oracle.md, "Bee oracle") and tested on hand-written response files.
+What the stubs cannot show and `bee-diff` on the real project will: whether the Editor's reference lists match
+`ucl`'s (the 125 `unity-4.8-api` references, the module DLLs, where `Unity.IL2CPP.dll` comes from) and Unity's
+16 analyzers (its own source generators, which `ucl` does not run: proposal 1).
 
-`scripts/check.sh --mutation` (Linux): Core 543, Discovery 72, Integration 212 tests passed; 61 fixtures, 151
-cells; verify 151 cells agree; mutation killed. CI run 25 (`f06fd51`): green on Linux, Windows and macOS.
+### Phase B: `ucl test` on the fixtures
+
+Fixture `test-editmode` (3 test assemblies, 31 cases): 19 passed, 1 failed (the deliberate real failure),
+2 skipped (explicit, inconclusive), 1 ignored, 2 needs-unity (`new GameObject`, `Debug.Log`), 6 unity-only
+(`[UnityTest]`, `LogAssert`, `[UnityPlatform]`, `[RequiresPlayMode]`, 2 in the Play Mode assembly); exit 1.
+Every case is listed in `fixtures/manifest.json` and compared exactly. Benchmark (docs/test.md): `ucl test`
+1.68 s cold, 0.42 s warm; `dotnet test` on an equivalent csproj 1.93 s, and it reports the 6 Unity-dependent
+cases as failures.
+
+### Gate (2026-10-02, Linux)
+
+`scripts/check.sh --mutation`: Core 568, Discovery 72, Integration 224 tests passed; line coverage Core 96.5%,
+overall 92.7%; 62 fixtures, 153 cells; verify 153 cells agree; mutation killed; R11 benchmark within targets;
+release single-file binary smoke test (now including `ucl test`) passed.
+
+### Tags (push refused in this environment; the owner runs these)
+
+| Tag | Commit | Note |
+|---|---|---|
+| `v0.5.0` | `f06fd51` | phase A (local tag created) |
+| `v0.6.0` | `d96c285` | phase B (local tag created) |
+
+```sh
+git tag -a v0.5.0 f06fd51 -m v0.5.0 && git push origin v0.5.0
+git tag -a v0.6.0 d96c285 -m v0.6.0 && git push origin v0.6.0
+```
+
+Not `v1.0.0`: that waits for the real-project `bee-diff` to agree and for the oracle recording.
+
+### Open questions (recommended default first)
+
+1. Unity's own source generators (`Editor/Data/Tools/Unity.SourceGenerators`) appear on every Bee command line.
+   Run them in `check` and `test`? Recommended: yes, once `bee-diff` on the real project lists exactly which
+   (proposal 1); until then `bee-diff` reports them as the one known difference.
+2. Should `--emit-unity-filter` leave out classes with known CoreCLR/Mono divergences? Recommended: no automatic
+   rule (it cannot know); document (done) and let teams mark such classes with `[UnityPlatform]` or move them.
+3. The Unity Test Framework's `-testFilter` with a list of `!` patterns: confirm on the real Editor that it
+   means "none of these" before relying on it. Recommended: check once with the fixture's filter.
+4. `ucl test` loads the real `UnityEngine*.dll` into CoreCLR. Untested here (no Unity in CI): engine static
+   constructors may throw on load, which `ucl` classifies needs-unity. Recommended: run `ucl test` in the
+   checklist and send `ucl-test.json`.
+5. `UCL1004` is now info. Recommended: keep; if the maintainer wants silence, add `--hide-info` later.
+6. Test case counting uses NUnit 3.14, the Editor NUnit 3.5 with the Test Framework's builders. Recommended:
+   compare totals once on the real project (the Test Runner window shows them).
 
 # Session 1
 
