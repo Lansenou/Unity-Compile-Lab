@@ -24,7 +24,7 @@ internal sealed class AssemblyCompiler
     private readonly ReferenceCatalog _catalog;
     private readonly ContentHasher _hasher;
     private readonly CompileSettings _settings;
-    private readonly AnalyzerLoader _loader = new();
+    private readonly AnalyzerSet _loader = new();
     private readonly BuildCache? _cache;
 
     public AssemblyCompiler(IFileSystem fs, ProjectContext project, ReferenceCatalog catalog, ContentHasher hasher, CompileSettings settings, BuildCache? cache)
@@ -133,8 +133,11 @@ internal sealed class AssemblyCompiler
             var physical = analyzerPaths.Select(_project.ToPhysical).Concat(editorAnalyzers.Select(a => a.Path)).ToList();
             compilation = AnalyzerHost.Run(compilation, physical, plan, _project, _fs, _loader, parseOptions, configSet, raw);
         }
+        else
+        {
+            raw.AddRange(compilation.GetDiagnostics().Select(d => (d, DiagnosticOrigin.Compiler)));
+        }
 
-        raw.InsertRange(0, compilation.GetDiagnostics().Select(d => (d, DiagnosticOrigin.Compiler)));
         var diagnostics = raw
             .Where(r => r.Diagnostic.Severity != DiagnosticSeverity.Hidden && !r.Diagnostic.IsSuppressed)
             .Select(r => Map(r.Diagnostic, r.Origin, plan))

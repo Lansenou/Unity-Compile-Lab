@@ -80,7 +80,9 @@ When the project's files, logs and names must stay private, send only these numb
   `result: ...`); the JSON has the same counts under `summary.byCategory`;
 * `ucl check`, editor and player: the exit code and the `result:` line (errors, warnings, assemblies, skipped);
 * `ucl test`: its `result:` line (case totals by category);
-* the cold and warm times.
+* the cold and warm times;
+* if a cold run is slow, the same cold run with `--analyzers off` (time only), which splits analyzer time from
+  compile time.
 
 Privacy: the JSON files contain project-relative paths, assembly names, define names, and editor-relative
 paths only for the editor side; reference locations outside the project and the editor appear as absolute

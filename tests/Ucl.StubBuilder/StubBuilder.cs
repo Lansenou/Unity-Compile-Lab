@@ -18,7 +18,7 @@ public static class StubBuilder
     public static IReadOnlyList<string> EditorVersions { get; } = ["6000.0.30f1", "6000.3.2f1", "6000.3.19f1"];
 
     /// <summary>Bump when the layout or compile settings change, so existing stamps are invalidated.</summary>
-    private const string BuilderVersion = "ucl-stubs/6";
+    private const string BuilderVersion = "ucl-stubs/7";
 
     private const string CoreModule = "UnityEngine.CoreModule";
 

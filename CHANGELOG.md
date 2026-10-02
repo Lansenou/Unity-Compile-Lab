@@ -21,6 +21,8 @@ Session 4: the 0.7.0 private rerun (docs/real-project-fixes.md, "Session 4").
 * Editor cells reference the editor's `Managed/UnityEngine/` engine modules whatever the active platform is,
   plus only the platform modules it lacks; player cells use the platform's copy. One DLL per file name.
 * `ENABLE_AUDIO_SCRIPTABLE_PIPELINE` only on 6000.3 before 6000.3.19.
+* Speed: analyzers and generators are loaded once per run and shared by all assemblies; compiler and analyzer
+  diagnostics come from one concurrent pass. The R11 benchmark project gains a noisy global analyzer.
 
 ### Fixed
 

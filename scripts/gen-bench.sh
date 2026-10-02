@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Generates the R11 benchmark project (not committed): 30 asmdefs in Core, Runtime,
 # Editor and Tests layers plus two embedded packages, ~1,700 C# files of realistic
-# shape, and one RoslynAnalyzer DLL scoped to the Core layer.
+# shape, one RoslynAnalyzer DLL scoped to the Core layer and one noisy analyzer that
+# runs on every assembly.
 #
 #   scripts/gen-bench.sh <out-dir>
 # Uses only the stub API of fixtures/_stubs; the analyzer DLL comes from
@@ -146,6 +147,12 @@ mkdir -p "$out/Assets/Game/Core/A/Analyzers"
 cp artifacts/stubs/dlls/Ucl.Fixture.Analyzer.dll "$out/Assets/Game/Core/A/Analyzers/"
 printf 'fileFormatVersion: 2\nguid: %s\nlabels:\n- RoslynAnalyzer\nPluginImporter:\n  serializedVersion: 2\n  isExplicitlyReferenced: 0\n  platformData:\n  - first:\n      Any: \n    second:\n      enabled: 0\n      settings: {}\n' "$(guid 99)" \
   > "$out/Assets/Game/Core/A/Analyzers/Ucl.Fixture.Analyzer.dll.meta"
+
+# A noisy analyzer outside every asmdef folder runs on every assembly, as large third-party analyzer sets do.
+mkdir -p "$out/Assets/Plugins/Analyzers"
+cp artifacts/stubs/dlls/Ucl.Bench.Noisy.dll "$out/Assets/Plugins/Analyzers/"
+printf 'fileFormatVersion: 2\nguid: %s\nlabels:\n- RoslynAnalyzer\nPluginImporter:\n  serializedVersion: 2\n  isExplicitlyReferenced: 0\n  platformData:\n  - first:\n      Any: \n    second:\n      enabled: 0\n      settings: {}\n' "$(guid 98)" \
+  > "$out/Assets/Plugins/Analyzers/Ucl.Bench.Noisy.dll.meta"
 
 # Runtime: 12 asmdefs, 70 files each, each referencing two Core assemblies and the net package.
 cores=(A B C D E F)

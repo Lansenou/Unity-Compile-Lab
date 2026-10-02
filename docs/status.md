@@ -15,7 +15,7 @@ fixture that is red on 0.7.0, then the fix, one commit each.
 | 3 `Unity.InputSystem.TestFramework` excluded (`UNITY_TESTS_FRAMEWORK`) | `tests-framework-symbol` | fixed: row D61 (source: the private run only) |
 | 4 version-gated built-in symbols, versionDefines | `version-gated-symbols` | fixed: D53 suffixes, E08 split, E17. `UNITY_XR_VISIONOS_SUPPORTED` and the two Input System symbols are not reproduced; possibly the same suffix bug, unverified |
 | 5 script-less asmdef compiled | `asmdef-no-scripts` | fixed: skipped, `UCL1006` info |
-| 6 speed (analyzer reach) | | next |
+| 6 speed (analyzer reach) | R11 bench with a global noisy analyzer | improved, not closed: analyzers shared per run, one diagnostic pass (cold 12.3 s to 11.6 s); the 637 s is not reproduced, analyzer cost is linear here. Next: the cold time with `--analyzers off` from the private run |
 
 Unverified: everything against the real editor; the private rerun reports the counts.
 

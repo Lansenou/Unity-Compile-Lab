@@ -12,14 +12,17 @@ namespace Ucl.Compilation;
 /// <summary>Runs the source generators and analyzers of an assembly, the way Unity runs DLLs labelled <c>RoslynAnalyzer</c>.</summary>
 internal static class AnalyzerHost
 {
-    /// <summary>Runs generators (returning the compilation with generated sources) and collects analyzer diagnostics into <paramref name="sink"/>.</summary>
+    /// <summary>
+    /// Runs generators, then the compiler and the analyzers in one concurrent pass, so method bodies are bound once for both.
+    /// Returns the compilation with generated sources; compiler and analyzer diagnostics go to <paramref name="sink"/>.
+    /// </summary>
     public static Microsoft.CodeAnalysis.Compilation Run(
         Microsoft.CodeAnalysis.Compilation compilation,
         IReadOnlyList<string> analyzerPaths,
         AssemblyPlan plan,
         ProjectContext project,
         IFileSystem fs,
-        IAnalyzerAssemblyLoader loader,
+        AnalyzerSet loader,
         CSharpParseOptions parseOptions,
         AnalyzerConfigSet? configSet,
         List<(Microsoft.CodeAnalysis.Diagnostic, DiagnosticOrigin)> sink)
@@ -28,10 +31,10 @@ internal static class AnalyzerHost
         var generators = ImmutableArray.CreateBuilder<ISourceGenerator>();
         foreach (var path in analyzerPaths)
         {
-            var reference = new AnalyzerFileReference(path, loader);
-            reference.AnalyzerLoadFailed += (_, e) => sink.Add((Microsoft.CodeAnalysis.Diagnostic.Create(LoadFailed, Location.None, path, e.Message), DiagnosticOrigin.Analyzer));
-            analyzers.AddRange(reference.GetAnalyzers(LanguageNames.CSharp));
-            generators.AddRange(reference.GetGenerators(LanguageNames.CSharp));
+            var loaded = loader.Get(path);
+            sink.AddRange(loaded.LoadFailures.Select(m => (Microsoft.CodeAnalysis.Diagnostic.Create(LoadFailed, Location.None, path, m), DiagnosticOrigin.Analyzer)));
+            analyzers.AddRange(loaded.Analyzers);
+            generators.AddRange(loaded.Generators);
         }
 
         var additional = plan.AdditionalFiles
@@ -49,13 +52,19 @@ internal static class AnalyzerHost
             sink.AddRange(generatorDiagnostics.Select(d => (d, DiagnosticOrigin.Analyzer)));
         }
 
-        if (analyzers.Count > 0)
+        if (analyzers.Count == 0)
         {
-            var withAnalyzers = compilation.WithAnalyzers(analyzers.ToImmutable(), new AnalyzerOptions(additional, optionsProvider));
-            var found = withAnalyzers.GetAnalyzerDiagnosticsAsync().GetAwaiter().GetResult();
-            sink.AddRange(found.Select(d => (d, DiagnosticOrigin.Analyzer)));
+            sink.AddRange(compilation.GetDiagnostics().Select(d => (d, DiagnosticOrigin.Compiler)));
+            return compilation;
         }
 
+        var withAnalyzers = compilation.WithAnalyzers(
+            analyzers.ToImmutable(),
+            new CompilationWithAnalyzersOptions(new AnalyzerOptions(additional, optionsProvider), onAnalyzerException: null, concurrentAnalysis: true,
+                logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: false));
+        var ids = analyzers.SelectMany(a => a.SupportedDiagnostics).Select(d => d.Id).ToHashSet(StringComparer.Ordinal);
+        var all = withAnalyzers.GetAllDiagnosticsAsync().GetAwaiter().GetResult();
+        sink.AddRange(all.Select(d => (d, ids.Contains(d.Id) && !d.Id.StartsWith("CS", StringComparison.Ordinal) ? DiagnosticOrigin.Analyzer : DiagnosticOrigin.Compiler)));
         return compilation;
     }
 
