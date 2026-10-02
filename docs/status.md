@@ -29,6 +29,25 @@ module exclusions), per-analyzer timing, and analyzer execution off the dependen
 rule changes have been made for these items. Network access to the public manual and GitHub API now
 works; the earlier infrastructure blocker is resolved.
 
+### Item 4b: NUnit references — open after public-rule audit
+
+Public evidence: [NUnit package 2.0.5 importer](https://github.com/needle-mirror/com.unity.ext.nunit/blob/2.0.5/net40/unity-custom/nunit.framework.dll.meta)
+has Auto Reference on, no define constraints, and Editor/Any Platform compatibility. It is not restricted
+to assemblies in testable packages. [Unity 6000.3 TestRunnerHelpers](https://github.com/Unity-Technologies/UnityCsReference/blob/2f6cef60096cf50741d933becf101bf3186719dd/Editor/Mono/Scripting/ScriptCompilation/TestRunnerHelpers.cs)
+adds NUnit independently of Auto Reference to Editor-only assemblies, or every assembly when
+playModeTestRunnerEnabled is set; an explicit overrideReferences/precompiledReferences entry already
+supplies it. Legacy optionalUnityReferences TestAssemblies also supplies the explicit NUnit reference.
+
+These rules are already implemented by PluginResolver and AsmdefParser. Existing GraphUnityRulesTests
+cover Editor-only, play-mode enabled and legacy test assemblies; GraphPluginTests covers explicit NUnit
+and the ordinary Auto Reference path. testables controls package test source assemblies, not an
+unconstrained NUnit plugin. noEngineReferences does not suppress user plugin references. No public
+fixture reproduces the reported 22 missing references, so no code change or claimed fix is justified.
+Next evidence needed: counts of affected assemblies grouped by overrideReferences, an explicit NUnit
+entry, Editor-only status and playModeTestRunnerEnabled, plus whether their NUnit plugin is discovered
+and compatible. The maintainer can report only counts/booleans; no project names, paths or package lists.
+This PR records the unresolved cause instead of manufacturing a failing fixture.
+
 ## Session 7 (2026-10-02): the v0.8.50 private rerun
 
 | Item | Fixture | State |
