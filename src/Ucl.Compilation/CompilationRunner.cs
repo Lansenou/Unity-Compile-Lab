@@ -40,8 +40,9 @@ public sealed class CompilationRunner
         var memo = settings.CacheDirectory is null ? null : new HashMemoStore(_fs, settings.CacheDirectory);
         memo?.LoadInto(hasher);
         var cache = settings.CacheDirectory is null ? null : new BuildCache(_fs, settings.CacheDirectory);
-        var compiler = new AssemblyCompiler(_fs, project, catalog, hasher, settings, cache);
-        var gate = new SemaphoreSlim(Math.Max(1, settings.MaxParallelism));
+        using var gate = new SemaphoreSlim(Math.Max(1, settings.MaxParallelism));
+        using var analyzerGate = new SemaphoreSlim(Math.Max(1, settings.MaxParallelism));
+        var compiler = new AssemblyCompiler(_fs, project, catalog, hasher, settings, cache, analyzerGate);
         var tasks = new Dictionary<string, Task<AssemblyOutcome>>(StringComparer.Ordinal);
 
         foreach (var plan in graph.Assemblies.Where(p => needed.Contains(p.Name)))
@@ -77,16 +78,60 @@ public sealed class CompilationRunner
             });
         }
 
-        Task.WaitAll(tasks.Values.ToArray());
+        try
+        {
+            Task.WaitAll(tasks.Values.ToArray());
+        }
+        catch
+        {
+            // A source task may fail after earlier assemblies launched analysis/cache work. Join that work before the
+            // caller tears down its file system, retaining the original source exception if a finalization also fails.
+            try
+            {
+                Task.WaitAll(tasks.Values.Where(t => t.IsCompletedSuccessfully).Select(t => CompleteResult(t.Result)).ToArray());
+            }
+            catch
+            {
+                // The original source-task failure is rethrown below.
+            }
+
+            throw;
+        }
+        var finalizations = tasks.ToDictionary(t => t.Key, t => CompleteResult(t.Value.Result), StringComparer.Ordinal);
+        Task.WaitAll(finalizations.Values.ToArray());
+        // Compilation can speculate past an emitted image while its analysis runs. Apply the same final failure cascade
+        // as the old serial pipeline, so analyzer errors still block the reported dependents and ucl test's returned images.
+        var completed = new Dictionary<string, AssemblyResult>(StringComparer.Ordinal);
+        foreach (var plan in graph.Assemblies.Where(p => needed.Contains(p.Name)))
+        {
+            var failed = plan.References.Where(r => completed[r].Status != AssemblyStatus.Compiled).Order(StringComparer.Ordinal).ToList();
+            if (failed.Count == 0)
+            {
+                completed[plan.Name] = finalizations[plan.Name].Result;
+                continue;
+            }
+
+            var roots = failed.SelectMany(f => completed[f].Status == AssemblyStatus.Failed ? [f] : completed[f].BlockedBy)
+                .Distinct().Order(StringComparer.Ordinal).ToList();
+            var through = failed.Except(roots).ToList();
+            var reason = $"{(roots.Count == 1 ? "dependency" : "dependencies")} {Quoted(roots)} failed"
+                + (through.Count > 0 ? $" (through {Quoted(through)}, skipped)" : string.Empty);
+            var speculative = finalizations[plan.Name].Result;
+            completed[plan.Name] = Skipped(plan, reason, roots).Result with
+            {
+                AnalyzerTimings = speculative.AnalyzerTimings,
+                ElapsedMs = speculative.ElapsedMs,
+                Cached = speculative.Cached,
+            };
+        }
+
         memo?.Save(hasher);
         var reported = graph.Assemblies.Where(p => only is null || only.Contains(p.Name)).ToList();
-        var assemblies = reported.Select(p => tasks[p.Name].Result is { PendingDiagnostics: { } pending } outcome
-            ? outcome.Result with { Diagnostics = pending.GetAwaiter().GetResult() }
-            : tasks[p.Name].Result.Result).ToList();
+        var assemblies = reported.Select(p => completed[p.Name]).ToList();
         var planning = graph.Diagnostics.Where(d => only is null || d.Assembly is null || only.Contains(d.Assembly));
         var diagnostics = DiagnosticOrder.Sort(planning.Concat(assemblies.SelectMany(a => a.Diagnostics)));
         var images = tasks
-            .Where(t => t.Value.Result.Image is not null)
+            .Where(t => t.Value.Result.Image is not null && completed[t.Key].Status == AssemblyStatus.Compiled)
             .ToDictionary(t => t.Key, t => t.Value.Result.Image!, StringComparer.Ordinal);
         return (new CellResult
         {
@@ -97,6 +142,18 @@ public sealed class CompilationRunner
             Problems = graph.Problems,
             ExitCode = ExitCodes.Compute(graph.Problems, diagnostics),
         }, images);
+    }
+
+    private static async Task<AssemblyResult> CompleteResult(AssemblyOutcome outcome)
+    {
+        if (outcome.PendingResult is { } pending)
+        {
+            return await pending.ConfigureAwait(false);
+        }
+
+        return outcome.PendingDiagnostics is { } diagnostics
+            ? outcome.Result with { Diagnostics = await diagnostics.ConfigureAwait(false) }
+            : outcome.Result;
     }
 
     // The reported assemblies and everything they reference, transitively.

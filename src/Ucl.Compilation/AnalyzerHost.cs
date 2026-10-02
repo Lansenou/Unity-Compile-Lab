@@ -15,10 +15,10 @@ namespace Ucl.Compilation;
 internal static class AnalyzerHost
 {
     /// <summary>
-    /// Runs generators, then the compiler and the analyzers in one concurrent pass, so method bodies are bound once for both.
-    /// Returns the compilation with generated sources; compiler and analyzer diagnostics go to <paramref name="sink"/>.
+    /// Runs generators and compiler diagnostics before emission; prepares a separately scheduled tracked analyzer pass.
+    /// Generator/load diagnostics go to <paramref name="sink"/>. Compiler and analyzer diagnostics are finalized together.
     /// </summary>
-    public static Microsoft.CodeAnalysis.Compilation Run(
+    public static PreparedAnalysis Prepare(
         Microsoft.CodeAnalysis.Compilation compilation,
         IReadOnlyList<(string Display, string Path)> analyzerPaths,
         AssemblyPlan plan,
@@ -27,8 +27,7 @@ internal static class AnalyzerHost
         AnalyzerSet loader,
         CSharpParseOptions parseOptions,
         AnalyzerConfigSet? configSet,
-        List<(Microsoft.CodeAnalysis.Diagnostic, DiagnosticOrigin)> sink,
-        List<AnalyzerTiming> timings)
+        List<(Microsoft.CodeAnalysis.Diagnostic, DiagnosticOrigin)> sink)
     {
         var analyzers = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
         var generators = ImmutableArray.CreateBuilder<ISourceGenerator>();
@@ -62,40 +61,40 @@ internal static class AnalyzerHost
             sink.AddRange(generatorDiagnostics.Select(d => (d, DiagnosticOrigin.Analyzer)));
         }
 
-        if (analyzers.Count == 0)
-        {
-            sink.AddRange(compilation.GetDiagnostics().Select(d => (d, DiagnosticOrigin.Compiler)));
-            return compilation;
-        }
-
         // csc without -errorlog (Unity's Bee passes none) filters Hidden and Info diagnostics, and its driver does not run an
         // analyzer whose every diagnostic would be filtered (Roslyn CommonCompiler, AnalyzerManager.IsDiagnosticAnalyzerSuppressed).
         var categoryConfigured = CategorySeverityConfigured(optionsProvider, compilation.SyntaxTrees);
         var running = analyzers.Where(a => categoryConfigured || !OnlyFiltered(a, compilation)).ToImmutableArray();
+        var compilerDiagnostics = compilation.GetDiagnostics();
         if (running.Length == 0)
         {
-            sink.AddRange(compilation.GetDiagnostics().Select(d => (d, DiagnosticOrigin.Compiler)));
-            return compilation;
+            return new PreparedAnalysis(compilation, compilerDiagnostics, false,
+                () => Task.FromResult(new AnalysisBatch(compilerDiagnostics.Select(d => (d, DiagnosticOrigin.Compiler)).ToList(), [])));
         }
 
         // GetAllDiagnosticsAsync uses Roslyn's untracked driver and discards its execution times. Use the tracked API once.
         // Route compiler diagnostics through that same driver so DiagnosticSuppressors still see and suppress compiler warnings.
-        var compilerDiagnostics = compilation.GetDiagnostics();
         var withAnalyzers = compilation.WithAnalyzers(
             running.Add(new CompilerDiagnosticsAnalyzer(compilerDiagnostics)),
             new CompilationWithAnalyzersOptions(new AnalyzerOptions(additional, optionsProvider), onAnalyzerException: null, concurrentAnalysis: true,
                 logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: false));
         var ids = running.SelectMany(a => a.SupportedDiagnostics).Select(d => d.Id).ToHashSet(StringComparer.Ordinal);
-        var analysis = withAnalyzers.GetAnalysisResultAsync(CancellationToken.None).GetAwaiter().GetResult();
-        var all = analysis.GetAllDiagnostics();
-        foreach (var analyzer in running)
+        return new PreparedAnalysis(compilation, compilerDiagnostics, true, async () =>
         {
-            var telemetry = analysis.AnalyzerTelemetryInfo[analyzer];
-            timings.Add(new AnalyzerTiming(displays[analyzer], analyzer.GetType().FullName ?? analyzer.GetType().Name, telemetry.ExecutionTime.TotalMilliseconds));
-        }
-        sink.AddRange(all.Select(d => (d, ids.Contains(d.Id) && !d.Id.StartsWith("CS", StringComparison.Ordinal) ? DiagnosticOrigin.Analyzer : DiagnosticOrigin.Compiler)));
-        return compilation;
+            var analysis = await withAnalyzers.GetAnalysisResultAsync(CancellationToken.None).ConfigureAwait(false);
+            var timings = running.Select(analyzer => new AnalyzerTiming(displays[analyzer], analyzer.GetType().FullName ?? analyzer.GetType().Name,
+                analysis.AnalyzerTelemetryInfo[analyzer].ExecutionTime.TotalMilliseconds)).ToList();
+            var diagnostics = analysis.GetAllDiagnostics()
+                .Select(d => (d, ids.Contains(d.Id) && !d.Id.StartsWith("CS", StringComparison.Ordinal) ? DiagnosticOrigin.Analyzer : DiagnosticOrigin.Compiler)).ToList();
+            return new AnalysisBatch(diagnostics, timings);
+        });
     }
+
+    internal sealed record PreparedAnalysis(Microsoft.CodeAnalysis.Compilation Compilation,
+        ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> CompilerDiagnostics, bool HasAnalyzers, Func<Task<AnalysisBatch>> Complete);
+
+    internal sealed record AnalysisBatch(IReadOnlyList<(Microsoft.CodeAnalysis.Diagnostic Diagnostic, DiagnosticOrigin Origin)> Diagnostics,
+        IReadOnlyList<AnalyzerTiming> Timings);
 
     // True when every diagnostic of the analyzer is Hidden, Info or suppressed wherever it can be reported: by default, under
     // the compilation's specific options (rsp, ruleset) and under every global or per-file .editorconfig value. Suppressors

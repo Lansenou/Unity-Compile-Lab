@@ -26,8 +26,10 @@ internal sealed class AssemblyCompiler
     private readonly CompileSettings _settings;
     private readonly AnalyzerSet _loader = new();
     private readonly BuildCache? _cache;
+    private readonly SemaphoreSlim _analyzerGate;
 
-    public AssemblyCompiler(IFileSystem fs, ProjectContext project, ReferenceCatalog catalog, ContentHasher hasher, CompileSettings settings, BuildCache? cache)
+    public AssemblyCompiler(IFileSystem fs, ProjectContext project, ReferenceCatalog catalog, ContentHasher hasher, CompileSettings settings, BuildCache? cache,
+        SemaphoreSlim analyzerGate)
     {
         _cache = cache;
         _fs = fs;
@@ -35,6 +37,7 @@ internal sealed class AssemblyCompiler
         _catalog = catalog;
         _hasher = hasher;
         _settings = settings;
+        _analyzerGate = analyzerGate;
     }
 
     public AssemblyOutcome Compile(AssemblyGraph graph, AssemblyPlan plan, IReadOnlyDictionary<string, AssemblyOutcome> dependencies)
@@ -129,24 +132,25 @@ internal sealed class AssemblyCompiler
 
         Microsoft.CodeAnalysis.Compilation compilation = CSharpCompilation.Create(plan.Name, trees, references, options);
         var raw = new List<(Microsoft.CodeAnalysis.Diagnostic Diagnostic, DiagnosticOrigin Origin)>();
-        var timings = new List<AnalyzerTiming>();
+        AnalyzerHost.PreparedAnalysis prepared;
         if (analyzerDisplays.Count > 0)
         {
             var physical = analyzerPaths.Select(a => (Display: a, Path: _project.ToPhysical(a))).Concat(editorAnalyzers).ToList();
-            compilation = AnalyzerHost.Run(compilation, physical, plan, _project, _fs, _loader, parseOptions, configSet, raw, timings);
+            prepared = AnalyzerHost.Prepare(compilation, physical, plan, _project, _fs, _loader, parseOptions, configSet, raw);
+            compilation = prepared.Compilation;
         }
         else
         {
-            raw.AddRange(compilation.GetDiagnostics().Select(d => (d, DiagnosticOrigin.Compiler)));
+            var compilerDiagnostics = compilation.GetDiagnostics();
+            prepared = new AnalyzerHost.PreparedAnalysis(compilation, compilerDiagnostics, false,
+                () => Task.FromResult(new AnalyzerHost.AnalysisBatch(compilerDiagnostics.Select(d => (d, DiagnosticOrigin.Compiler)).ToList(), [])));
         }
 
-        var diagnostics = raw
-            .Where(r => r.Diagnostic.Severity is DiagnosticSeverity.Warning or DiagnosticSeverity.Error && !r.Diagnostic.IsSuppressed)
-            .Where(r => !plan.SuppressWarnings || (r.Diagnostic.Severity == DiagnosticSeverity.Error && !r.Diagnostic.IsWarningAsError))
-            .Select(r => Map(r.Diagnostic, r.Origin, plan))
-            .Distinct()
-            .ToList();
-        var failed = diagnostics.Any(d => d.Severity == Severity.Error);
+        // Source generators and compiler errors are on the emission path. Analyzer diagnostics are finalized afterwards.
+        var compilerFailed = prepared.CompilerDiagnostics.Any(d => d.Severity == DiagnosticSeverity.Error && !d.IsWarningAsError);
+        var failed = raw.Any(r => r.Diagnostic.Severity == DiagnosticSeverity.Error && !r.Diagnostic.IsSuppressed
+            && (!plan.SuppressWarnings || !r.Diagnostic.IsWarningAsError));
+        var emissionErrors = new List<Microsoft.CodeAnalysis.Diagnostic>();
 
         byte[]? imageBytes = null;
         var imageHash = string.Empty;
@@ -154,7 +158,7 @@ internal sealed class AssemblyCompiler
         {
             using var stream = new MemoryStream();
             var emit = compilation.Emit(stream, options: new EmitOptions(metadataOnly: !_settings.FullImages));
-            if (emit.Success)
+            if (emit.Success && !compilerFailed)
             {
                 imageBytes = stream.ToArray();
                 imageHash = ContentHasher.HashBytes(imageBytes);
@@ -162,17 +166,54 @@ internal sealed class AssemblyCompiler
             else
             {
                 failed = true;
-                diagnostics.AddRange(emit.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => Map(d, DiagnosticOrigin.Compiler, plan)));
+                emissionErrors.AddRange(emit.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
             }
         }
 
-        var sorted = DiagnosticOrder.Sort(diagnostics);
-        _cache?.Store(inputsHash, failed, sorted, imageBytes, imageHash);
+        async Task<AssemblyResult> Complete()
+        {
+            AnalyzerHost.AnalysisBatch analysis;
+            if (prepared.HasAnalyzers)
+            {
+                await _analyzerGate.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    analysis = await prepared.Complete().ConfigureAwait(false);
+                }
+                finally
+                {
+                    _analyzerGate.Release();
+                }
+            }
+            else
+            {
+                analysis = await prepared.Complete().ConfigureAwait(false);
+            }
+
+            var diagnostics = raw.Concat(analysis.Diagnostics)
+                .Where(r => r.Item1.Severity is DiagnosticSeverity.Warning or DiagnosticSeverity.Error && !r.Item1.IsSuppressed)
+                .Where(r => !plan.SuppressWarnings || (r.Item1.Severity == DiagnosticSeverity.Error && !r.Item1.IsWarningAsError))
+                .Select(r => Map(r.Item1, r.Item2, plan))
+                // Emit failures are authoritative even if a diagnostic suppressor removed a promoted compiler warning.
+                .Concat(emissionErrors.Select(d => Map(d, DiagnosticOrigin.Compiler, plan)))
+                .Distinct().ToList();
+            var finalFailed = failed || diagnostics.Any(d => d.Severity == Severity.Error);
+            var sorted = DiagnosticOrder.Sort(diagnostics);
+            // An analyzer error does not invalidate the compiler's image. Keep it for speculative dependencies on warm runs,
+            // but the runner still applies the final failure cascade and never returns failed/skipped images to ucl test.
+            _cache?.Store(inputsHash, finalFailed, sorted, imageBytes, imageHash);
+            return Result(plan, finalFailed, inputsHash, displays, analyzerDisplays, sorted, clock.ElapsedMilliseconds, cached: false)
+                with
+            { AnalyzerTimings = analysis.Timings };
+        }
+
+        var pending = prepared.HasAnalyzers ? Task.Run(Complete) : Complete();
         return new AssemblyOutcome(
-            Result(plan, failed, inputsHash, displays, analyzerDisplays, sorted, clock.ElapsedMilliseconds, cached: false) with { AnalyzerTimings = timings },
+            Result(plan, failed, inputsHash, displays, analyzerDisplays, [], clock.ElapsedMilliseconds, cached: false),
             imageBytes is null ? null : MetadataReference.CreateFromImage(imageBytes),
             imageHash,
-            imageBytes);
+            imageBytes,
+            PendingResult: pending);
     }
 
     private static AssemblyResult Result(

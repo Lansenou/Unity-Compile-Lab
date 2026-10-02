@@ -13,7 +13,7 @@ namespace Ucl.Compilation;
 /// </summary>
 internal sealed class BuildCache
 {
-    private const int FormatVersion = 2;
+    private const int FormatVersion = 3;
     private readonly IFileSystem _fs;
     private readonly string _dir;
 
@@ -35,13 +35,13 @@ internal sealed class BuildCache
         try
         {
             var stored = JsonSerializer.Deserialize<Stored>(_fs.ReadAllBytes(json));
-            if (stored is null)
+            if (stored is null || stored.ImageHash is null)
             {
                 return null;
             }
 
             byte[]? image = null;
-            if (!stored.Failed)
+            if (!stored.Failed || stored.ImageHash.Length > 0)
             {
                 var dll = EntryPath(key, ".dll");
                 if (!_fs.FileExists(dll))
@@ -95,4 +95,3 @@ internal sealed class BuildCache
         public Diagnostic ToDiagnostic() => new(Id, Severity, Origin, Assembly, File, Line, Column, Message, WarningAsError);
     }
 }
-

@@ -45,10 +45,19 @@ Ucl.Compilation ──> Ucl.Discovery (file system port only), Microsoft.CodeAna
    the inventory into an `AssemblyGraph`: which assemblies exist in this cell, their sources, references,
    precompiled references, analyzers, defines and compiler options. Pure function, no I/O; this is where
    all the Unity rules live and where almost all unit tests point.
-4. **Compile.** `CompilationRunner` compiles assemblies in dependency order, in parallel waves. Each
+4. **Compile.** `CompilationRunner` compiles assemblies in dependency order, releasing a dependent as soon
+   as its producer's reference image is emitted. Source generators and compiler diagnostics run before
+   emission. Analyzer completion and cache writes run in a separate queue, so they do not hold a compile
+   slot or the dependency chain. Each queue has at most --jobs assemblies; both queues may run at once. Each
    assembly is a `CSharpCompilation` with Unity's options; dependents reference the producer's emitted
    metadata-only image. Analyzers and source generators run when `--analyzers on`. Results are cached by
    an inputs hash (section "Incremental cache").
+   Before reporting, the runner joins every pending analyzer/cache task and applies the original final
+   failure cascade: late analyzer errors still mark their root failed and dependents blocked. Speculative
+   dependent diagnostics are not reported for blocked assemblies; failed/blocked images are not returned
+   to `ucl test`. This keeps cold/warm reports and exit codes consistent while allowing compile progress.
+   Timed reports retain speculative callback times even on assemblies blocked by a late error, so the
+   summary counts the work actually executed rather than hiding that cost.
 5. **Report.** `Ucl.Reporting` renders the `RunResult`. `ExitCodePolicy` (Core) computes the exit code.
 
 ## Data flow of `ucl bee-diff`
@@ -212,6 +221,9 @@ producer's metadata-image hash `)`. A dependent's key changes only when a depend
 changes, so editing a method body recompiles one assembly. Entries live in `<project>/Library/ucl/cache`
 (or `--cache-dir`): the metadata image plus diagnostics as JSON. File content hashes are memoised by
 (path, size, mtime) in `Library/ucl/files.json` so a warm run hashes nothing that did not change.
+Cache format v3 preserves a compiler-valid image when only analysis fails, allowing the same scheduling
+on a warm run. An empty image hash means compiler/generator failure with no image. Images are checksum
+verified on load; final analyzer diagnostics remain separate from the image. Format v2 entries rebuild once.
 
 ## Read-only contract
 

@@ -9,7 +9,7 @@ public sealed record CompileSettings
     /// <summary>Treat every warning as an error (<c>--warnaserror</c>), on top of response files.</summary>
     public bool WarnAsError { get; init; }
 
-    /// <summary>Maximum assemblies compiled at once.</summary>
+    /// <summary>Maximum assemblies compiled at once, and a separate equal limit for concurrent analyzer passes.</summary>
     public int MaxParallelism { get; init; } = Environment.ProcessorCount;
 
     /// <summary>Incremental cache folder, or null to disable the cache.</summary>
