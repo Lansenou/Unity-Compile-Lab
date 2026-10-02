@@ -269,3 +269,14 @@ Any file that grows past 400 lines must be listed here with its reason.
   that shares no code with `src/`. `scripts/check.sh` fails if it disagrees with `ucl graph --format json`
   on any fixture cell.
 * `oracle/`: scripts that record what a real, licensed Unity Editor reports, to settle disagreements.
+
+## Development coverage collection
+
+`scripts/check.sh` uses Coverlet's in-proc collector so VSTest waits for coverage collection before
+terminating its host. The MSBuild driver flushes on process exit and can lose modules when the host
+is killed ([Coverlet known issue](https://github.com/coverlet-coverage/coverlet/blob/master/Documentation/KnownIssues.md#vstest-stops-process-execution-early)).
+CoverageShutdownFixture, enabled only by the gate, deliberately delays process exit to reproduce that
+failure. Collector reports are merged by the pinned local ReportGenerator tool; tests and stub DLLs
+are excluded; the Core unit report omits generated sources as before. The independent verify executable's --coverage mode
+checks exact covered/valid line counts: Core 90%, all source modules 75%. Empty/unreadable reports fail.
+Raw collector reports and merged Cobertura/JSON summaries are retained under coverage/ as CI artifacts.

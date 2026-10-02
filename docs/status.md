@@ -3,6 +3,33 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
+## CI follow-up: Windows coverage collection (2026-10-02)
+
+The post-merge main run for PR 21 failed on Windows after all 973 tests passed: merged line
+coverage was 52.67%, with compilation and reporting at 0%. Release was skipped. PR checks
+had passed; checking PR CI alone did not catch the later main failure.
+
+Public [Coverlet shutdown issue](https://github.com/coverlet-coverage/coverlet/blob/master/Documentation/KnownIssues.md#vstest-stops-process-execution-early):
+VSTest can kill its host before the MSBuild driver's ProcessExit hit-file writes finish. The
+original synthetic CoverageShutdownFixture installs a delayed exit handler before product
+modules execute. Before the fix, all integration tests pass but coverage falls to 3.79% and
+the unchanged 75% gate fails; with the in-proc collector, the same delayed-shutdown workload
+retains 88.82% line coverage. The quality gate always exercises this fixture.
+
+Replace coverlet.msbuild with pinned coverlet.collector; merge collector Cobertura reports
+with pinned ReportGenerator. Preserve 90% Core / 75% overall line gates, checked against exact
+covered/valid counts. Missing, empty and invalid reports fail closed, including a percentage
+that rounds to 75% while remaining below it. Core unit coverage still excludes generated sources; overall collection retains its original
+source scope. Test/stub assemblies stay excluded. No production compilation behavior changes. Platform PR CI and the post-merge
+main run must both pass before reporting completion. Local gate: Core 614, Discovery 75,
+Integration 291, independently verified cells 205; Core line coverage 96.09%, merged 91.81%.
+
+Separate open CI issue: the earlier Linux failure before PR 19's successful rerun was
+FetchTests.Missing_package_exit_3: Address already in use during LoopbackRegistry.Dispose.
+Its log is now readable. It was not a coverage or analyzer timeout failure. A deterministic
+synthetic port-ownership repro is still needed before changing the test server; do not call a
+successful rerun a proven fix.
+
 ## Session 9 (2026-10-02): plugin exclusions and profile conflicts
 
 Counts-only rerun of v0.8.72 (`07e8093`): 357 errors, 47/79 Editor assemblies skipped;
