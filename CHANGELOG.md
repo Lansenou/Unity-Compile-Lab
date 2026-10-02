@@ -9,6 +9,9 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Changed
 
+* In editor cells, editor-only assemblies reference every engine module, including disabled built-in
+  packages' modules (fixture `editor-only-disabled-modules`).
+
 * `UNITY_TESTS_FRAMEWORK` is no longer a compiler define (row D61 removed, a 0.8.0 mistake). Test framework
   assemblies declare it through their own versionDefines, which their defineConstraints see.
 

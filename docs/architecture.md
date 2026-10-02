@@ -134,7 +134,13 @@ Nothing is compiled or written. Details: [oracle.md](oracle.md#bee-oracle-ucl-be
 * **Engine references.** `noEngineReferences: true` removes the editor's UnityEngine and UnityEditor DLLs.
   Built-in modules come from `com.unity.modules.*` packages: a module DLL whose name matches a
   `com.unity.modules.<x>` package is referenced only when that package is resolved; modules with no
-  package (CoreModule, SharedInternalsModule, ...) are always referenced. Editor cells also reference the
+  package (CoreModule, SharedInternalsModule, ...) are always referenced. Exception: in an editor cell,
+  editor-only assemblies (`Assembly-CSharp-Editor*`, asmdefs with `includePlatforms: [Editor]`) reference
+  every `Managed/UnityEngine/` module, disabled ones included ([REAL]: with most built-in modules disabled the
+  Editor passed `UnityEngine.AnimationModule` and about 30 other disabled modules to its 36 editor-only
+  assemblies; fixture `editor-only-disabled-modules`). Open: the Editor also left out
+  `VirtualTexturingModule`, `InsightsModule`, `ClusterRendererModule`, `ClusterInputModule` and `ARModule`
+  for runtime assemblies of a WebGL project, which `ucl` still references; the rule is not known. Editor cells also reference the
   `UnityEditor` DLLs, for every assembly (runtime code may use `#if UNITY_EDITOR`).
 * **Editor references** (observed in public Unity-generated project files; fixture `editor-reference-set`).
   With engine references: the facade `Managed/UnityEngine/UnityEngine.dll` (DLLs built against the old

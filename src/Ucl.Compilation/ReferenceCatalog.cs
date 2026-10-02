@@ -46,8 +46,11 @@ internal sealed class ReferenceCatalog
 
         if (engine != EngineReferences.None)
         {
+            // Editor-only assemblies in an editor compile get every module, disabled built-in packages included ([REAL]: the Editor
+            // passed UnityEngine.AnimationModule to UnityEditor.UI with com.unity.modules.animation disabled); others only enabled ones.
+            var allModules = graph.Cell.IsEditor && plan.IsEditorOnly;
             var modules = EngineModules(graph.Cell.IsEditor, _editor.PlatformModules.GetValueOrDefault(graph.Cell.Platform) ?? [])
-                .Where(p => BuiltInModules.IsReferenced(Path.GetFileName(p), graph.EnabledModules, _modulePackages));
+                .Where(p => allModules || BuiltInModules.IsReferenced(Path.GetFileName(p), graph.EnabledModules, _modulePackages));
             foreach (var p in modules)
             {
                 result.Add(($"editor:{Relative(p)}", p));
