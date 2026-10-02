@@ -9,6 +9,9 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Changed
 
+* `UNITY_TESTS_FRAMEWORK` is no longer a compiler define (row D61 removed, a 0.8.0 mistake). Test framework
+  assemblies declare it through their own versionDefines, which their defineConstraints see.
+
 * Assemblies of immutable packages (registry, git, built-in) report only errors, as Unity compiles them with
   `SuppressCompilerWarnings`; analyzers that cannot report an error are not run on them (fixture
   `analyzer-immutable-package`). This removes most analyzer time on projects with many package assemblies.

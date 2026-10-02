@@ -152,7 +152,6 @@ public static class DefineTable
         if ((cell.IsEditor && testFrameworkPresent) || cell.IncludeTests)
         {
             d.Add("UNITY_INCLUDE_TESTS", "D60");
-            d.Add("UNITY_TESTS_FRAMEWORK", "D61");
         }
 
         BuiltInDefines.Add(d, cell);

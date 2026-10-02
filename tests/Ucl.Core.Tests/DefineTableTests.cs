@@ -422,8 +422,8 @@ public class DefineTableTests
     public void D60_UNITY_INCLUDE_TESTS_in_the_Editor_with_the_test_framework_or_with_include_tests()
     {
         Assert.Equal("D60", Compute(Cells.Editor(), testFramework: true).Reasons["UNITY_INCLUDE_TESTS"]);
-        Assert.Equal("D61", Compute(Cells.Editor(), testFramework: true).Reasons["UNITY_TESTS_FRAMEWORK"]);
-        Assert.False(Compute(Cells.Editor()).Contains("UNITY_TESTS_FRAMEWORK"));
+        // Not a compiler define: test framework assemblies declare it through versionDefines (no row D61 since session 6).
+        Assert.False(Compute(Cells.Editor(), testFramework: true).Contains("UNITY_TESTS_FRAMEWORK"));
         Assert.False(Compute(Cells.Editor()).Contains("UNITY_INCLUDE_TESTS"));
         Assert.False(Compute(Cells.Player(), testFramework: true).Contains("UNITY_INCLUDE_TESTS"));
         Assert.Equal("D60", Compute(Cells.Player(includeTests: true)).Reasons["UNITY_INCLUDE_TESTS"]);
