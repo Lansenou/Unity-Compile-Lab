@@ -3,6 +3,42 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
+## Player plugin follow-up from v0.8.85 (2026-10-02) — open
+
+Counts-only report after PR 23: Editor has 0 errors. Player has 344 CS0433/CS0121 errors;
+12 managed plugins with Any enabled, Exclude Editor enabled and Editor disabled are absent
+from Unity's own StandaloneWindows64 and WebGL player response files but referenced by ucl.
+The reported receiving controls have Exclude Editor disabled and Editor enabled. An unrelated
+WindowsStoreApps disabled entry does not, by itself, establish either target's compatibility.
+No private project/package inventory or response file was copied into the repository.
+
+The additional observation does not prove which property causes exclusion. Candidate audits:
+
+* Framework/facade collision: memory types in a framework can explain CS0433, but the 6000.3
+  managed build rules contain no blanket framework-name suppression rule. Native precompiled
+  enumeration is unpublished; name, filename and type overlap must be varied independently.
+  FilenameToPrecompiledAssembly resolves duplicate filenames using native order/Redirected,
+  not assembly identity or highest version; whether profile facades enter that list is unproven.
+* Editor exclusion affecting player compilation: the manual describes Editor as Play/Edit mode
+  and Standalone as Windows/Linux/macOS. Any switches per-platform selections to exclusion.
+  EditorBuildRules filters using native EditorOnly/UseForMono flags; it does not test an Exclude
+  Editor setting in its player reference loop. This does not prove how the native provider derives
+  those flags. A uniquely named plugin control is needed before changing all player compatibility.
+* Validate References: the manual describes dependency existence/strong-name checks, not an
+  Auto Reference switch. The public build loop does not branch on ValidateAssembly. This cannot
+  justify excluding every validation-enabled plugin; receiving controls must vary validation alone.
+
+Audited version: UnityCsReference 6000.3.25f1, commit
+`2f6cef60096cf50741d933becf101bf3186719dd`, not the newer master behavior. Sources and the
+original-project experiment/bee-diff acceptance protocol are in
+[player-plugin-investigation.md](player-plugin-investigation.md).
+
+No speculative player filter or claimed Unity-parity fixture was added. The existing map/list
+plugin fixtures retain the documented platform rules. Counts for Auto Reference, Validate
+References and nonempty defineConstraints were requested to check fields omitted from the
+reported platformData fragment. The rule and zero-difference player bee-diff acceptance remain
+open until a public minimal experiment proves both a receiving and a dropped case.
+
 ## Current follow-up (2026-10-02): map-form plugins and test-host resilience
 
 ### Item 1: map-form plugin metadata — merged in PR 23
