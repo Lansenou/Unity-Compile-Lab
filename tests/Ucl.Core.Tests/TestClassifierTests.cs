@@ -110,4 +110,15 @@ public class TestClassifierTests
     [Fact]
     public void The_finalizer_reason_names_the_type() =>
         Assert.StartsWith("constructs UnityEngine.Rendering.CommandBuffer,", TestClassifier.FinalizerReason("UnityEngine.Rendering.CommandBuffer"), StringComparison.Ordinal);
+
+    [Theory]
+    [InlineData("at Game.Helper.Run()\n at UnityEngine.Debug.Log(Object value)\n at UnityEditor.Tools.Menu()", "UnityEngine.Debug.Log")]
+    [InlineData("  at UnityEditor.AssetDatabase.LoadAssetAtPath (System.String path)", "UnityEditor.AssetDatabase.LoadAssetAtPath")]
+    [InlineData("at UnityEngine.GameObject..ctor(System.String name)", "UnityEngine.GameObject..ctor")]
+    [InlineData("at Game.UnityEngine.Helper.Run()", null)]
+    [InlineData("UnityEngine.Debug.Log in an exception message", null)]
+    [InlineData(null, null)]
+    public void Native_member_comes_from_the_first_engine_stack_frame(string? stack, string? expected) =>
+        Assert.Equal(expected, TestClassifier.EngineMember(stack));
+
 }

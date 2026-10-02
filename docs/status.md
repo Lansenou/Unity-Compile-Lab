@@ -3,7 +3,25 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
-## Player plugin follow-up from v0.8.85 (2026-10-02) — open
+## Test-host false-failure follow-up (2026-10-02)
+
+Counts-only PR 24 rerun: 5943 discovered; reported categories 3057 passed, 2104 needs-unity,
+609 unity-only and 90 failed. Those categories total 5860; categories for the remaining 83 were
+not supplied, so no skipped/ignored split is inferred. Of needs-unity reasons, 1233 reported only
+the ECall SecurityException message. No private project/type names or paths are recorded here.
+
+Member attribution is implemented in PR 27 (merge requires all three OS checks): take the first UnityEngine/UnityEditor exception frame,
+include it in the reason and nullable engineMember JSON field, and rank top-20 counts in text/JSON.
+The original engine stub proves attribution through a project helper; unknown frames
+stay unknown. Working directory (19 reported failures), full cultures (3), missing log scope (10),
+readonly-static reflection (1) and allocation-window GC differences (4) are next, each with a red
+fixture first. A reported group of 25 static-constructor failures has no proven cause; do not guess.
+
+No production Unity API shims are added. Logging needs expected/unexpected/missing-expectation
+parity tests; native Quaternion/Matrix math needs actual Unity CI comparison over 10,000 random
+inputs with per-member ULP bounds. Engine state and unpublished algorithms remain needs-unity.
+
+## Player plugin follow-up from v0.8.85 (2026-10-02) — audit merged in PR 26, rule open
 
 Counts-only report after PR 23: Editor has 0 errors. Player has 344 CS0433/CS0121 errors;
 12 managed plugins with Any enabled, Exclude Editor enabled and Editor disabled are absent

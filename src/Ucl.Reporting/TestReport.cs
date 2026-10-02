@@ -86,6 +86,14 @@ public static class TestReport
             }
         }
 
+        var members = NeedsUnityMembers(report).ToArray();
+        if (members.Length > 0)
+        {
+            sb.Append("needs-unity by member (top 20):\n");
+            foreach (var (member, cases) in members)
+                sb.Append("  ").Append(cases.ToString(CultureInfo.InvariantCulture)).Append("  ").Append(member).Append('\n');
+        }
+
         foreach (var crash in report.HostCrashes)
         {
             sb.Append("test host crashed after ").Append(crash.After ?? "(no case)");
@@ -104,6 +112,12 @@ public static class TestReport
         sb.Append("result: ").Append(report.Cases.Count).Append(" cases: ").Append(Counts(report.Cases)).Append(", exit ").Append(report.ExitCode).Append('\n');
         return sb.ToString();
     }
+
+    private static IEnumerable<(string Member, int Cases)> NeedsUnityMembers(TestRunReport report) =>
+        report.Cases.Where(c => c.Category == TestCategory.NeedsUnity)
+            .GroupBy(c => c.EngineMember ?? "(unknown)", StringComparer.Ordinal)
+            .OrderByDescending(g => g.Count()).ThenBy(g => g.Key, StringComparer.Ordinal).Take(20)
+            .Select(g => (g.Key, g.Count()));
 
     private static string Counts(IReadOnlyCollection<TestCaseResult> cases) =>
         string.Join(", ", Order.Select(o => $"{cases.Count(c => c.Category == o)} {Name(o)}"));
@@ -129,6 +143,15 @@ public static class TestReport
                 w.WriteNumber(o == TestCategory.NeedsUnity ? "needsUnity" : o == TestCategory.UnityOnly ? "unityOnly" : Name(o), report.Count(o));
             }
 
+            w.WriteStartArray("needsUnityByMember");
+            foreach (var (member, cases) in NeedsUnityMembers(report))
+            {
+                w.WriteStartObject();
+                w.WriteString("engineMember", member);
+                w.WriteNumber("cases", cases);
+                w.WriteEndObject();
+            }
+            w.WriteEndArray();
             w.WriteEndObject();
             w.WriteStartArray("problems");
             foreach (var p in report.Problems)
@@ -185,6 +208,7 @@ public static class TestReport
                 w.WriteString("class", c.ClassName);
                 w.WriteString("name", c.FullName);
                 w.WriteString("category", Name(c.Category));
+                if (c.Category == TestCategory.NeedsUnity) w.WriteString("engineMember", c.EngineMember);
                 if (c.Reason.Length > 0)
                 {
                     w.WriteString("reason", c.Reason);
