@@ -3,6 +3,32 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
+## Session 7 (2026-10-02): the v0.8.50 private rerun
+
+| Item | Fixture | State |
+|---|---|---|
+| 1 `ucl test` crash (CommandBuffer finalizer) | `test-host-crash` | fixed (PR 8): child test host, results written per case, crash reported, run resumes; cases constructing an engine type with a finalizer are needs-unity |
+| 2 editor warm 2.9 s to 7.7 s | bench row "about 100,000 cached warnings" | no regression on the bench (0.8.0 0.62 s, main 0.56 s); warm cost scales with replayed warnings, and the 0.8.0 run compiled far fewer assemblies. Diagnostics now load off the dependency chain (PR 9): 1.53 s to 1.26 s |
+| 3 analyzer cost | `analyzer-info-severity` | analyzer scope already matches the dag (bee-diff: no analyzer differences). Fixed a real gap (PR 10): like csc without `-errorlog`, no Info diagnostics and no Info/Hidden-only analyzers |
+| 4 reference differences | - | open, see below |
+| 5 `Unity.InputSystem.TestFramework` excluded | `tests-framework-symbol` | fixed (PR 11): D61 now gives `UNITY_TESTS_FRAMEWORK` to test framework assemblies only (released Input System asmdefs have no versionDefines) |
+
+Open (item 4), with the evidence found so far:
+
+* Engine modules on runtime assemblies: UnityCsReference `EditorBuildRules.GetUnityReferences` skips modules flagged
+  `ExcludedForRuntimeCode` for assemblies that are not Editor-only (the flag is native). Public Unity-generated
+  project files: Windows 6000.0 to 6000.3 leave out AMD and NVIDIA (and Hierarchy on 6000.3); WebGL 6000.0.43 leaves
+  out AMD, NVIDIA, AR, ClusterInput, ClusterRenderer and VirtualTexturing; the private 6000.3.19 WebGL run adds
+  Insights. Next: a per-platform table from these sources, with a fixture.
+* `nunit.framework.dll` missing on 22 assemblies: the published `com.unity.ext.nunit` 2.0.5 meta is Auto Reference on
+  (`isExplicitlyReferenced: 0`), unlike the fixture's. ucl already references it on runtime assemblies with that meta,
+  so the 22 are not explained yet; the maintainer could say what they have in common (overrideReferences,
+  noEngineReferences, Editor-only).
+* `UnityEditor.Graphs.dll` and the platform `Extensions.dll` extra on 15 assemblies: UnityCsReference adds
+  `EditorAssemblyReferences` to every assembly in editor builds, yet generated project files omit them for some
+  (Assembly-CSharp, the test runners). Rule not found.
+* `System.IO.Hashing.dll` missing on 55 assemblies: needs the package path and .meta settings from the maintainer.
+
 ## Session 6 (2026-10-02): the 0.8.0 private rerun
 
 Input: counts from the 0.8.0 rerun (docs/real-project-fixes.md, "Session 6"). One pull request per item, each
