@@ -49475,6 +49475,7 @@
             }
           ],
           "excluded": [
+            "Assembly-CSharp-Editor",
             "Example.Tools.Editor"
           ],
           "diagnostics": []
