@@ -90,7 +90,7 @@ public static class NUnitHost
 
                     if (scanFailures.Count > 0)
                     {
-                        decided = Case(test.Name, leaf, TestCategory.Failed, string.Join(" | ", scanFailures.Distinct(StringComparer.Ordinal)));
+                        decided = Case(test.Name, leaf, TestCategory.NeedsUnity, string.Join(" | ", scanFailures.Distinct(StringComparer.Ordinal)));
                     }
 
                     if (decided is null)

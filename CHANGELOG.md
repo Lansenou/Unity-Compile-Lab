@@ -9,7 +9,7 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Fixed
 
-* `ucl test` records IL-scan load failures against the affected case and continues. A crash during
+* `ucl test` records IL-scan load failures as needs-unity with the affected method and continues. A crash during
   classification records its case and resumes in a replacement host. Host crashes are errors (exit 1),
   including crashes with engine frames or before discovery; crash text is retained.
 

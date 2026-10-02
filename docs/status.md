@@ -31,7 +31,7 @@ blanket API-profile-name filter or duplicate-plugin precedence rule.
 Original TestHostLoadFailureTests compile a dependency with MissingBodyType, then load an original
 same-identity replacement without it. Before the fix, GetMethodBody throws TypeLoadException,
 the host records a crash and later cases never run. Per-method load failures now include declaring
-type, method, exception type and message in the affected case's failure reason; later cases run.
+type, method, exception type and message in the affected case's needs-unity reason; later cases run.
 Both direct method bodies and helpers reached by the IL walk are covered.
 
 Classification start/end events identify the case if the process dies while scanning. An original

@@ -39,7 +39,7 @@ public sealed class TestHostLoadFailureTests
         Assert.Equal(2, run.Discovered);
         Assert.Empty(run.Crashes);
         var bad = Assert.Single(run.Cases, c => c.FullName == "Cases.A_bad_body");
-        Assert.Equal(TestCategory.Failed, bad.Category);
+        Assert.Equal(TestCategory.NeedsUnity, bad.Category);
         Assert.Contains("IL scan", bad.Reason, StringComparison.Ordinal);
         Assert.Contains(inHelper ? "Helper.Broken" : "Cases.A_bad_body", bad.Reason, StringComparison.Ordinal);
         Assert.Contains("TypeLoadException", bad.Reason, StringComparison.Ordinal);

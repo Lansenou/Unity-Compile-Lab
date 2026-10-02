@@ -106,7 +106,7 @@ reaches the test. Members Unity implements in C# (`Vector3`, `Mathf`, attributes
 stubs too, so engine-free tests that use them pass as they would in the Editor.
 
 IL scanning records load failures per method, including type/method identity, exception type and message
-in the affected case's failure reason. Missing body types or unresolved callees do not abort classification
+in the affected case's `needs-unity` reason. Missing body types or unresolved callees do not abort classification
 of later cases. Classification start/end events are flushed too, so a host crash during scanning names
 its case and the replacement host skips that case and resumes the remainder. All host crashes force exit
 1, even if discovery had not produced any cases. Original `TestHostLoadFailureTests` compile a type-bearing
