@@ -11,6 +11,48 @@ namespace Ucl.Integration.Tests;
 /// <summary>Original synthetic assemblies reproduce missing method-body types without external binaries.</summary>
 public sealed class TestHostLoadFailureTests
 {
+    [Fact]
+    public void Failure_details_keep_initializer_causes_and_actual_exception_types()
+    {
+        var image = Emit("FailureDetailTests", """
+            using NUnit.Framework;
+            using System;
+            public static class BrokenInitializer {
+                public static readonly int Value = Initialize();
+                private static int Initialize() => throw new InvalidOperationException("synthetic initializer cause");
+            }
+            public class Cases {
+                [Test] public void A_initializer() { Assert.AreEqual(0, BrokenInitializer.Value); }
+                [Test] public void B_wrong_exception() {
+                    Assert.Throws<ArgumentException>(() => throw new InvalidOperationException("synthetic actual exception"));
+                }
+                [Test] public void Z_after() { Assert.AreEqual(4, 2 + 2); }
+            }
+            """);
+        var run = TestHost.Run([new("FailureDetailTests", false)], new Dictionary<string, byte[]> { ["FailureDetailTests"] = image },
+            new Dictionary<string, string>(), null, Launch);
+        Assert.Empty(run.Crashes);
+        Assert.Equal(3, run.Discovered);
+        var initializer = Assert.Single(run.Cases, c => c.FullName == "Cases.A_initializer");
+        Assert.Equal(TestCategory.Failed, initializer.Category);
+        Assert.Contains("TypeInitializationException", initializer.Reason, StringComparison.Ordinal);
+        Assert.Contains("InvalidOperationException", initializer.Reason, StringComparison.Ordinal);
+        Assert.Contains("synthetic initializer cause", initializer.Reason, StringComparison.Ordinal);
+        var wrong = Assert.Single(run.Cases, c => c.FullName == "Cases.B_wrong_exception");
+        Assert.Equal(TestCategory.Failed, wrong.Category);
+        Assert.Contains("Expected:", wrong.Reason, StringComparison.Ordinal);
+        Assert.Contains("But was:", wrong.Reason, StringComparison.Ordinal);
+        Assert.Contains("System.InvalidOperationException", wrong.Reason, StringComparison.Ordinal);
+        Assert.Equal(TestCategory.Passed, Assert.Single(run.Cases, c => c.FullName == "Cases.Z_after").Category);
+        var report = new TestRunReport { ToolVersion = "test", Cases = run.Cases };
+        foreach (var format in new[] { "text", "json", "junit", "nunit3" })
+        {
+            var output = Ucl.Reporting.TestReport.Render(report, format);
+            Assert.Contains("synthetic initializer cause", output, StringComparison.Ordinal);
+            Assert.Contains("But was:", output, StringComparison.Ordinal);
+        }
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

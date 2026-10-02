@@ -198,6 +198,10 @@ Source: [test-framework 1.4.5 LogScope.Current](https://github.com/needle-mirror
 
 ## Divergences: CoreCLR versus Mono
 
+Failure reasons preserve NUnit's complete message: static-initializer inner exception chains
+and assertion `Expected`/`But was` lines appear in text, JSON and XML output. Continuation lines
+are indented in text; the error's category is unchanged.
+
 `ucl test` runs on CoreCLR; the Editor runs tests on Mono with Unity's .NET Framework 4.8 class library. Known
 differences that change outcomes:
 
