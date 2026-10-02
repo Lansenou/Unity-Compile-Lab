@@ -56,6 +56,9 @@ public sealed record CliOptions
     /// <summary><c>--changed</c> git ref.</summary>
     public string? Changed { get; init; }
 
+    /// <summary><c>--summary</c>: text output keeps only each cell's root failures and result line.</summary>
+    public bool Summary { get; init; }
+
     /// <summary><c>--timings</c>.</summary>
     public bool Timings { get; init; }
 

@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Lansenou/unity-compile-lab/schema/beediff.schema.json",
+  "title": "ucl bee-diff result",
+  "description": "Output of `ucl bee-diff --format json`. Schema id ucl-beediff/1. Fields are only added in minor versions; a removal or rename bumps the schema id.",
+  "type": "object",
+  "required": ["schema", "tool", "exitCode", "summary", "problems", "dags"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "ucl-beediff/1" },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": { "name": { "const": "ucl" }, "version": { "type": "string" } }
+    },
+    "exitCode": { "enum": [0, 1, 3, 4] },
+    "summary": {
+      "type": "object",
+      "required": ["dags", "assemblies", "agree", "differences"],
+      "additionalProperties": false,
+      "properties": {
+        "dags": { "type": "integer", "minimum": 0 },
+        "assemblies": { "type": "integer", "minimum": 0 },
+        "agree": { "type": "integer", "minimum": 0 },
+        "differences": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "problems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "message"],
+        "additionalProperties": false,
+        "properties": { "id": { "type": "string", "pattern": "^UCL3[0-9]{3}$" }, "message": { "type": "string" }, "file": { "type": "string" } }
+      }
+    },
+    "dags": { "type": "array", "items": { "$ref": "#/$defs/dag" } }
+  },
+  "$defs": {
+    "dag": {
+      "type": "object",
+      "required": ["name", "assemblies"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "description": "Folder name under Library/Bee/artifacts, such as 1900b0aE.dag." },
+        "cell": {
+          "type": "object",
+          "required": ["unityVersion", "target", "platform", "development"],
+          "additionalProperties": false,
+          "properties": {
+            "unityVersion": { "type": "string" },
+            "target": { "enum": ["editor", "player"] },
+            "platform": { "enum": ["StandaloneWindows64", "StandaloneOSX", "StandaloneLinux64", "iOS", "Android", "WebGL"] },
+            "development": { "type": "boolean" },
+            "editorOs": { "enum": ["windows", "macos", "linux"] }
+          }
+        },
+        "note": { "type": "string", "description": "Why the dag was not compared." },
+        "assemblies": { "type": "array", "items": { "$ref": "#/$defs/assembly" } }
+      }
+    },
+    "assembly": {
+      "type": "object",
+      "required": ["name", "status", "differences"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "status": { "enum": ["agrees", "differs"] },
+        "responseFile": { "type": "string" },
+        "definition": { "type": "string" },
+        "differences": { "type": "array", "items": { "$ref": "#/$defs/difference" } }
+      }
+    },
+    "difference": {
+      "type": "object",
+      "required": ["category", "change", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "category": { "enum": ["assembly", "sources", "references", "defines", "options", "nowarn", "analyzers", "additionalfiles"] },
+        "change": { "enum": ["missing", "extra", "changed"], "description": "missing: the Editor has it and ucl does not; extra: the reverse." },
+        "value": { "type": "string" },
+        "editor": { "type": "string" },
+        "ucl": { "type": "string" }
+      }
+    }
+  }
+}

@@ -201,7 +201,7 @@ public static class AssemblyGraphBuilder
         CompileCell cell)
     {
         var options = playerArgs.Then(draft.Rsp.Options ?? RspOptions.Empty);
-        var noWarn = new SortedSet<string>(StringComparer.Ordinal) { "CS1701", "CS1702" };
+        var noWarn = new SortedSet<string>(StringComparer.Ordinal) { "CS0282", "CS1701", "CS1702" };
         if (settings.SuppressCommonWarnings)
         {
             noWarn.Add("CS0169");

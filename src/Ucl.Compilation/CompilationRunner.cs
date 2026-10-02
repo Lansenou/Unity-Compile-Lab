@@ -43,7 +43,16 @@ public sealed class CompilationRunner
                 var failed = deps.Where(d => d.Value.Result.Reference is null).Select(d => d.Key).Order(StringComparer.Ordinal).ToList();
                 if (failed.Count > 0)
                 {
-                    return Skipped(plan, $"dependency {string.Join(", ", failed.Select(f => $"'{f}'"))} has errors");
+                    // Name the root failures (assemblies that compiled with errors), not only the skipped ones in between.
+                    var roots = failed
+                        .SelectMany(f => deps[f].Result.Result is { Status: AssemblyStatus.Failed } ? [f] : deps[f].Result.Result.BlockedBy)
+                        .Distinct()
+                        .Order(StringComparer.Ordinal)
+                        .ToList();
+                    var through = failed.Except(roots).ToList();
+                    var reason = $"{(roots.Count == 1 ? "dependency" : "dependencies")} {Quoted(roots)} failed"
+                        + (through.Count > 0 ? $" (through {Quoted(through)}, skipped)" : string.Empty);
+                    return Skipped(plan, reason, roots);
                 }
 
                 await gate.WaitAsync().ConfigureAwait(false);
@@ -90,7 +99,9 @@ public sealed class CompilationRunner
         return needed;
     }
 
-    private static AssemblyOutcome Skipped(AssemblyPlan plan, string reason) => new(
+    private static string Quoted(IEnumerable<string> names) => string.Join(", ", names.Select(n => $"'{n}'"));
+
+    private static AssemblyOutcome Skipped(AssemblyPlan plan, string reason, IReadOnlyList<string> blockedBy) => new(
         new AssemblyResult
         {
             Name = plan.Name,
@@ -98,6 +109,7 @@ public sealed class CompilationRunner
             DefinitionPath = plan.DefinitionPath,
             Status = AssemblyStatus.Skipped,
             SkipReason = reason,
+            BlockedBy = blockedBy,
             Defines = plan.Defines.Symbols.ToList(),
             SourceCount = plan.Sources.Count,
         },

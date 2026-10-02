@@ -21,6 +21,9 @@ public sealed record AssemblyResult
     /// <summary>Why it was skipped, or null.</summary>
     public string? SkipReason { get; init; }
 
+    /// <summary>For a skipped assembly: the failed assemblies (root failures) that it depends on, directly or through other skipped ones; sorted.</summary>
+    public IReadOnlyList<string> BlockedBy { get; init; } = [];
+
     /// <summary>SHA-256 (hex) of every input: sources, references, defines, options.</summary>
     public string InputsHash { get; init; } = string.Empty;
 

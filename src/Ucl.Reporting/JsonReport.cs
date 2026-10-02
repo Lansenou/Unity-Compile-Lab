@@ -87,6 +87,17 @@ public static class JsonReport
             if (a.DefinitionPath is not null) w.WriteString("definition", a.DefinitionPath);
             w.WriteString("status", Names.Of(a.Status));
             if (a.SkipReason is not null) w.WriteString("skipReason", a.SkipReason);
+            if (a.Status == AssemblyStatus.Skipped)
+            {
+                w.WriteStartArray("blockedBy");
+                foreach (var b in a.BlockedBy)
+                {
+                    w.WriteStringValue(b);
+                }
+
+                w.WriteEndArray();
+            }
+
             w.WriteString("inputsHash", a.InputsHash);
             w.WriteNumber("sourceFiles", a.SourceCount);
             Strings(w, "defines", a.Defines);

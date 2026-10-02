@@ -6,7 +6,7 @@ namespace Ucl.Cli;
 /// <summary>Parses argv. No prompts, no partial matches: an unknown option is an error (exit 3).</summary>
 public static class ArgParser
 {
-    private static readonly string[] Commands = ["check", "graph", "explain", "export-csproj", "fetch", "doctor", "version", "help"];
+    private static readonly string[] Commands = ["check", "graph", "explain", "bee-diff", "export-csproj", "fetch", "doctor", "version", "help"];
 
     /// <summary>Parses arguments.</summary>
     public static Result<CliOptions> Parse(IReadOnlyList<string> args)
@@ -111,6 +111,7 @@ public static class ArgParser
                     case "--no-cache": o = o with { NoCache = true }; break;
                     case "--changed": o = o with { Changed = Next() }; break;
                     case "--timings": o = o with { Timings = true }; break;
+                    case "--summary": o = o with { Summary = true }; break;
                     case "--jobs" or "-j":
                         var n = Next();
                         o = o with { Jobs = int.TryParse(n, NumberStyles.None, CultureInfo.InvariantCulture, out var j) && j > 0 ? j : throw new ArgumentException($"--jobs needs a positive number, not '{n}'") };

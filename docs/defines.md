@@ -154,6 +154,7 @@ project root. Options both `/x` and `-x` spellings. Anything else is warning `UC
 | C03 | warning level | 4 | observed | Bee rsp |
 | C04 | suppressed warnings | CS0169, CS0649 when `suppressCommonWarnings` is 1 (default 1) | doc | [SCW] |
 | C05 | suppressed warnings | CS1701, CS1702 (assembly unification) | observed | Bee rsp |
+| C09 | suppressed warnings | CS0282 (field order of a partial struct declared in several files) | observed | [REAL] (`/nowarn:0282` on every command line) |
 | C06 | unsafe | asmdef `allowUnsafeCode`; predefined assemblies `allowUnsafeCode` in Player Settings; `-unsafe` in rsp | doc | [ASM] |
 | C07 | output kind | dynamically linked library, deterministic | observed | Bee rsp |
 | C08 | warnings as errors | off unless rsp `-warnaserror` or `ucl --warnaserror` | doc | [CUS] |

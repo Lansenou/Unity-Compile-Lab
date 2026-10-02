@@ -11,6 +11,8 @@ public static class HelpText
           ucl check [<project>] [options]      compile every assembly (default command)
           ucl graph [<project>] [options]      print the assembly graph (--format text|dot|json)
           ucl explain <file.cs> [--project P]  which assembly owns a file, with which defines and why
+          ucl bee-diff [<project>]             compare ucl's compiler inputs with the Editor's own
+                                               (Library/Bee/artifacts/*.dag/*.rsp; --format text|json|sarif)
           ucl export-csproj [<project>] --out <dir>   write IDE-style .csproj files (optional)
           ucl fetch [<project>]                fill the package download cache from the registries
           ucl doctor [<project>]               check the environment (editors, packages, cache)
@@ -35,6 +37,8 @@ public static class HelpText
           --cache-dir <dir>       incremental cache (default <project>/Library/ucl)
           --no-cache              do not read or write the cache
           --changed <git-ref>     compile only assemblies whose inputs changed since <git-ref>, and dependents
+          --summary               text: only each cell's root failures (failed assemblies, ranked by how many
+                                  others they block, with their most frequent errors) and result line
           --timings               report per-assembly times
           --jobs <n>              parallel compiles (default: processor count)
 

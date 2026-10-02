@@ -199,6 +199,61 @@ compiled, and the defines on Unity's own compiler command lines.
 Record each resolved disagreement in `CHANGELOG.md` under `Unreleased` ("Fixed: ... (oracle
 6000.0.30f1, fixture `x`)"), so the change in expected behaviour is visible to users.
 
+## Bee oracle (`ucl bee-diff`)
+
+Every project that has been opened in the Editor already carries the Editor's exact compiler command lines:
+`Library/Bee/artifacts/<dag>.dag/<Assembly>.rsp`. They are the cheapest real oracle there is: no licence, no
+Editor start, nothing to record. `ucl bee-diff [<project>]` reads every such file and compares it with the
+command line `ucl` computes for the same assembly in the same cell. It is the per-project complement to
+`oracle/record.sh` (which checks the fixture manifest against a running Editor) and needs no Editor run, only a
+project the Editor has compiled at least once (and built a player, for player dags). It is read-only and
+compiles nothing.
+
+```bash
+ucl bee-diff path/to/project                      # text; exit 0 agree, 1 differences, 3 no Library/Bee
+ucl bee-diff path/to/project --format json -o bee-diff.json
+ucl bee-diff path/to/project --editor "C:/Program Files/Unity/Hub/Editor/6000.3.19f1"
+```
+
+**Dags.** The folder name's hex prefix is not documented (observed: `1900b0aE.dag`, `1900b0aP.dag`,
+`1900b0aPDevDbg.dag`, `2000b0aE.dag`, `2000b0aP.dag`; `E` appears to mean editor, `P` player), so the folder is
+identified by content: the defines of its first response file give the target (`UNITY_EDITOR`), the platform
+(`UNITY_STANDALONE_WIN`, `UNITY_ANDROID`, ...), `DEVELOPMENT_BUILD`, the editor host (`UNITY_EDITOR_WIN/OSX/LINUX`),
+the backend (`ENABLE_MONO`/`ENABLE_IL2CPP`) and the version (`UNITY_6000_M_P`). A dag whose defines name no
+platform `ucl` supports is listed as "not compared". `*.mvfrm.rsp` files and response files without sources
+are ignored. The assembly name is the `-out:` file name.
+
+**Format read.** One argument per line; sources are quoted project-relative (or absolute) paths;
+`-r:`/`-reference:`, `-define:`/`-d:`, `-nowarn:`, `-analyzer:`/`-a:`, `-additionalfile:`, `-langversion:`,
+`-out:` and `-unsafe` in `-` or `/` form; everything else (`-target:`, `-refout:`, `/deterministic`, `/optimize+`,
+`/debug:portable`, `/nologo`, `/RuntimeMetadataVersion:`, `/utf8output`, `/preferreduilang:`) is not compared.
+
+**Compared**, after normalising both sides (paths in the project become logical, so a package under
+`Library/PackageCache/com.x@hash/` is `Packages/com.x/`; files in the editor install become
+`editor:<path under Editor/Data>`):
+
+| Category | Rule id | How |
+|---|---|---|
+| assembly | UCL5001 | an assembly has a response file but `ucl` does not compile it in that cell (with `ucl`'s reason), or the reverse |
+| sources | UCL5002 | set of logical paths |
+| references | UCL5003 | project assemblies (`Library/Bee/artifacts/**/X.ref.dll`, `Library/ScriptAssemblies/X.dll`) by name; DLLs by identity: file name plus assembly version read from the file, then location. Same identity in another place is "changed" (location), same file name with another version is "changed" (version) |
+| defines | UCL5004 | set |
+| options | UCL5005 | `-langversion`, `-unsafe` |
+| nowarn | UCL5006 | set of `CSxxxx` (`0169` and `CS0169` are equal) |
+| analyzers | UCL5007 | set of locations; includes Unity's own source generators, which `ucl` does not run yet (docs/proposals.md, item 1) |
+| additionalfiles | UCL5008 | set of logical paths; files Bee generates under `Library/Bee` (`<Name>.UnityAdditionalFile.txt`) are left out |
+
+Output follows R9: text, JSON (schema `ucl-beediff/1`, `schema/beediff.schema.json`) or SARIF (one result per
+difference, located at the asmdef or the response file), sorted, without timestamps or machine paths of the
+`ucl` side. Exit codes: 0 every compared assembly agrees, 1 any difference, 3 no Bee folder (`UCL3010`), no
+editor install, or a project that does not load.
+
+**Using a difference.** A difference is a bug in `ucl` or in a documented rule until shown otherwise: find the
+rule in [defines.md](defines.md) or [architecture.md](architecture.md), correct it with the Bee command line as
+its source (status `observed`), add a fixture, then fix `ucl`. The maintainer procedure is in
+[real-project-checklist.md](real-project-checklist.md). Tests use hand-written response files
+(`tests/Ucl.Integration.Tests/BeeSamples/`), shaped like the real format, on fixture `realistic-netfx-nuget`.
+
 ## Real-editor test mode (`UCL_REAL_EDITOR=1`)
 
 Some manifest assertions depend on real Unity DLLs rather than the stubs (types or members the stubs do

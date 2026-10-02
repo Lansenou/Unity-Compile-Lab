@@ -7,8 +7,13 @@ namespace Ucl.Reporting;
 /// <summary>Human output in Unity's console format: <c>Assets/Path/File.cs(12,5): error CS0103: ...</c>.</summary>
 public static class TextReport
 {
-    /// <summary>Renders a run. Compiler and <c>ucl</c> diagnostics come first, analyzer diagnostics in their own section.</summary>
-    public static string Render(RunResult run)
+    /// <summary>
+    /// Renders a run. Each cell leads with its root failures (assemblies that failed to compile, ranked by how many
+    /// assemblies they block), then compiler and <c>ucl</c> diagnostics, analyzer diagnostics in their own section,
+    /// and the skipped assemblies with the root failure that blocked each. <paramref name="summary"/> keeps only
+    /// the root failures and the result line.
+    /// </summary>
+    public static string Render(RunResult run, bool summary = false)
     {
         var sb = new StringBuilder();
         foreach (var p in run.Problems)
@@ -22,6 +27,13 @@ public static class TextReport
             foreach (var p in cell.Problems)
             {
                 sb.Append(FormatProblem(p)).Append('\n');
+            }
+
+            RootFailures(sb, cell);
+            if (summary)
+            {
+                AppendResult(sb, cell);
+                continue;
             }
 
             foreach (var d in cell.Diagnostics.Where(d => d.Origin != DiagnosticOrigin.Analyzer))
@@ -52,13 +64,42 @@ public static class TextReport
                 }
             }
 
-            var errors = cell.Diagnostics.Count(d => d.Severity == Severity.Error);
-            var warnings = cell.Diagnostics.Count(d => d.Severity == Severity.Warning);
-            sb.Append($"result: {Plural(errors, "error")}, {Plural(warnings, "warning")}, {Plural(cell.Assemblies.Count, "assembly", "assemblies")} ({cell.Assemblies.Count(a => a.Status == AssemblyStatus.Skipped)} skipped), exit {cell.ExitCode}\n");
+            AppendResult(sb, cell);
         }
 
         sb.Append("exit ").Append(run.ExitCode).Append('\n');
         return sb.ToString();
+    }
+
+    private static void AppendResult(StringBuilder sb, CellResult cell)
+    {
+        var errors = cell.Diagnostics.Count(d => d.Severity == Severity.Error);
+        var warnings = cell.Diagnostics.Count(d => d.Severity == Severity.Warning);
+        sb.Append($"result: {Plural(errors, "error")}, {Plural(warnings, "warning")}, {Plural(cell.Assemblies.Count, "assembly", "assemblies")} ({cell.Assemblies.Count(a => a.Status == AssemblyStatus.Skipped)} skipped), exit {cell.ExitCode}\n");
+    }
+
+    // A failed assembly is always a root failure: an assembly whose dependency failed is skipped, never compiled.
+    private static void RootFailures(StringBuilder sb, CellResult cell)
+    {
+        var failed = cell.Assemblies.Where(a => a.Status == AssemblyStatus.Failed).ToList();
+        if (failed.Count == 0)
+        {
+            return;
+        }
+
+        var skipped = cell.Assemblies.Where(a => a.Status == AssemblyStatus.Skipped).ToList();
+        var blocks = failed.ToDictionary(f => f.Name, f => skipped.Count(s => s.BlockedBy.Contains(f.Name)), StringComparer.Ordinal);
+        sb.Append($"root failures: {Plural(failed.Count, "assembly", "assemblies")} failed to compile; {skipped.Count} skipped because of them\n");
+        foreach (var f in failed.OrderByDescending(f => blocks[f.Name]).ThenBy(f => f.Name, StringComparer.Ordinal))
+        {
+            var errors = f.Diagnostics.Where(d => d.Severity == Severity.Error).ToList();
+            sb.Append("  ").Append(f.Name).Append(": ").Append(Plural(errors.Count, "error"))
+                .Append(", blocks ").Append(Plural(blocks[f.Name], "assembly", "assemblies")).Append('\n');
+            foreach (var group in errors.GroupBy(d => d.Id).OrderByDescending(g => g.Count()).ThenBy(g => g.Key, StringComparer.Ordinal).Take(3))
+            {
+                sb.Append("    ").Append(group.Count()).Append(" x ").Append(group.Key).Append(", first: ").Append(Format(group.First())).Append('\n');
+            }
+        }
     }
 
     /// <summary>One diagnostic line.</summary>

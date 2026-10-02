@@ -50,4 +50,31 @@ public static class ProblemIds
 
     /// <summary>Invalid command-line usage.</summary>
     public const string BadArguments = "UCL3009";
+
+    /// <summary><c>ucl bee-diff</c>: the project has no <c>Library/Bee/artifacts/*.dag/*.rsp</c> (never opened in the Editor).</summary>
+    public const string NoBeeArtifacts = "UCL3010";
+
+    /// <summary><c>ucl bee-diff</c>: an assembly is compiled by only one of the Editor and ucl.</summary>
+    public const string BeeAssembly = "UCL5001";
+
+    /// <summary><c>ucl bee-diff</c>: source files differ.</summary>
+    public const string BeeSources = "UCL5002";
+
+    /// <summary><c>ucl bee-diff</c>: references differ (identity, version or location).</summary>
+    public const string BeeReferences = "UCL5003";
+
+    /// <summary><c>ucl bee-diff</c>: defines differ.</summary>
+    public const string BeeDefines = "UCL5004";
+
+    /// <summary><c>ucl bee-diff</c>: language version or unsafe differ.</summary>
+    public const string BeeOptions = "UCL5005";
+
+    /// <summary><c>ucl bee-diff</c>: suppressed warnings differ.</summary>
+    public const string BeeNoWarn = "UCL5006";
+
+    /// <summary><c>ucl bee-diff</c>: analyzers or source generators differ.</summary>
+    public const string BeeAnalyzers = "UCL5007";
+
+    /// <summary><c>ucl bee-diff</c>: analyzer additional files differ.</summary>
+    public const string BeeAdditionalFiles = "UCL5008";
 }

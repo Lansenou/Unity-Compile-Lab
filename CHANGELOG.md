@@ -7,6 +7,46 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ## [Unreleased]
 
+## [0.5.0]
+
+Session 2, phase A: the findings of the first real-project run (docs/real-project-fixes.md, G1-G5).
+
+### Added
+
+* `ucl bee-diff [<project>]`: compares every compiler command line the Editor wrote under
+  `Library/Bee/artifacts/*.dag/*.rsp` with `ucl`'s for the same assembly and cell (sources, references by
+  identity, defines, language version, unsafe, nowarn, analyzers, additional files). Text, JSON (new schema
+  `ucl-beediff/1`, `schema/beediff.schema.json`) and SARIF; exit 0 agree, 1 differences, 3 no Bee folder.
+  New ids `UCL3010` (no Bee folder) and `UCL5001`-`UCL5008` (difference categories). docs/oracle.md, "Bee oracle".
+* `ucl check --summary`: text output with only each cell's root failures and result line.
+* JSON: skipped assemblies carry `blockedBy`, the failed assemblies they wait on (additive; still `ucl-result/1`).
+* Fixtures `api-compat-netfx`, `plugin-native`, `precompiled-reference-absent`, `facade-system-runtime`,
+  `realistic-netfx-nuget` (61 fixtures, 151 cells). The stub editor gained a `unity-4.8-api` profile (stub
+  `mscorlib`, `Facades/netstandard.dll` 2.0.0.0, `Facades/System.Runtime.dll`) and the NetStandard shims.
+* docs/real-project-checklist.md: what a maintainer runs on a real project and how to send the result back.
+
+### Changed
+
+* The API compatibility level is per assembly: Editor-only assemblies follow `editorAssembliesCompatibilityLevel`
+  (default: .NET Framework), all others the build target group's level (docs/defines.md, A01-A06). With default
+  settings, Editor-only assemblies now get `NET_4_6`/`NET_UNITY_4_8` and compile against `unity-4.8-api`.
+* Reference sets per profile follow Unity's: .NET Framework is the 17 listed core libraries of `unity-4.8-api`
+  plus every facade; .NET Standard adds `shims/netstandard` and `Extensions/2.0.0`.
+* `UCL1004` (a `precompiledReferences` entry that does not exist) is info, not an error: Unity skips such an
+  entry without a message (contract change of the id's severity).
+* `CS0282` is suppressed on every assembly, as on the Editor's command lines (C09, observed).
+* Text output of `ucl check` leads each cell with its root failures; a skipped assembly's reason names the
+  failed assembly it waits on (`dependency 'Core' failed (through 'Mid', skipped)`).
+
+### Fixed
+
+* G1: values the Editor wraps onto continuation lines in `ProjectSettings.asset` hid every later key,
+  including `apiCompatibilityLevelPerPlatform`, so real projects always got .NET Standard.
+* G2: a native (unmanaged) DLL is never passed to the compiler (was CS0009 in every assembly). Detection reads
+  the PE CLI header, not the path.
+* G3: a missing explicit precompiled reference no longer fails the build.
+* G4: DLLs built against `System.Runtime` resolve through the profile facades (was CS0012).
+
 ## [0.4.0]
 
 Phase 4: integration and final review. Not 1.0.0 yet: no cell has been confirmed against a real Unity

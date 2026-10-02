@@ -86,3 +86,15 @@ Assets/Scripts/Leaderboard.cs(10,25): error CS0012: (the same)
 == 6000.0.30f1 player Android
 (the same two errors)
 ```
+
+## G5. Cascades
+
+**Root cause.** Not a bug: when an assembly fails, its dependents are not compiled (Unity does the same), so
+one failure made 73 of 100 assemblies "skipped". The report listed every diagnostic first and said only
+"dependency 'X' has errors", naming the direct dependency even when it was itself skipped.
+
+**Fix (report only; behaviour unchanged).** A skipped assembly's reason names the root failure
+(`dependency 'Core' failed (through 'Mid', skipped)`) and JSON adds `blockedBy`. The text report leads each
+cell with "root failures": every failed assembly, ranked by how many assemblies it blocks, with its three most
+frequent error ids and the first instance of each. `ucl check --summary` prints only that block and the result
+line. Tests: `CascadeReportTests`.

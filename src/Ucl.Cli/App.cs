@@ -43,6 +43,8 @@ public static class App
                     return FetchCommand.Run(options, stdout, stderr, env);
                 case "doctor":
                     return DoctorCommand.Run(options, stdout, stderr, env);
+                case "bee-diff":
+                    return BeeDiffCommand.Run(options, stdout, stderr, env);
                 case "export-csproj":
                     return ExportCsprojCommand.Run(options, stdout, stderr, env);
                 default:

@@ -48,6 +48,15 @@ Ucl.Compilation ──> Ucl.Discovery (file system port only), Microsoft.CodeAna
    an inputs hash (section "Incremental cache").
 5. **Report.** `Ucl.Reporting` renders the `RunResult`. `ExitCodePolicy` (Core) computes the exit code.
 
+## Data flow of `ucl bee-diff`
+
+Discovery loads the project and locates the editor as for `check`. For each `Library/Bee/artifacts/*.dag`,
+`BeeResponseFile` (Core) parses every `.rsp`, `BeeDag` (Core) reads the cell from its defines, and the graph
+builder plans that cell. `UclCommandLine` (Compilation) lists the DLLs and analyzers `check` would pass;
+`BeeNormalizer` (Cli) maps both sides to logical paths, `editor:` paths and assembly identities (versions read
+by `AssemblyIdentityReader`, Discovery); `BeeDiff` (Core) compares them; `BeeDiffReport` (Reporting) renders.
+Nothing is compiled or written. Details: [oracle.md](oracle.md#bee-oracle-ucl-bee-diff).
+
 ## Assembly graph rules (Core)
 
 * **Ownership of a script.** A `.cs` file belongs to the asmdef or asmref in the nearest ancestor folder.

@@ -60,7 +60,7 @@ internal static class CheckCommand
         {
             "json" => JsonReport.Render(run),
             "sarif" => SarifReport.Render(run),
-            _ => TextReport.Render(run),
+            _ => TextReport.Render(run, options.Summary),
         };
         var problem = OutputSink.Write(options.Output, text, session.ProjectRoot, stdout);
         if (problem is not null)

@@ -43,7 +43,7 @@ public class GraphOptionsTests
     public void C04_CS0169_CS0649_suppressed_when_suppressCommonWarnings()
     {
         var on = Basic().Editor();
-        Assert.All(on.Assemblies, a => Assert.Equal(["CS0169", "CS0649", "CS1701", "CS1702"], a.NoWarn));
+        Assert.All(on.Assemblies, a => Assert.Equal(["CS0169", "CS0282", "CS0649", "CS1701", "CS1702"], a.NoWarn));
 
         var off = Basic().Settings(new ProjectSettingsData { SuppressCommonWarnings = false }).Editor();
         Assert.All(off.Assemblies, a =>
@@ -57,10 +57,10 @@ public class GraphOptionsTests
     }
 
     [Fact]
-    public void C05_CS1701_CS1702_always_suppressed()
+    public void C05_C09_CS0282_CS1701_CS1702_always_suppressed()
     {
         var g = Basic().Settings(new ProjectSettingsData { SuppressCommonWarnings = false }).Player();
-        Assert.All(g.Assemblies, a => Assert.Equal(["CS1701", "CS1702"], a.NoWarn));
+        Assert.All(g.Assemblies, a => Assert.Equal(["CS0282", "CS1701", "CS1702"], a.NoWarn));
     }
 
     [Fact]
@@ -70,8 +70,8 @@ public class GraphOptionsTests
             .Settings(Args("Standalone", "-nowarn:1234"))
             .Rsp("Assets/csc.rsp", "-nowarn:618 -nowarn:CS0414")
             .Editor();
-        Assert.Equal(["CS0169", "CS0414", "CS0618", "CS0649", "CS1234", "CS1701", "CS1702"], g.Find("Assembly-CSharp")!.NoWarn);
-        Assert.Equal(["CS0169", "CS0414", "CS0618", "CS0649", "CS1234", "CS1701", "CS1702"], g.Find("Mod")!.NoWarn);
+        Assert.Equal(["CS0169", "CS0282", "CS0414", "CS0618", "CS0649", "CS1234", "CS1701", "CS1702"], g.Find("Assembly-CSharp")!.NoWarn);
+        Assert.Equal(["CS0169", "CS0282", "CS0414", "CS0618", "CS0649", "CS1234", "CS1701", "CS1702"], g.Find("Mod")!.NoWarn);
     }
 
     [Fact]

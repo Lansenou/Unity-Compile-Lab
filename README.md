@@ -17,7 +17,7 @@ prompts), then for developers who want a pre-commit check, and for package autho
 every platform without a Unity install per platform.
 
 Status: see [docs/status.md](docs/status.md). Every rule is implemented from Unity's documentation and
-tested against a 56-project conformance corpus (135 matrix cells); recording those cells with a real,
+tested against a 61-project conformance corpus (151 matrix cells); recording those cells with a real,
 licensed Unity Editor (the [oracle](docs/oracle.md)) is still pending, so rows marked "observed" in
 [docs/defines.md](docs/defines.md) are not yet confirmed by Unity itself.
 
@@ -53,6 +53,7 @@ If the editor is not in a Unity Hub default folder, pass `--editor <install fold
 | `ucl explain <file.cs>` | Which assembly owns a file, why, with which defines (each with its rule) and references. |
 | `ucl fetch [<project>]` | Fill the package download cache from the project's registries, for offline use. |
 | `ucl doctor [<project>]` | Editors found, packages, cache, git: what is missing to check this project. |
+| `ucl bee-diff [<project>]` | Compare `ucl`'s compiler inputs with the Editor's own command lines in `Library/Bee` (the [Bee oracle](docs/oracle.md#bee-oracle-ucl-bee-diff)). |
 | `ucl export-csproj [<project>] --out <dir>` | IDE-style `.csproj` files (optional; `ucl` itself never uses them). |
 
 Matrix options, repeatable (every combination is one cell): `--unity-version <6000.x.y>`,
