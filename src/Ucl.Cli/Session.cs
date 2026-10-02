@@ -75,7 +75,8 @@ internal sealed record Session(
             {
                 foreach (var platform in platforms)
                 {
-                    cells.Add((new CompileCell(version, target, platform, options.Backend, options.Development, options.EditorOs ?? env.Os, options.IncludeTests), editor));
+                    cells.Add((new CompileCell(version, target, platform, options.Backend, options.Development, options.EditorOs ?? env.Os, options.IncludeTests,
+                        PlatformEngine: editor?.HasPlatformEngine(platform) == true), editor));
                 }
             }
         }

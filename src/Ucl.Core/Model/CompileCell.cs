@@ -8,6 +8,8 @@ namespace Ucl.Core.Model;
 /// <param name="Development">Development build (player cells).</param>
 /// <param name="EditorOs">Editor host OS (editor cells).</param>
 /// <param name="IncludeTests">Treat test assemblies as part of a player build.</param>
+/// <param name="PlatformEngine">The platform folder has its own engine build (player cells compile against it); otherwise
+/// player cells compile against the editor's, which is built with collections checks (docs/defines.md, row E16).</param>
 public sealed record CompileCell(
     UnityVersion UnityVersion,
     TargetKind Target,
@@ -15,7 +17,8 @@ public sealed record CompileCell(
     ScriptingBackend? Backend,
     bool Development,
     HostOs EditorOs,
-    bool IncludeTests = false)
+    bool IncludeTests = false,
+    bool PlatformEngine = false)
 {
     /// <summary>True for editor cells.</summary>
     public bool IsEditor => Target == TargetKind.Editor;

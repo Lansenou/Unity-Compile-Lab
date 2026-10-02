@@ -440,7 +440,14 @@ public class DefineTableTests
         Assert.Equal("E04", Compute(Cells.Editor(BuildPlatform.WebGL)).Reasons["ENABLE_UNITY_COLLECTIONS_CHECKS"]);
         Assert.Equal("E04", Compute(Cells.Player(development: true)).Reasons["ENABLE_PROFILER"]);
         Assert.False(Compute(Cells.Player()).Contains("ENABLE_PROFILER"));
-        Assert.False(Compute(Cells.Player()).Contains("ENABLE_UNITY_COLLECTIONS_CHECKS"));
+        Assert.False(Compute(Cells.Player() with { PlatformEngine = true }).Contains("ENABLE_UNITY_COLLECTIONS_CHECKS"));
+    }
+
+    [Fact]
+    public void E16_collections_checks_in_players_compiled_against_the_editor_engine_build()
+    {
+        Assert.Equal("E16", Compute(Cells.Player()).Reasons["ENABLE_UNITY_COLLECTIONS_CHECKS"]);
+        Assert.Equal("E04", Compute(Cells.Player(development: true)).Reasons["ENABLE_UNITY_COLLECTIONS_CHECKS"]);
     }
 
     [Fact]

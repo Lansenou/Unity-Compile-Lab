@@ -10,8 +10,11 @@
 #if !UNITY_EDITOR && DEVELOPMENT_BUILD && !(ENABLE_UNITY_COLLECTIONS_CHECKS && ENABLE_PROFILER)
 #error a development player defines ENABLE_UNITY_COLLECTIONS_CHECKS and ENABLE_PROFILER (E04)
 #endif
-#if !UNITY_EDITOR && !DEVELOPMENT_BUILD && (ENABLE_UNITY_COLLECTIONS_CHECKS || ENABLE_PROFILER)
-#error a release player defines neither (E04)
+#if !UNITY_EDITOR && !DEVELOPMENT_BUILD && ENABLE_PROFILER
+#error a release player does not define ENABLE_PROFILER (E04)
+#endif
+#if !UNITY_EDITOR && !DEVELOPMENT_BUILD && !ENABLE_UNITY_COLLECTIONS_CHECKS
+#error a release player compiled against the editor's engine build defines ENABLE_UNITY_COLLECTIONS_CHECKS (E16)
 #endif
 #if UNITY_EDITOR && !(ENABLE_BURST_AOT && UNITY_TEAM_LICENSE)
 #error Editor services symbols (E05)

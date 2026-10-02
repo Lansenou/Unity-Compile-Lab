@@ -321,6 +321,8 @@ internal static class Planner
             var applies = row switch
             {
                 "E04" => cell.Editor || cell.Development,
+                // The stub editors have no platform engine build, so every player cell compiles against the editor's.
+                "E16" => !cell.Editor && !cell.Development,
                 "E05" => cell.Editor,
                 "E07" => minor > 0 || patch >= 76,
                 "E08" => minor >= 3,
@@ -680,6 +682,7 @@ internal static class BuiltIn
     public static readonly (string Row, string[] Symbols)[] Rows =
     [
         ("E04", ["ENABLE_PROFILER", "ENABLE_UNITY_COLLECTIONS_CHECKS"]),
+        ("E16", ["ENABLE_UNITY_COLLECTIONS_CHECKS"]),
         ("E05", ["EDITOR_ONLY_NAVMESH_BUILDER_DEPRECATED", "ENABLE_ACCELERATOR_CLIENT_DEBUGGING", "ENABLE_BURST_AOT", "ENABLE_CLOUD_LICENSE", "ENABLE_EDITOR_GAME_SERVICES",
             "ENABLE_EDITOR_HUB_LICENSE", "ENABLE_GENERATE_NATIVE_PLUGINS_FOR_ASSEMBLIES_API", "ENABLE_MARSHALLING_TESTS", "UNITY_TEAM_LICENSE"]),
         ("E06", ["ENABLE_AUDIO", "ENABLE_CLOTH", "ENABLE_CLOUD_SERVICES", "ENABLE_CLOUD_SERVICES_ADS", "ENABLE_CLOUD_SERVICES_ANALYTICS", "ENABLE_CLOUD_SERVICES_BUILD",

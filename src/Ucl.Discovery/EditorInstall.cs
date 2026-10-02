@@ -32,6 +32,10 @@ public sealed record EditorInstall
     /// <summary>Engine modules of each installed platform: <c>UnityEngine.*.dll</c> in <c>PlaybackEngines/&lt;support&gt;/Managed</c>.</summary>
     public IReadOnlyDictionary<BuildPlatform, IReadOnlyList<string>> PlatformModules { get; init; } = new Dictionary<BuildPlatform, IReadOnlyList<string>>();
 
+    /// <summary>True when <paramref name="platform"/>'s folder has its own engine build (<c>UnityEngine.CoreModule.dll</c>).</summary>
+    public bool HasPlatformEngine(BuildPlatform platform) =>
+        PlatformModules.GetValueOrDefault(platform)?.Any(p => Path.GetFileName(p).Equals("UnityEngine.CoreModule.dll", StringComparison.OrdinalIgnoreCase)) == true;
+
     /// <summary>
     /// Editor-cell references outside <c>Managed/UnityEngine</c>: <c>Managed/UnityEditor.Graphs.dll</c> and every installed platform's
     /// <c>PlaybackEngines/&lt;support&gt;/UnityEditor.*.Extensions.dll</c> (plus the Android support's editor libraries); sorted.

@@ -41,7 +41,10 @@ public static class BeeDag
             backend,
             !editor && Has("DEVELOPMENT_BUILD"),
             os,
-            IncludeTests: !editor && Has("UNITY_INCLUDE_TESTS")));
+            IncludeTests: !editor && Has("UNITY_INCLUDE_TESTS"),
+
+            // A dag is Unity's own compile, made against the platform's engine build: no row E16.
+            PlatformEngine: true));
     }
 
     // UNITY_6000_<M>_<P> (D03).

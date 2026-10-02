@@ -17,6 +17,9 @@ public static class BuiltInDefines
     /// <summary>E04: editor cells and development players.</summary>
     public static IReadOnlyList<string> Diagnostics { get; } = ["ENABLE_PROFILER", "ENABLE_UNITY_COLLECTIONS_CHECKS"];
 
+    /// <summary>E16: the symbol the editor's engine build is made with, for player cells compiled against it.</summary>
+    public const string CollectionsChecks = "ENABLE_UNITY_COLLECTIONS_CHECKS";
+
     /// <summary>E05: editor cells only.</summary>
     public static IReadOnlyList<string> EditorServices { get; } =
     [
@@ -94,13 +97,18 @@ public static class BuiltInDefines
         _ => [],
     };
 
-    /// <summary>Adds rows E04-E15 for <paramref name="cell"/> to <paramref name="defines"/>.</summary>
+    /// <summary>Adds rows E04-E16 for <paramref name="cell"/> to <paramref name="defines"/>.</summary>
     public static void Add(DefineSet defines, CompileCell cell)
     {
         var v = cell.UnityVersion;
         if (cell.IsEditor || cell.Development)
         {
             AddAll(defines, Diagnostics, "E04");
+        }
+        else if (!cell.PlatformEngine)
+        {
+            // ucl references the editor's engine DLLs, whose NativeArray<T>.ReadOnly constructor takes the safety handle.
+            defines.Add(CollectionsChecks, "E16");
         }
 
         if (cell.IsEditor)

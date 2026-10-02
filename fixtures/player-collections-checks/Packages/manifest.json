@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "com.example.collections": "file:com.example.collections",
+    "com.unity.modules.physics": "1.0.0"
+  }
+}

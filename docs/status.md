@@ -11,8 +11,8 @@ fixture that is red on 0.7.0, then the fix, one commit each.
 | Item | Fixture | State |
 |---|---|---|
 | 1 editor cells took the platform's engine modules | `editor-engine-modules` | fixed |
-| 2 player collections safety: references and defines disagree | | next |
-| 3 `Unity.InputSystem.TestFramework` excluded (`UNITY_TESTS_FRAMEWORK`) | | to do |
+| 2 player collections safety: references and defines disagree | `player-collections-checks` | fixed: row E16 |
+| 3 `Unity.InputSystem.TestFramework` excluded (`UNITY_TESTS_FRAMEWORK`) | | next |
 | 4 version-gated built-in symbols, versionDefines | | to do |
 | 5 script-less asmdef compiled | | to do |
 | 6 speed (analyzer reach) | | to do |

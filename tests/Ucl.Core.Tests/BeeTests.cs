@@ -76,7 +76,7 @@ public class BeeTests
     public void Dag_cell_comes_from_its_defines()
     {
         var editor = BeeDag.CellOf(["UNITY_EDITOR", "UNITY_EDITOR_WIN", "UNITY_STANDALONE_WIN", "ENABLE_MONO", "UNITY_6000_3_19"], Editor).Value!;
-        Assert.Equal(new CompileCell(Editor, TargetKind.Editor, BuildPlatform.StandaloneWindows64, ScriptingBackend.Mono, false, HostOs.Windows), editor);
+        Assert.Equal(new CompileCell(Editor, TargetKind.Editor, BuildPlatform.StandaloneWindows64, ScriptingBackend.Mono, false, HostOs.Windows, PlatformEngine: true), editor);
 
         var player = BeeDag.CellOf(["UNITY_ANDROID", "ENABLE_IL2CPP", "DEVELOPMENT_BUILD", "UNITY_6000_3_19"], Editor).Value!;
         Assert.Equal(TargetKind.Player, player.Target);
