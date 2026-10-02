@@ -127,6 +127,12 @@ Nothing is compiled or written. Details: [oracle.md](oracle.md#bee-oracle-ucl-be
   `System.Runtime.CompilerServices.Unsafe.dll`, not the one beside `com.unity.collections`' tests;
   the native provider is not public; fixture `plugin-untestable-tests`).
 * **Analyzers.** A DLL labelled `RoslynAnalyzer` is an analyzer and source generator, never a reference.
+  `check --format json --timings` reports Roslyn execution-time telemetry for each analyzer type and DLL
+  per assembly, and sums it in cell/run `summary.analyzerTimings`. These are cumulative callback times,
+  not elapsed wall time; source generator execution and queueing are excluded. Cache hits and filtered
+  or disabled analyzers contribute no execution time. Without --timings the fields are omitted, preserving
+  deterministic output. Analysis uses Roslyn's tracked analysis result API once; compiler diagnostics
+  are included through an internal adapter so diagnostic suppressors still apply to compiler warnings.
   Scope (UnityCsReference `RoslynAnalyzers.SetAnalyzers`): its owner is the assembly whose asmdef or asmref
   folder is its nearest ancestor; it applies to the owner and to every assembly that reaches the owner
   through references, directly or not. An analyzer with no owner (in `Assets/` outside every asmdef

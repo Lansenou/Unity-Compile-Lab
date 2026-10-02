@@ -3,9 +3,9 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
-## Session 8 (2026-10-02): remaining references (in progress)
+## Session 8 (2026-10-02): references and analyzer execution (in progress)
 
-Item 4a: reproduced with `package-plugin-auto-reference` (editor and player), using a synthetic package
+Item 4a: fixed in PR 13 (merged after Linux, Windows and macOS CI). Reproduced with `package-plugin-auto-reference` (editor and player), using a synthetic package
 plugin with the importer settings of the public Collections 2.6.7 `System.IO.Hashing.dll`. The existing
 untestable-package filter wrongly removed unique DLLs along with duplicate copies. Narrowed that filter
 to duplicate file names; a unique managed plugin is now selected from its own Auto Reference, platform
@@ -24,10 +24,21 @@ and both fixture cells failed with missing `System.IO.Hashing` compile errors. A
 gated on green Linux, Windows and macOS CI. Whether the private reference difference is fully resolved
 requires the maintainer's counts-only rerun.
 
-Still open, in order: item 4b (NUnit references), 4c (Graphs/platform extension scope), 4d (runtime engine
-module exclusions), per-analyzer timing, and analyzer execution off the dependency path. No speculative
-rule changes have been made for these items. Network access to the public manual and GitHub API now
-works; the earlier infrastructure blocker is resolved.
+Reference audits merged with green Linux, Windows and macOS CI: PR 14 (NUnit), PR 15 (editor reference
+membership), PR 16 (native module exclusions). Their causes remain open with public evidence below;
+no speculative reference filters were added. Network access is working.
+
+### Analyzer timing
+
+Implemented `analyzer-slow` and AnalyzerTimingTests: the slow-analyzer JSON test was red before the
+change (missing analyzerTimings), then green. `check --format json --timings` reports Roslyn's logged
+callback execution time per analyzer type/DLL on each assembly, and totals in cell and run summaries.
+These cumulative callback times exclude queueing and source generators; they are not wall-clock time.
+Cache hits retain diagnostics but report no current-run analyzer timing. Untimed output stays
+byte-identical. A synthetic suppressor test verifies compiler warnings remain suppressible under the
+tracked analysis API. The internal compiler-diagnostics adapter is excluded from analyzer totals.
+The full gate passes, including coverage and independent verification of 203 cells. PR CI/merge will
+use the same Linux/Windows/macOS gate. Analyzer scheduling off the dependency path is next.
 
 ### Item 4b: NUnit references — open after public-rule audit
 

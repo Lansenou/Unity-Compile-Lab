@@ -1,9 +1,11 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Ucl.Core.Graph;
+using Ucl.Core.Results;
 using Ucl.Discovery;
 using DiagnosticOrigin = Ucl.Core.Model.DiagnosticOrigin;
 
@@ -18,24 +20,30 @@ internal static class AnalyzerHost
     /// </summary>
     public static Microsoft.CodeAnalysis.Compilation Run(
         Microsoft.CodeAnalysis.Compilation compilation,
-        IReadOnlyList<string> analyzerPaths,
+        IReadOnlyList<(string Display, string Path)> analyzerPaths,
         AssemblyPlan plan,
         ProjectContext project,
         IFileSystem fs,
         AnalyzerSet loader,
         CSharpParseOptions parseOptions,
         AnalyzerConfigSet? configSet,
-        List<(Microsoft.CodeAnalysis.Diagnostic, DiagnosticOrigin)> sink)
+        List<(Microsoft.CodeAnalysis.Diagnostic, DiagnosticOrigin)> sink,
+        List<AnalyzerTiming> timings)
     {
         var analyzers = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
         var generators = ImmutableArray.CreateBuilder<ISourceGenerator>();
-        foreach (var path in analyzerPaths)
+        var displays = new Dictionary<DiagnosticAnalyzer, string>();
+        foreach (var (display, path) in analyzerPaths)
         {
             var loaded = loader.Get(path);
             sink.AddRange(loaded.LoadFailures.Select(m => (Microsoft.CodeAnalysis.Diagnostic.Create(LoadFailed, Location.None, path, m), DiagnosticOrigin.Analyzer)));
             // In an assembly whose warnings are suppressed only analyzers that can report an error matter; skipping the rest is
             // where most of the analyzer time of a project with many package assemblies goes.
             analyzers.AddRange(plan.SuppressWarnings ? loaded.Analyzers.Where(a => CanReportError(a, compilation.Options)) : loaded.Analyzers);
+            foreach (var analyzer in loaded.Analyzers)
+            {
+                displays[analyzer] = display;
+            }
             generators.AddRange(loaded.Generators);
         }
 
@@ -70,12 +78,21 @@ internal static class AnalyzerHost
             return compilation;
         }
 
+        // GetAllDiagnosticsAsync uses Roslyn's untracked driver and discards its execution times. Use the tracked API once.
+        // Route compiler diagnostics through that same driver so DiagnosticSuppressors still see and suppress compiler warnings.
+        var compilerDiagnostics = compilation.GetDiagnostics();
         var withAnalyzers = compilation.WithAnalyzers(
-            running,
+            running.Add(new CompilerDiagnosticsAnalyzer(compilerDiagnostics)),
             new CompilationWithAnalyzersOptions(new AnalyzerOptions(additional, optionsProvider), onAnalyzerException: null, concurrentAnalysis: true,
-                logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: false));
+                logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: false));
         var ids = running.SelectMany(a => a.SupportedDiagnostics).Select(d => d.Id).ToHashSet(StringComparer.Ordinal);
-        var all = withAnalyzers.GetAllDiagnosticsAsync().GetAwaiter().GetResult();
+        var analysis = withAnalyzers.GetAnalysisResultAsync(CancellationToken.None).GetAwaiter().GetResult();
+        var all = analysis.GetAllDiagnostics();
+        foreach (var analyzer in running)
+        {
+            var telemetry = analysis.AnalyzerTelemetryInfo[analyzer];
+            timings.Add(new AnalyzerTiming(displays[analyzer], analyzer.GetType().FullName ?? analyzer.GetType().Name, telemetry.ExecutionTime.TotalMilliseconds));
+        }
         sink.AddRange(all.Select(d => (d, ids.Contains(d.Id) && !d.Id.StartsWith("CS", StringComparison.Ordinal) ? DiagnosticOrigin.Analyzer : DiagnosticOrigin.Compiler)));
         return compilation;
     }
@@ -145,6 +162,28 @@ internal static class AnalyzerHost
 
     private static readonly DiagnosticDescriptor LoadFailed = new(
         "UCL1030", "Analyzer could not be loaded", "Analyzer '{0}' could not be loaded: {1}", "ucl", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    // The adapter is an implementation detail, excluded from reported analyzer timings. Compiler diagnostics retain their
+    // original locations, severities and warning-as-error flags, and are classified as compiler diagnostics by their CS ids.
+    [SuppressMessage("MicrosoftCodeAnalysisCorrectness", "RS1001", Justification = "Private in-process adapter instantiated directly, not a loadable compiler plugin.")]
+    private sealed class CompilerDiagnosticsAnalyzer(ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics) : DiagnosticAnalyzer
+    {
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
+            diagnostics.Select(d => d.Descriptor).DistinctBy(d => d.Id).ToImmutableArray();
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            context.EnableConcurrentExecution();
+            context.RegisterCompilationAction(c =>
+            {
+                foreach (var diagnostic in diagnostics)
+                {
+                    c.ReportDiagnostic(diagnostic);
+                }
+            });
+        }
+    }
 
     private sealed class FileText(string path, string text) : AdditionalText
     {

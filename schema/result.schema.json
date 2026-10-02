@@ -32,7 +32,8 @@
         "cells": { "type": "integer", "minimum": 0 },
         "errors": { "type": "integer", "minimum": 0 },
         "warnings": { "type": "integer", "minimum": 0 },
-        "analyzerDiagnostics": { "type": "integer", "minimum": 0 }
+        "analyzerDiagnostics": { "type": "integer", "minimum": 0 },
+        "analyzerTimings": { "type": "array", "items": { "$ref": "#/$defs/analyzerTiming" }, "description": "Only with --timings. Callback execution totals per analyzer across the reported assemblies/cells in this summary." }
       }
     },
     "problem": {
@@ -95,7 +96,18 @@
           }
         },
         "timeMs": { "type": "integer", "minimum": 0, "description": "Only with --timings." },
-        "cached": { "type": "boolean", "description": "Only with --timings." }
+        "cached": { "type": "boolean", "description": "Only with --timings." },
+        "analyzerTimings": { "type": "array", "items": { "$ref": "#/$defs/analyzerTiming" }, "description": "Only with --timings. Current-run callback execution time; empty on cache hits, with analyzers off or when no analyzer ran." }
+      }
+    },
+    "analyzerTiming": {
+      "type": "object",
+      "required": ["path", "analyzer", "timeMs"],
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string", "description": "Project-relative DLL path, or editor: followed by an editor-relative path." },
+        "analyzer": { "type": "string", "description": "Fully qualified analyzer type name." },
+        "timeMs": { "type": "number", "minimum": 0, "description": "Roslyn cumulative callback execution milliseconds. Includes concurrent callbacks, excludes queueing and source generator time; not wall-clock latency." }
       }
     },
     "diagnostic": {

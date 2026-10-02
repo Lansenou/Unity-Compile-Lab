@@ -100,3 +100,7 @@ Every cell starts as `oracle: pending`; see [oracle.md](oracle.md).
 `package-plugin-auto-reference`: a unique Auto Reference DLL below an untestable registry package test
 asmdef is still referenced by predefined and asmdef assemblies (editor and player). The plugin API is
 an original stub; importer settings are derived from public Collections 2.6.7.
+
+`analyzer-slow`: an original analyzer sleeps for 200ms in a compilation callback and reports one warning
+per assembly on a four-assembly dependency chain. AnalyzerTimingTests verifies nonzero callback time,
+per-assembly and summary totals, cache-hit reporting, disabled analyzers and deterministic output.
