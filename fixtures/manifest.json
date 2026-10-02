@@ -26063,8 +26063,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -26209,8 +26208,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             }
           ],
@@ -26493,8 +26491,7 @@
                 "UNITY_64",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
-                "UNITY_STANDALONE_WIN",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_STANDALONE_WIN"
               ]
             },
             {
@@ -26621,8 +26618,7 @@
                 "UNITY_64",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
-                "UNITY_STANDALONE_WIN",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_STANDALONE_WIN"
               ]
             }
           ],
@@ -31276,8 +31272,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -31418,8 +31413,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -31559,8 +31553,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -31701,8 +31694,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -31842,8 +31834,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -31984,8 +31975,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             }
           ],
@@ -34249,7 +34239,6 @@
                 "UNITY_GFX_USE_PLATFORM_VSYNC",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK",
                 "UNITY_WEBGL",
                 "UNITY_WEBGL_API"
               ]
@@ -34371,7 +34360,6 @@
                 "UNITY_GFX_USE_PLATFORM_VSYNC",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK",
                 "UNITY_WEBGL",
                 "UNITY_WEBGL_API"
               ]
@@ -34491,7 +34479,6 @@
                 "UNITY_GFX_USE_PLATFORM_VSYNC",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK",
                 "UNITY_WEBGL",
                 "UNITY_WEBGL_API"
               ]
@@ -35109,8 +35096,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -35254,8 +35240,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -35397,8 +35382,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             }
           ],
@@ -35549,8 +35533,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -35687,8 +35670,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -35823,8 +35805,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             }
           ],
@@ -35975,8 +35956,7 @@
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_LINUX",
                 "UNITY_STANDALONE_LINUX_API",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -36113,8 +36093,7 @@
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_LINUX",
                 "UNITY_STANDALONE_LINUX_API",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -36249,8 +36228,7 @@
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_LINUX",
                 "UNITY_STANDALONE_LINUX_API",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             }
           ],
@@ -36401,8 +36379,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_OSX",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -36539,8 +36516,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_OSX",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -36675,8 +36651,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_OSX",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             }
           ],
@@ -36843,7 +36818,6 @@
                 "UNITY_HAS_TANGO",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK",
                 "UNITY_UNITYADS_API"
               ]
             },
@@ -36997,7 +36971,6 @@
                 "UNITY_HAS_TANGO",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK",
                 "UNITY_UNITYADS_API"
               ]
             },
@@ -37149,7 +37122,6 @@
                 "UNITY_HAS_TANGO",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK",
                 "UNITY_UNITYADS_API"
               ]
             }
@@ -37279,8 +37251,7 @@
                 "UNITY_EDITOR_OSX",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_IOS",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -37395,8 +37366,7 @@
                 "UNITY_EDITOR_OSX",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_IOS",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -37509,8 +37479,7 @@
                 "UNITY_EDITOR_OSX",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_IOS",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             }
           ],
@@ -38844,8 +38813,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -38989,8 +38957,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -39279,8 +39246,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -39422,8 +39388,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -39567,8 +39532,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -39710,8 +39674,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -39855,8 +39818,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -40946,8 +40908,7 @@
                 "UNITY_64",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
-                "UNITY_STANDALONE_WIN",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_STANDALONE_WIN"
               ]
             },
             {
@@ -41075,8 +41036,7 @@
                 "UNITY_64",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
-                "UNITY_STANDALONE_WIN",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_STANDALONE_WIN"
               ]
             },
             {
@@ -41204,8 +41164,7 @@
                 "UNITY_64",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
-                "UNITY_STANDALONE_WIN",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_STANDALONE_WIN"
               ]
             },
             {
@@ -41333,8 +41292,7 @@
                 "UNITY_64",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
-                "UNITY_STANDALONE_WIN",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_STANDALONE_WIN"
               ]
             },
             {
@@ -41462,8 +41420,7 @@
                 "UNITY_64",
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
-                "UNITY_STANDALONE_WIN",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_STANDALONE_WIN"
               ]
             },
             {
@@ -46226,7 +46183,7 @@
     },
     {
       "name": "tests-framework-symbol",
-      "description": "Session 4, item 3. Editor compiles define UNITY_TESTS_FRAMEWORK when com.unity.test-framework is installed (here a manifest dependency resolved from the editor, lock source builtin), so a test helper assembly constrained on it (shaped like com.unity.inputsystem's Unity.InputSystem.TestFramework) compiles in the Editor. Players leave test framework assemblies out.",
+      "description": "Session 4, item 3, corrected in session 6, item 3. UNITY_TESTS_FRAMEWORK is not a compiler define. A test helper assembly shaped like com.unity.inputsystem's Unity.InputSystem.TestFramework (public asmdef) declares it through a versionDefines entry on com.unity.test-framework with an empty expression, and defineConstraints are evaluated against the assembly's own defines, version defines included (UnityCsReference EditorCompilation.GetTargetAssemblyDefines, EditorBuildRules.IsCompatibleWithPlatformAndDefines), so it compiles in the Editor; Assembly-CSharp does not see the symbol (#error probe). Players leave test framework assemblies out.",
       "requirements": [
         "R2",
         "R5"
@@ -46384,8 +46341,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
@@ -46529,8 +46485,7 @@
                 "UNITY_INCLUDE_TESTS",
                 "UNITY_STANDALONE",
                 "UNITY_STANDALONE_WIN",
-                "UNITY_TEAM_LICENSE",
-                "UNITY_TESTS_FRAMEWORK"
+                "UNITY_TEAM_LICENSE"
               ]
             },
             {
