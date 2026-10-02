@@ -21,6 +21,9 @@ public sealed record TestRunReport
     /// <summary>Test assemblies run (names, sorted).</summary>
     public IReadOnlyList<string> Assemblies { get; init; } = [];
 
+    /// <summary>Every time the test host process died; the run continued in a new host after each.</summary>
+    public IReadOnlyList<TestHostCrash> HostCrashes { get; init; } = [];
+
     /// <summary>Configuration problems.</summary>
     public IReadOnlyList<Problem> Problems { get; init; } = [];
 

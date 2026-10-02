@@ -52,6 +52,29 @@ public static class TestClassifier
         return usesLogAssert ? "LogAssert needs the Editor's log" : null;
     }
 
+    /// <summary>
+    /// The needs-unity reason for a case that constructs <paramref name="typeFullName"/>, an engine type with a
+    /// finalizer: outside Unity its finalizer runs on a native object that was never created and throws on the GC
+    /// finalizer thread, which ends the process, so such a case is never run.
+    /// </summary>
+    public static string FinalizerReason(string typeFullName) =>
+        $"constructs {typeFullName}, an engine type whose finalizer ends the process outside Unity";
+
+    /// <summary>True for an assembly whose types are the engine's (<c>UnityEngine*</c>, <c>UnityEditor*</c>).</summary>
+    public static bool IsEngineAssembly(string assemblyName) =>
+        assemblyName.StartsWith("UnityEngine", StringComparison.Ordinal) || assemblyName.StartsWith("UnityEditor", StringComparison.Ordinal);
+
+    /// <summary>
+    /// The category and reason of the case that was running when the test host died, from the host's error output:
+    /// needs-unity when the stack has a <c>UnityEngine</c> or <c>UnityEditor</c> frame, else failed.
+    /// </summary>
+    public static (TestCategory Category, string Reason) FromHostCrash(string crashText)
+    {
+        ArgumentNullException.ThrowIfNull(crashText);
+        var engine = crashText.Contains("at UnityEngine.", StringComparison.Ordinal) || crashText.Contains("at UnityEditor.", StringComparison.Ordinal);
+        return (engine ? TestCategory.NeedsUnity : TestCategory.Failed, "test host crashed during this case: " + FirstLine(crashText));
+    }
+
     /// <summary>The category of a case NUnit ran, from its result state (status, label) and failure message.</summary>
     /// <param name="status">NUnit <c>TestStatus</c>: Passed, Failed, Skipped, Inconclusive, Warning.</param>
     /// <param name="label">NUnit result label (Ignored, Explicit, Error, Invalid, ...), or empty.</param>

@@ -9,6 +9,13 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Changed
 
+* `ucl test` runs the tests in a child test host (the same program, started again). A test that ends the
+  process (an engine type's finalizer throwing on the GC thread) no longer loses the run: the completed cases
+  are kept, the case in flight is classified from the crash text, a new host runs the rest, and `ucl-test/1`
+  gains `hostCrashes` (`after`, `during`, `text`), also printed in the text report. A case that constructs an
+  engine type with a finalizer, directly or through project code, is `needs-unity` and never run (fixture
+  `test-host-crash`).
+
 * In editor cells, editor-only assemblies reference every engine module, including disabled built-in
   packages' modules (fixture `editor-only-disabled-modules`).
 

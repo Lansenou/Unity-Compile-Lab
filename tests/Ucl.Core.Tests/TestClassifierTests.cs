@@ -78,4 +78,29 @@ public class TestClassifierTests
         Assert.Equal(@"!^Ns\.Good\.;!^Other\.Good\+Nested\.", UnityTestFilter.Build(cases));
         Assert.Equal(string.Empty, UnityTestFilter.Build([]));
     }
+
+    [Fact]
+    public void A_host_crash_with_an_engine_frame_needs_unity()
+    {
+        var (category, reason) = TestClassifier.FromHostCrash("Unhandled exception. System.NullReferenceException: Object reference not set\n   at UnityEngine.Rendering.CommandBuffer.Finalize()\n   at System.GC.RunFinalizers()");
+        Assert.Equal(TestCategory.NeedsUnity, category);
+        Assert.Equal("test host crashed during this case: Unhandled exception. System.NullReferenceException: Object reference not set", reason);
+    }
+
+    [Fact]
+    public void A_host_crash_without_an_engine_frame_is_a_failure()
+    {
+        Assert.Equal(TestCategory.Failed, TestClassifier.FromHostCrash("Stack overflow.\n   at Game.Tests.Recursion.Run()").Category);
+    }
+
+    [Theory]
+    [InlineData("UnityEngine.CoreModule", true)]
+    [InlineData("UnityEditor.CoreModule", true)]
+    [InlineData("Game.Runtime", false)]
+    public void Engine_assemblies_are_the_unity_ones(string name, bool engine) =>
+        Assert.Equal(engine, TestClassifier.IsEngineAssembly(name));
+
+    [Fact]
+    public void The_finalizer_reason_names_the_type() =>
+        Assert.StartsWith("constructs UnityEngine.Rendering.CommandBuffer,", TestClassifier.FinalizerReason("UnityEngine.Rendering.CommandBuffer"), StringComparison.Ordinal);
 }

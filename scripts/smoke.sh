@@ -40,4 +40,9 @@ cp -r fixtures/test-editmode "$tmp/tests"
 mkdir -p "$tmp/tests/Packages/com.unity.ext.nunit/net40/unity-custom"
 cp artifacts/stubs/dlls/nunit.framework.dll "$tmp/tests/Packages/com.unity.ext.nunit/net40/unity-custom/"
 expect 1 "result: 31 cases: 19 passed, 1 failed, 2 skipped, 1 ignored, 2 needs-unity, 6 unity-only" test "$tmp/tests" --editor-os linux
+
+# The test host is this binary started again: a test that kills it loses no case.
+cp -r fixtures/test-host-crash "$tmp/crash"
+cp artifacts/stubs/dlls/nunit.framework.dll "$tmp/crash/Packages/com.unity.ext.nunit/net40/unity-custom/"
+expect 0 "test host crashed after Game.Tests.RenderTests.C_pooled_command_buffer" test "$tmp/crash" --editor-os linux
 echo "smoke test passed"
