@@ -43,10 +43,10 @@ ucl test path/to/Project > test.txt; echo "exit $?"; tail -1 test.txt
 
 | Tag | Commit | Note |
 |---|---|---|
-| `v0.7.0` | the "Version 0.7.0" commit (see `git log`) | session 3 |
+| `v0.7.0` | `1840155` | session 3; CI run 28 green on Linux, Windows, macOS |
 
 ```sh
-git tag -a v0.7.0 <commit> -m v0.7.0 && git push origin v0.7.0
+git tag -a v0.7.0 1840155 -m v0.7.0 && git push origin v0.7.0
 ```
 
 Not `v1.0.0`.
