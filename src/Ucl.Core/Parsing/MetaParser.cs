@@ -35,9 +35,13 @@ public static class MetaParser
 
             var (category, name) = (first[0].Key, first[0].Value.Scalar ?? string.Empty);
             var isEnabled = second.Get("enabled") == "1";
-            if (category.Length == 0 && name == "Any")
+            if ((category.Length == 0 && name == "Any") || (category == "Any" && name.Length == 0))
             {
-                // The ": Any" entry carries "Exclude <key>: 1" lines used when Any Platform is ticked.
+                // Exclusions occur in the Any entry settings or the separate empty-key ": Any" entry.
+                if (category == "Any")
+                {
+                    any = isEnabled;
+                }
                 foreach (var setting in second["settings"]?.Map ?? [])
                 {
                     if (setting.Key.StartsWith("Exclude ", StringComparison.Ordinal) && setting.Value.Scalar == "1")
@@ -45,10 +49,6 @@ public static class MetaParser
                         excluded.Add(setting.Key["Exclude ".Length..]);
                     }
                 }
-            }
-            else if (category == "Any" && name.Length == 0)
-            {
-                any = isEnabled;
             }
             else if (isEnabled)
             {

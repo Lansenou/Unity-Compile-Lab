@@ -517,11 +517,11 @@ internal static class Planner
             {
                 var kv = meta[i + 1].Trim();
                 var colon = kv.IndexOf(':');
-                var (left, right) = (kv[..colon].Trim(), kv[(colon + 1)..].Trim());
+                var (left, right) = (kv[..colon].Trim().Trim('\'', '"'), kv[(colon + 1)..].Trim());
                 current = left == "" ? ":Any" : left == "Any" ? "Any" : right;
             }
             else if (current is not null && t.StartsWith("enabled:", StringComparison.Ordinal)) enabled[current] = t[8..].Trim() == "1";
-            else if (current == ":Any" && Regex.Match(t, @"^Exclude (\S+): 1$") is { Success: true } m) excluded.Add(m.Groups[1].Value);
+            else if (current is ":Any" or "Any" && Regex.Match(t, @"^Exclude (\S+): 1$") is { Success: true } m) excluded.Add(m.Groups[1].Value);
         }
 
         if (enabled.Count == 0) return _ => true;

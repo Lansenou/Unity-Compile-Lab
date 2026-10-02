@@ -114,7 +114,16 @@ Nothing is compiled or written. Details: [oracle.md](oracle.md#bee-oracle-ucl-be
   Unity loads it at run time and never passes it to the compiler, whatever its path, name or `.meta` say.
   Discovery reads the first 4 KiB of every DLL to decide (`PluginBinary`). A managed `.dll` with a `.meta` is a plugin. It is a reference when its plugin import
   settings are compatible with the cell (Any Platform with excludes, or explicit per-platform enable), its
-  plugin `defineConstraints` hold, and it is not labelled `RoslynAnalyzer`. `Auto Reference` off
+  plugin `defineConstraints` hold, and it is not labelled `RoslynAnalyzer`. In Any Platform mode,
+  `Exclude Editor: 1` excludes the plugin from every Editor cell, including Assets plugins; the active
+  player target does not replace the Editor key. Exclusions can be carried by `Any:` settings or by
+  the separate empty-key `: Any` entry (including YAML-quoted `''`). An `Editor enabled: 0` entry is
+  used in explicit-platform mode; it does not by itself override Any Platform with no exclusion.
+  Sources: [Unity plugin inspector](https://docs.unity3d.com/6000.3/Documentation/Manual/plug-in-inspector.html),
+  [PluginImporterInspector.ResetValues](https://github.com/Unity-Technologies/UnityCsReference/blob/2f6cef60096cf50741d933becf101bf3186719dd/Modules/AssetPipelineEditor/ImportSettings/PluginImporterInspector.cs),
+  and [public serialized Any-entry exclusion example](https://github.com/IvanMurzak/Unity-MCP/issues/725).
+  `plugin-exclude-editor` uses an original plugin API and fixtures these importer settings only.
+  `Auto Reference` off
   (`isExplicitlyReferenced: 1`) means only asmdefs that list it in `precompiledReferences` (with
   `overrideReferences`) see it. An asmdef with `overrideReferences: true` sees only the DLLs it lists. Unity
   looks a listed name up among the precompiled assemblies it knows and skips it without a message when it

@@ -75,6 +75,8 @@ Session 4: the 0.7.0 private rerun (docs/real-project-fixes.md, "Session 4").
 
 ### Fixed
 
+* Honour plugin Any-entry platform exclusions, including Exclude Editor for Assets plugins.
+
 * `versionDefines` with resource `Unity` accept bounds with a release suffix (`2022.2.14f1`) instead of
   rejecting them with `UCL1021`.
 
