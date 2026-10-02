@@ -122,6 +122,16 @@ Pre-commit hook, GitHub Actions, GitLab CI and AI agent usage: [docs/integration
 * `scripts/check.sh --mutation`: removing one platform define from `ucl` must make fixtures fail.
 * `oracle/`: scripts that record what a real Unity Editor reports for each cell ([docs/oracle.md](docs/oracle.md)).
 
+## Releases
+
+Every push to `main` that passes the Linux, Windows and macOS gates is released automatically by the CI
+`release` job as `v0.<minor>.<run number>` (for example `v0.8.41`): the four single-file binaries
+(`ucl-<rid>.tar.gz` / `.zip`), the global tool `.nupkg`, `LICENSE`, `NOTICE` and `SHA256SUMS`. The minor is the
+`<Version>` in `Directory.Build.props`; the patch is the workflow run number, so versions only grow and gaps
+are normal. `ucl --version` prints the same string. Pull request builds print `dev-<sha>`. Take the release
+marked "Latest" on the [releases page](https://github.com/Lansenou/unity-compile-lab/releases) and check it
+with `sha256sum --check SHA256SUMS`. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+
 ## Development
 
 ```sh

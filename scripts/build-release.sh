@@ -5,7 +5,8 @@
 #   LICENSE, NOTICE, SHA256SUMS
 #
 #   scripts/build-release.sh <version> <out> [rid...]
-# <version> is a tag such as v0.1.0 (or dev-<sha> for CI builds). Default rids:
+# <version> is a release tag such as v0.8.41 or dev-<sha> (scripts/release-version.sh); `ucl --version`
+# prints it unchanged. Default rids:
 # win-x64 osx-arm64 osx-x64 linux-x64. With explicit rids only those binaries are
 # built, unpacked in OUT/ucl-<rid>/ for smoke tests, and nothing is archived.
 set -euo pipefail
@@ -33,7 +34,7 @@ for rid in "${rids[@]}"; do
   echo "== publish $rid ($version)"
   dotnet publish src/Ucl.Cli -c Release -r "$rid" --self-contained true \
     -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
-    -p:DebugType=none -p:Version="$version" -p:PackAsTool=false \
+    -p:DebugType=none -p:Version="$version" -p:InformationalVersion="$tag" -p:PackAsTool=false \
     -p:PublishDocumentationFile=false -p:PublishReferencesDocumentationFiles=false \
     -o "$out/ucl-$rid" >/dev/null
   cp LICENSE NOTICE THIRD_PARTY_NOTICES.md "$out/ucl-$rid/"
@@ -41,7 +42,7 @@ done
 
 if [ "$full" = 1 ]; then
   echo "== pack global tool"
-  dotnet pack src/Ucl.Cli -c Release -p:Version="$version" -o "$out" >/dev/null
+  dotnet pack src/Ucl.Cli -c Release -p:Version="$version" -p:InformationalVersion="$tag" -o "$out" >/dev/null
   cp LICENSE NOTICE "$out/"
   (
     cd "$out"

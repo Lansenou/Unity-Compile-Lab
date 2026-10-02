@@ -7,6 +7,13 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ## [Unreleased]
 
+### Changed
+
+* Releases are automatic: each push to `main` that passes the three CI gates is released as
+  `v0.<minor>.<run number>` (README, "Releases"). Pushed `v*` tags no longer trigger a release.
+* `ucl --version` and the tool version in `ucl-result/1`, `ucl-graph/1` and SARIF output now print the release
+  string unchanged (`v0.8.41`, or `dev-<sha>` for pull request builds); local builds still print `0.8.0`.
+
 ## [0.8.0]
 
 Session 4: the 0.7.0 private rerun (docs/real-project-fixes.md, "Session 4").

@@ -3,6 +3,27 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
+## Session 5 (2026-10-02): automatic releases
+
+Work now goes through pull requests merged after the Linux, Windows and macOS gates pass; nothing is pushed
+to `main` directly. Each push to `main` that passes the gates runs the CI `release` job, which tags and
+publishes `v0.<minor>.<run number>` (README, "Releases"; design copied from the PMTiles conformance lab).
+The job is idempotent: an existing tag at the same commit is left as is, a tag at another commit fails the
+job and is never moved.
+
+The tags `v0.5.0` to `v0.8.0` were made locally in earlier sessions and never pushed (the remote refuses tag
+pushes from a session). They are not recreated; the first automatic release supersedes them. The commits
+they would have tagged:
+
+| Tag | Commit |
+|---|---|
+| `v0.5.0` | `f06fd51` |
+| `v0.6.0` | `d96c285` |
+| `v0.7.0` | `1840155` |
+| `v0.8.0` | `2a051a6` |
+
+First automatic release: pending (filled in after the merge).
+
 ## Session 4 (2026-10-02): the 0.7.0 private rerun, `0.8.0`
 
 Input: counts from the 0.7.0 rerun (docs/real-project-fixes.md, "Session 4"). Each item gets a synthetic
@@ -24,11 +45,7 @@ cells; verify 190 cells agree; benchmark (now with a noisy global analyzer) cold
 edit 2.57 s, API edit 5.65 s (targets 60 / 3 / 10 / 10). CI green on Linux, Windows, macOS for each item
 commit (runs 30-35) and for the version commit `2a051a6` (run 36).
 
-Tag (refused from this session; the maintainer runs it on the version commit):
-
-```sh
-git tag -a v0.8.0 2a051a6 -m v0.8.0 && git push origin v0.8.0
-```
+Tag: superseded by the first automatic release (Session 5).
 
 Maintainer rerun: docs/real-project-checklist.md, "Private project: counts only", plus the cold player time
 with `--analyzers off`. Open: item 6 (637 s first player run) is not reproduced; E08/E17 version bounds come from

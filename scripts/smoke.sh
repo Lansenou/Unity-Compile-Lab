@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Smoke test of a built ucl binary against committed fixtures and the stub editors.
-#   scripts/smoke.sh <path-to-ucl>
+#   scripts/smoke.sh <path-to-ucl> [<expected version>]
 set -euo pipefail
 cd "$(dirname "$0")/.."
 bin=${1:?usage: smoke.sh <path-to-ucl>}
@@ -24,6 +24,9 @@ expect() { # expect <code> <grep-pattern> <args...>
 }
 
 "$bin" version
+if [ -n "${2:-}" ] && [ "$("$bin" version | tr -d '\r')" != "ucl $2" ]; then
+  echo "FAIL: ucl version is '$("$bin" version)', want 'ucl $2'"; exit 1
+fi
 "$bin" --help | grep -q "exit codes"
 expect 0 "exit 0" check fixtures/basic-predefined
 expect 1 "error CS0103" check fixtures/compile-error
