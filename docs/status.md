@@ -47,7 +47,7 @@ Release smoke checks now expect exit 1 for the host-crash fixture too. The initi
 that stale expectation; the local smoke check reproduced it and passes after its update.
 A counts-only private rerun remains necessary to confirm the outstanding real-project case count.
 
-### Item 3: sortable assembly/analyzer/rule timings — implementation in progress
+### Item 3: sortable assembly/analyzer/rule timings — merged in PR 25 (shared analyzer time)
 
 Text --timings adds a descending-time assembly/analyzer/supported-rule-ID table. JSON timing
 entries add ruleIds and timeScope: analyzer, including cell/run summaries. Suppressors list the
@@ -61,6 +61,11 @@ not rule; the public API exposes registered-action counts but no rule attributio
 are metadata, including rules that emitted no diagnostics. Individual rule costs remain unavailable
 without analyzer-specific instrumentation; no shared total is repeated or divided into guessed
 per-rule costs. Disable a candidate rule and rerun to measure its actual effect.
+
+[PR 25](https://github.com/Lansenou/Unity-Compile-Lab/pull/25) merges only after all-platform CI,
+then main CI and automatic release. Local gate: 623 Core, 75 Discovery, 301 Integration tests;
+211 independently verified cells; Core 96.78%, overall 91.87% line coverage. Thresholds unchanged.
+The README CSV command was executed on the original slow analyzer fixture.
 
 
 The earlier budget stop completed item 1. Work resumed on items 2 and 3; each has its own PR.
