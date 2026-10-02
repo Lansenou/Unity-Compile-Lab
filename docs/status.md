@@ -26,7 +26,7 @@ and automatic release on main.
 A counts-only private rerun is still needed; this fixes the serialization cause, not an unproven
 blanket API-profile-name filter or duplicate-plugin precedence rule.
 
-### Item 2: IL scan load failures and host recovery — implementation in progress
+### Item 2: IL scan load failures and host recovery — merged in PR 24
 
 Original TestHostLoadFailureTests compile a dependency with MissingBodyType, then load an original
 same-identity replacement without it. Before the fix, GetMethodBody throws TypeLoadException,
@@ -39,7 +39,13 @@ host-protocol crash fixture proves the replacement host skips the interrupted ca
 The existing real child-process finalizer-crash fixture still proves execution-time recovery.
 Interrupted cases now count as failed even with engine frames, and any host crash forces exit 1,
 including a crash before discovery. Red tests covered both earlier successful crash exit paths.
-No external binaries or private sample data were used. Full gate and all-platform CI pending.
+No external binaries or private sample data were used. Local full gate passes: 623 Core, 75
+Discovery and 300 Integration tests; 211 independent cells; Core coverage 96.84%, overall 91.81%.
+[PR 24](https://github.com/Lansenou/Unity-Compile-Lab/pull/24) merges only after Linux, Windows
+and macOS CI pass, followed by post-merge main CI and the automatic release. Coverage gates unchanged.
+Release smoke checks now expect exit 1 for the host-crash fixture too. The initial macOS CI caught
+that stale expectation; the local smoke check reproduced it and passes after its update.
+A counts-only private rerun remains necessary to confirm the outstanding real-project case count.
 
 ### Item 3: sortable assembly/analyzer/rule timings — open, next session
 
