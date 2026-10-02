@@ -26,6 +26,9 @@ public sealed partial record UnityVersion(int Major, int Minor, int Patch, strin
         return Result<UnityVersion>.Success(new UnityVersion(Num(m.Groups[1]), Num(m.Groups[2]), Num(m.Groups[3]), m.Groups[4].Value));
     }
 
+    /// <summary>Drops the release suffix (<c>a1</c>, <c>b2</c>, <c>f1</c>, <c>p3</c>) of every version in a versionDefines expression.</summary>
+    public static string WithoutSuffixes(string expression) => SuffixPattern().Replace(expression, "$1");
+
     /// <summary>The version as a semantic version (suffix dropped), used by <c>versionDefines</c> with resource <c>Unity</c>.</summary>
     public SemanticVersion ToSemantic() => new(Major, Minor, Patch, string.Empty);
 
@@ -45,6 +48,9 @@ public sealed partial record UnityVersion(int Major, int Minor, int Patch, strin
 
     /// <inheritdoc/>
     public override string ToString() => $"{Major}.{Minor}.{Patch}{Suffix}";
+
+    [GeneratedRegex(@"(\d+\.\d+\.\d+)[abfpx]\d+")]
+    private static partial Regex SuffixPattern();
 
     [GeneratedRegex(@"^(\d+)\.(\d+)(?:\.(\d+)([abfpx]\d+)?)?$")]
     private static partial Regex Pattern();

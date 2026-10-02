@@ -13,8 +13,8 @@ fixture that is red on 0.7.0, then the fix, one commit each.
 | 1 editor cells took the platform's engine modules | `editor-engine-modules` | fixed |
 | 2 player collections safety: references and defines disagree | `player-collections-checks` | fixed: row E16 |
 | 3 `Unity.InputSystem.TestFramework` excluded (`UNITY_TESTS_FRAMEWORK`) | `tests-framework-symbol` | fixed: row D61 (source: the private run only) |
-| 4 version-gated built-in symbols, versionDefines | | next |
-| 5 script-less asmdef compiled | | to do |
+| 4 version-gated built-in symbols, versionDefines | `version-gated-symbols` | fixed: D53 suffixes, E08 split, E17. `UNITY_XR_VISIONOS_SUPPORTED` and the two Input System symbols are not reproduced; possibly the same suffix bug, unverified |
+| 5 script-less asmdef compiled | | next |
 | 6 speed (analyzer reach) | | to do |
 
 Unverified: everything against the real editor; the private rerun reports the counts.

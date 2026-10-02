@@ -87,7 +87,8 @@ public static class AssemblyGraphBuilder
 
             foreach (var vd in data.VersionDefines)
             {
-                var range = VersionRange.Parse(vd.Expression);
+                // Resource Unity: versions are written the way Unity prints them (2022.2.14f1); the suffix is ignored (D53).
+                var range = VersionRange.Parse(vd.Name == "Unity" ? UnityVersion.WithoutSuffixes(vd.Expression) : vd.Expression);
                 if (!range.Ok || !DefineSet.IsValidSymbol(vd.Define) || vd.Name.Length == 0)
                 {
                     diagnostics.Add(new Diagnostic(ProblemIds.BadVersionDefine, Severity.Warning, DiagnosticOrigin.Ucl, data.Name, entry.Path, 0, 0,

@@ -46,7 +46,13 @@ public static class BuiltInDefines
     public static IReadOnlyList<string> Consent { get; } = ["ENABLE_UNITY_CLOUD_IDENTIFIERS", "ENABLE_UNITY_CONSENT"];
 
     /// <summary>E08: every cell from Unity 6000.3.</summary>
-    public static IReadOnlyList<string> Unity60003 { get; } = ["ENABLE_AUDIO_SCRIPTABLE_PIPELINE", "TEXTCORE_FONT_ENGINE_1_6_OR_NEWER"];
+    public static IReadOnlyList<string> Unity60003 { get; } = ["TEXTCORE_FONT_ENGINE_1_6_OR_NEWER"];
+
+    /// <summary>E08: every cell of Unity 6000.3 before 6000.3.19 (observed on 6000.3.5 and 6000.3.10, absent on 6000.3.19).</summary>
+    public const string AudioScriptablePipeline = "ENABLE_AUDIO_SCRIPTABLE_PIPELINE";
+
+    /// <summary>E17: editor cells from Unity 6000.3.19.</summary>
+    public const string ProfilerAssistant = "ENABLE_PROFILER_ASSISTANT_INTEGRATION";
 
     /// <summary>E10: every Standalone platform.</summary>
     public static IReadOnlyList<string> Standalone { get; } =
@@ -97,7 +103,7 @@ public static class BuiltInDefines
         _ => [],
     };
 
-    /// <summary>Adds rows E04-E16 for <paramref name="cell"/> to <paramref name="defines"/>.</summary>
+    /// <summary>Adds rows E04-E17 for <paramref name="cell"/> to <paramref name="defines"/>.</summary>
     public static void Add(DefineSet defines, CompileCell cell)
     {
         var v = cell.UnityVersion;
@@ -125,6 +131,17 @@ public static class BuiltInDefines
         if (v.Minor >= 3)
         {
             AddAll(defines, Unity60003, "E08");
+        }
+
+        var from60003_19 = v.Minor > 3 || (v.Minor == 3 && v.Patch >= 19);
+        if (v.Minor == 3 && !from60003_19)
+        {
+            defines.Add(AudioScriptablePipeline, "E08");
+        }
+
+        if (cell.IsEditor && from60003_19)
+        {
+            defines.Add(ProfilerAssistant, "E17");
         }
 
         if (cell.Platform is BuildPlatform.StandaloneWindows64 or BuildPlatform.StandaloneLinux64 or BuildPlatform.StandaloneOSX)

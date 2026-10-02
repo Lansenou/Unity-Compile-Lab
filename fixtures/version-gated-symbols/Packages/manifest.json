@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "com.example.xr": "file:com.example.xr",
+    "com.unity.modules.physics": "1.0.0"
+  }
+}

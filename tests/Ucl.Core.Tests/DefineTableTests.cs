@@ -445,6 +445,25 @@ public class DefineTableTests
         Assert.False(Compute(Cells.Player() with { PlatformEngine = true }).Contains("ENABLE_UNITY_COLLECTIONS_CHECKS"));
     }
 
+    [Theory]
+    [InlineData("6000.3.10f1", true, false)]
+    [InlineData("6000.3.19f1", false, true)]
+    [InlineData("6000.0.30f1", false, false)]
+    public void E08_audio_pipeline_and_E17_profiler_assistant_by_patch(string version, bool audio, bool assistant)
+    {
+        var cell = Cells.Editor() with { UnityVersion = UnityVersion.Parse(version).Value! };
+        Assert.Equal(audio, Compute(cell).Contains("ENABLE_AUDIO_SCRIPTABLE_PIPELINE"));
+        Assert.Equal(assistant, Compute(cell).Contains("ENABLE_PROFILER_ASSISTANT_INTEGRATION"));
+        Assert.False(Compute(cell with { Target = TargetKind.Player }).Contains("ENABLE_PROFILER_ASSISTANT_INTEGRATION"));
+    }
+
+    [Theory]
+    [InlineData("2022.2.14f1", "2022.2.14")]
+    [InlineData("[6000.0.0a1,6000.3.0b1)", "[6000.0.0,6000.3.0)")]
+    [InlineData("1.2.0-pre.1", "1.2.0-pre.1")]
+    public void Unity_versionDefines_bounds_lose_their_suffix(string expression, string expected) =>
+        Assert.Equal(expected, UnityVersion.WithoutSuffixes(expression));
+
     [Fact]
     public void E16_collections_checks_in_players_compiled_against_the_editor_engine_build()
     {

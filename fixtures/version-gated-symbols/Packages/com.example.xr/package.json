@@ -1,0 +1,7 @@
+{
+  "name": "com.example.xr",
+  "version": "2.0.0-pre.3",
+  "displayName": "XR (fixture stand-in)",
+  "unity": "6000.0",
+  "dependencies": {}
+}

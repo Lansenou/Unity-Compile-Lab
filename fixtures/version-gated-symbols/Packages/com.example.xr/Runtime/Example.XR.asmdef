@@ -1,0 +1,35 @@
+{
+    "name": "Example.XR",
+    "rootNamespace": "",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "Unity",
+            "expression": "2022.2.14f1",
+            "define": "UNITY_2022_2_14F1_OR_NEWER"
+        },
+        {
+            "name": "Unity",
+            "expression": "6000.3.19f1",
+            "define": "EXAMPLE_AT_6000_3_19"
+        },
+        {
+            "name": "Unity",
+            "expression": "[6000.0.0a1,6000.3.0b1)",
+            "define": "EXAMPLE_BEFORE_6000_3"
+        },
+        {
+            "name": "com.example.xr",
+            "expression": "[2.0.0-pre.1,3.0.0)",
+            "define": "EXAMPLE_XR_SUPPORTED"
+        }
+    ],
+    "noEngineReferences": false
+}

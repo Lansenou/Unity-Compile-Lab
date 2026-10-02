@@ -91,3 +91,4 @@ Every cell starts as `oracle: pending`; see [oracle.md](oracle.md).
 | 69 | `editor-engine-modules` | session 4, item 1: editor cells take engine modules from `Managed/UnityEngine/`, players from the platform folder, one DLL per name | R4 |
 | 70 | `player-collections-checks` | session 4, item 2: players compiled against the editor's engine build define `ENABLE_UNITY_COLLECTIONS_CHECKS` (E16) | R5 |
 | 71 | `tests-framework-symbol` | session 4, item 3: `UNITY_TESTS_FRAMEWORK` (D61) in editor cells with `com.unity.test-framework` installed | R2, R5 |
+| 72 | `version-gated-symbols` | session 4, item 4: `versionDefines` bounds with Unity suffixes, a pre-release package range, E08 and E17 by editor patch (adds the 6000.3.19f1 stub editor) | R5 |
