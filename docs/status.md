@@ -18,9 +18,38 @@ No private project identity, location or package inventory is recorded.
    grant compatibility. The ordinary player fixture receives the plugin; profile suppression
    is a separate unresolved rule. Full gate: Core 614, Discovery 75, Integration 284; coverage
    gates and independent verification of 205 cells pass. Merge requires three-platform CI.
-2. Player API-profile suppression: public-rule audit in progress. No assembly-name blacklist added.
+2. Player API-profile suppression: open after public-rule audit; evidence below. No assembly-name blacklist added.
 3. Duplicate dependency selection: public-rule audit in progress, related to the Session 8 open
    precedence question. No package-versus-Assets or version selection change is inferred from CS1705.
+
+### Item 2: player API-profile plugin suppression — open
+
+[Unity 6000.3 EditorBuildRules](https://github.com/Unity-Technologies/UnityCsReference/blob/2f6cef60096cf50741d933becf101bf3186719dd/Editor/Mono/Scripting/ScriptCompilation/EditorBuildRules.cs)
+`AddScriptAssemblyReferences` adds selected precompiled references, then appends the API compatibility
+profile libraries from `MonoLibraryHelpers.GetSystemLibraryReferences`. `GetPrecompiledReferences`
+checks precompiled Editor-only/build-target flags. Neither method exposes a profile-name blacklist
+or a rule saying that a user plugin with a matching assembly name must always be discarded.
+[MonoLibraryHelpers](https://github.com/Unity-Technologies/UnityCsReference/blob/2f6cef60096cf50741d933becf101bf3186719dd/Editor/Mono/Scripting/ScriptCompilation/MonoLibraryHelpers.cs)
+selects reference libraries, compatibility shims, extensions and .NET Framework facades; their presence
+can explain conflicting memory type definitions, but does not prove plugin suppression. Assembly name,
+DLL file name and the assembly that defines/forwards a type are different inputs.
+
+[PrecompiledAssemblyProvider](https://github.com/Unity-Technologies/UnityCsReference/blob/2f6cef60096cf50741d933becf101bf3186719dd/Editor/Mono/Scripting/ScriptCompilation/PrecompiledAssembly.cs)
+receives its candidate list and `Redirected` flag from native `GetPrecompiledAssembliesManaged`.
+Its public filename dictionary retains the first candidate unless that existing candidate is redirected.
+The native redirection criteria/profile mapping are not public in this source revision. This is a
+possible place to investigate, not a proven explanation for System.Memory suppression.
+
+No public version/profile-specific fixture establishes when a compatible, auto-referenced
+System.Memory plugin is omitted versus forwarded or retained, so there is no justified red fixture
+for a profile-name filter and no code change. The ordinary-player plugin fixture in item 1 stays
+referenced: Exclude Editor alone must not remove a player plugin. Needed: a public minimal project
+with original overlapping plugin/profile stubs and recorded Unity compiler references for both
+.NET Standard 2.1 and .NET Framework profiles, plus a non-overlapping control; or a public native
+redirection implementation/table. The private rerun confirms a difference but cannot supply a new
+Unity rule. Maintainer follow-up stays counts/booleans only (API profile, affected cell count, plugin
+compatible/auto-reference/constraint result, and whether a profile reference supplies the memory types).
+Do not infer this rule from the NuGet installer choosing not to install an already-provided library.
 
 ## Session 8 (2026-10-02): references and analyzer execution
 
