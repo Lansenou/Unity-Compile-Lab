@@ -112,3 +112,8 @@ final dependency cascades and that `ucl test` cannot receive failed or blocked s
 `plugin-exclude-editor`: an original managed plugin under Assets with Any Platform enabled and
 Exclude Editor in its Any-entry settings. The Editor cell excludes it (missing API diagnostics),
 while the player cell receives it. No System.Memory binary or package implementation is copied.
+
+`plugin-map-exclude-editor`, `plugin-map-any`, `plugin-map-editor-only`: serializedVersion 3
+map-form platformData with original Vendor.Math stubs. Six editor/player cells respectively prove
+Editor exclusion, inclusion everywhere, and Editor-only inclusion. Existing list-form fixtures remain
+controls. Graph unit tests also check references on predefined and asmdef assemblies.

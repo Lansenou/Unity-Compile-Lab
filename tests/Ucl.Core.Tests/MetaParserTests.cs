@@ -83,6 +83,33 @@ public class MetaParserTests
         Assert.True(plugin.IsCompatibleWith("Win64"));
     }
 
+    [Theory]
+    [InlineData(1, 1, 0, false, true)]
+    [InlineData(1, 0, 0, true, true)]
+    [InlineData(0, 0, 1, true, false)]
+    [InlineData(0, 1, 0, false, false)]
+    public void Map_platform_data_matches_any_exclusions_and_explicit_enable(int any, int excludeEditor, int editor, bool inEditor, bool inPlayer)
+    {
+        var text = $"PluginImporter:\n  serializedVersion: 3\n  isExplicitlyReferenced: 1\n  validateReferences: 0\n  defineConstraints:\n  - USE_PLUGIN\n  platformData:\n    Any:\n      enabled: {any}\n      settings:\n        Exclude Editor: {excludeEditor}\n        Exclude Linux64: 0\n    Editor:\n      enabled: {editor}\n      settings:\n        DefaultValueInitialized: true\n";
+        var plugin = MetaParser.Parse(text).Plugin!;
+        Assert.True(plugin.HasPlatformData);
+        Assert.Equal(any == 1, plugin.AnyPlatform);
+        Assert.Equal(inEditor, plugin.IsCompatibleWith("Editor"));
+        Assert.Equal(inPlayer, plugin.IsCompatibleWith("Linux64"));
+        Assert.Equal(inPlayer, plugin.IsCompatibleWith("Win64"));
+        Assert.True(plugin.IsExplicitlyReferenced);
+        Assert.False(plugin.ValidateReferences);
+        Assert.Equal(["USE_PLUGIN"], plugin.DefineConstraints);
+    }
+
+    [Fact]
+    public void Empty_platform_map_keeps_the_default_compatibility()
+    {
+        var plugin = MetaParser.Parse("PluginImporter:\n  serializedVersion: 3\n  platformData: {}\n").Plugin!;
+        Assert.False(plugin.HasPlatformData);
+        Assert.True(plugin.IsCompatibleWith("Editor"));
+    }
+
     [Fact]
     public void Explicit_per_platform_enable()
     {

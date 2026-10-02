@@ -114,8 +114,11 @@ Nothing is compiled or written. Details: [oracle.md](oracle.md#bee-oracle-ucl-be
   Unity loads it at run time and never passes it to the compiler, whatever its path, name or `.meta` say.
   Discovery reads the first 4 KiB of every DLL to decide (`PluginBinary`). A managed `.dll` with a `.meta` is a plugin. It is a reference when its plugin import
   settings are compatible with the cell (Any Platform with excludes, or explicit per-platform enable), its
-  plugin `defineConstraints` hold, and it is not labelled `RoslynAnalyzer`. In Any Platform mode,
-  `Exclude Editor: 1` excludes the plugin from every Editor cell, including Assets plugins; the active
+  plugin `defineConstraints` hold, and it is not labelled `RoslynAnalyzer`.
+  Both list-form `first`/`second` entries and serializedVersion 3 map-form entries are accepted;
+  a map key is the platform name. The original `plugin-map-exclude-editor`, `plugin-map-any`
+  and `plugin-map-editor-only` fixtures and existing list-form fixtures encode the same compatibility rules.
+  In Any Platform mode, `Exclude Editor: 1` excludes the plugin from every Editor cell, including Assets plugins; the active
   player target does not replace the Editor key. Exclusions can be carried by `Any:` settings or by
   the separate empty-key `: Any` entry (including YAML-quoted `''`). An `Editor enabled: 0` entry is
   used in explicit-platform mode; it does not by itself override Any Platform with no exclusion.
