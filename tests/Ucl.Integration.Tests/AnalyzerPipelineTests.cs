@@ -54,7 +54,7 @@ public sealed class AnalyzerPipelineTests
         File.WriteAllText(Path.Combine(project, ".globalconfig"), $"is_global = true\nucl_fixture.signal_dir = {signal.Replace('\\', '/')}\n");
         var args = FixtureRunner.Args(project, entry.Cells[0], Path.Combine(temp.Path, "cache"));
         var result = Cli.Run(new TestEnvironment(temp.Path), [.. args, "--no-cache", "--jobs", jobs.ToString(System.Globalization.CultureInfo.InvariantCulture)]);
-        Assert.Equal(0, result.Exit);
+        Assert.True(result.Exit == 0, $"Exit {result.Exit}\n{result.Stdout}\n{result.Stderr}");
         Assert.DoesNotContain("USLOW002", result.Stdout, StringComparison.Ordinal);
         Assert.True(File.Exists(Path.Combine(signal, "leaf.started")), result.Stdout);
         using var json = JsonDocument.Parse(result.Stdout);
