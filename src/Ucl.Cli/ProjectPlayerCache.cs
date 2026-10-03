@@ -110,8 +110,9 @@ internal static class ProjectPlayerCache
         var inputs = new SortedDictionary<string, string>(StringComparer.Ordinal)
         {
             ["version"] = editor.Version.ToString(),
+            ["scratchLayout"] = ScratchRoot("", session.ProjectRoot).Replace('\\', '/'),
             ["editorBinary"] = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(Path.Combine(editor.DataPath, "..", "Unity.exe")))),
-            ["protocol"] = "ucl-project-host/2 StandaloneWindows64 Development Mono stripping-disabled IncludeTestAssemblies",
+            ["protocol"] = "ucl-project-host/3 StandaloneWindows64 Development Mono stripping-disabled IncludeTestAssemblies",
             ["runner"] = Source("ProjectTestHost.cs"),
             ["builder"] = Source("ProjectHostBuild.cs"),
         };

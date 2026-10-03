@@ -164,4 +164,40 @@ public sealed class PlayerHostContractTests
         Assert.Equal(expected, actual);
     }
 
+
+    [Fact]
+    public void Identical_project_trees_with_different_config_path_semantics_have_distinct_player_keys()
+    {
+        using var temp = new TempDir();
+        var first = Path.Combine(temp.Path, "First", "AppProject");
+        var renamedProject = Path.Combine(temp.Path, "First", "OtherProject");
+        var renamedAncestor = Path.Combine(temp.Path, "Second", "AppProject");
+        foreach (var project in new[] { first, renamedProject, renamedAncestor })
+            TempDir.Copy(Path.Combine(Repo.Fixtures, "basic-predefined"), project);
+        var config = Path.Combine(temp.Path, ".editorconfig");
+        var configText = "root = true\n[First/AppProject/Assets/*.cs]\ndotnet_diagnostic.CS0168.severity = error\n";
+        File.WriteAllText(config, configText);
+        var configs = AnalyzerConfigSet.Create(new[] { AnalyzerConfig.Parse(configText, config) });
+        Assert.Equal(ReportDiagnostic.Error, configs.GetOptionsForSourcePath(Path.Combine(first, "Assets", "Example.cs")).TreeOptions["CS0168"]);
+        Assert.False(configs.GetOptionsForSourcePath(Path.Combine(renamedProject, "Assets", "Example.cs")).TreeOptions.ContainsKey("CS0168"));
+        Assert.False(configs.GetOptionsForSourcePath(Path.Combine(renamedAncestor, "Assets", "Example.cs")).TreeOptions.ContainsKey("CS0168"));
+        Assert.Equal(PlayerHostCache.TreeDigest(first), PlayerHostCache.TreeDigest(renamedProject));
+        Assert.Equal(PlayerHostCache.TreeDigest(first), PlayerHostCache.TreeDigest(renamedAncestor));
+        var editorRoot = Path.Combine(temp.Path, "editor");
+        var data = Path.Combine(editorRoot, "Data");
+        Directory.CreateDirectory(Path.Combine(data, "Managed"));
+        File.WriteAllText(Path.Combine(editorRoot, "Unity.exe"), "fixture editor revision");
+        var editor = new EditorInstall { Root = editorRoot, DataPath = data, Version = UnityVersion.Parse("6000.3.19f1").Value! };
+        var sessionType = typeof(CliOptions).Assembly.GetType("Ucl.Cli.Session", throwOnError: true)!;
+        var cacheType = typeof(CliOptions).Assembly.GetType("Ucl.Cli.ProjectPlayerCache", throwOnError: true)!;
+        string Key(string project)
+        {
+            var session = sessionType.GetMethod("Open", BindingFlags.Public | BindingFlags.Static)!.Invoke(null,
+                [new CliOptions { Project = project, CacheDir = Path.Combine(temp.Path, "compile-cache") }, new TestEnvironment(temp.Path), false]);
+            return (string)cacheType.GetMethod("Key", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, [session, editor])!;
+        }
+        Assert.NotEqual(Key(first), Key(renamedProject));
+        Assert.NotEqual(Key(first), Key(renamedAncestor));
+    }
+
 }
