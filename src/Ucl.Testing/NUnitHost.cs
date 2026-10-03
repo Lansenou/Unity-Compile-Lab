@@ -23,8 +23,9 @@ public static class NUnitHost
     /// <param name="filter">Only cases whose full name matches (null: all).</param>
     /// <param name="skip">Cases (<see cref="Key"/>) already reported by an earlier host: discovered, not run or reported.</param>
     /// <param name="events">Receives every discovered case, each case as it starts, and each result.</param>
+    /// <param name="editorCases">Audited Editor-owned names or assembly-qualified keys, never executed here.</param>
     /// <returns>The number of cases discovered (after <paramref name="filter"/>, skipped ones included).</returns>
-    public static int Run(IReadOnlyList<TestAssemblyImage> tests, IReadOnlyDictionary<string, string> paths, Regex? filter, IReadOnlySet<string> skip, ITestEvents events)
+    public static int Run(IReadOnlyList<TestAssemblyImage> tests, IReadOnlyDictionary<string, string> paths, Regex? filter, IReadOnlySet<string> skip, ITestEvents events, IReadOnlySet<string>? editorCases = null)
     {
         ArgumentNullException.ThrowIfNull(tests);
         ArgumentNullException.ThrowIfNull(paths);
@@ -65,6 +66,12 @@ public static class NUnitHost
                         continue;
                     }
 
+                    if (editorCases is not null && (editorCases.Contains(leaf.FullName) || editorCases.Contains(Key(test.Name, leaf.FullName))))
+                    {
+                        events.Finished(Case(test.Name, leaf, TestCategory.NeedsUnity, "Audited Editor ownership (--editor-cases)."));
+                        reported++;
+                        continue;
+                    }
                     events.Scanning(test.Name, leaf.FullName);
                     var scanFailures = new List<string>();
                     void ScanFailed(MethodBase scanned, Exception exception) => scanFailures.Add(

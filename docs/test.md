@@ -275,6 +275,11 @@ outcomes. The spike's full-cohort boot exceeded five seconds; this mode does not
 boot. Discovery XML and whole-report rewrites were removed from the hot path, but discovery and fixture
 setup still count toward boot. Each finished case is appended to a durable JSONL progress file.
 
+The adapter uses the existing language, nullable, diagnostic and analyzer-config options. Assemblies
+with enabled source generators/analyzers retain explicit Editor ownership until the player adapter
+supports them. `--analyzers off` matches the existing managed command and disables those inputs in both
+paths. `--no-cache` disables the managed image cache; player and player-test integrity caches remain enabled.
+
 Editor-only source files and unsupported helper dependencies are excluded as whole files, with compiler
 diagnostics retained in the cache. Fixtures that use `Application.dataPath` for source-layout assertions
 retain Editor ownership. Cases absent from player discovery retain an explicit exclusion reason. Source
@@ -283,9 +288,9 @@ from the Editor; validate outcome parity on the exact revision before switching 
 
 `--filter` keeps the existing regular expression over NUnit full names. A fully qualified class or
 namespace selects its cases as with Unity's class filter. It does not implement Unity's semicolon or
-negated-filter syntax. `--editor-cases <file>` assigns listed exact full names to Editor ownership after a
+negated-filter syntax. `--editor-cases <file>` assigns listed exact full names (or `assembly|full name` keys) to Editor ownership before managed execution, after a
 project's independent parity audit. This is an explicit ownership input, not an automatic failure retry:
-a host failure is never silently rerun or converted to an exclusion. Retain the reason and revision with
+an existing managed failure or host failure is never silently rerun or converted to an exclusion. Retain the reason and revision with
 that audit file, and recheck it whenever tests change.
 
 The existing `--emit-unity-filter` excludes fully passing classes. It is conservative and may rerun

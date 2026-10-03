@@ -41,7 +41,7 @@ internal static class TestCommand
         {
             try
             {
-                report = RunCell(session, cell, editor, options, filter, report);
+                report = RunCell(session, cell, editor, options, filter, report, stderr);
             }
             catch (Exception e) when (options.Host && e is ArgumentException or IOException or OperationCanceledException)
             {
@@ -67,11 +67,13 @@ internal static class TestCommand
         return report.ExitCode;
     }
 
-    private static TestRunReport RunCell(Session session, CompileCell cell, EditorInstall editor, CliOptions options, Regex? filter, TestRunReport report)
+    private static TestRunReport RunCell(Session session, CompileCell cell, EditorInstall editor, CliOptions options, Regex? filter, TestRunReport report, TextWriter progress)
     {
         if (options.Host)
         {
             ProjectPlayerCache.Validate(session, editor);
+            if (cell.Platform != BuildPlatform.StandaloneWindows64)
+                throw new ArgumentException("--host requires --platform StandaloneWindows64.");
             var relative = Path.GetRelativePath(session.ProjectRoot, session.CacheDir);
             if (relative == "." || !relative.StartsWith("..", StringComparison.Ordinal) && !Path.IsPathRooted(relative))
                 throw new ArgumentException("--host requires --cache-dir outside the input project.");
@@ -115,14 +117,15 @@ internal static class TestCommand
             images,
             files,
             options.Filter,
-            arguments => TestHostLauncher.Launch(arguments, session.ProjectRoot));
+            arguments => TestHostLauncher.Launch(arguments, session.ProjectRoot),
+            options.EditorCases is null ? null : File.ReadAllLines(options.EditorCases).Where(n => n.Length > 0).ToHashSet(StringComparer.Ordinal));
         report = report with { Cases = run.Cases, HostCrashes = run.Crashes };
         if (!options.Host) return report;
         try
         {
-            return ProjectPlayerTest.Run(session, graph, editor, options, report, Console.Error);
+            return ProjectPlayerTest.Run(session, graph, editor, options, report, progress);
         }
-        catch (Exception e) when (e is IOException or OperationCanceledException)
+        catch (Exception e) when (e is IOException or InvalidOperationException or OperationCanceledException)
         {
             return report with
             {

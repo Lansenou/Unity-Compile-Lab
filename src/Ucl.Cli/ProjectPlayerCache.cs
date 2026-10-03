@@ -40,6 +40,8 @@ internal static class ProjectPlayerCache
         if (PlayerHostCache.Valid(playerDirectory, key)) return Path.Combine(playerDirectory, "Host.exe");
         var buildRoot = Path.Combine(cacheRoot, "build-" + Guid.NewGuid().ToString("N"));
         var scratch = Path.Combine(buildRoot, "project");
+        for (var parent = Directory.GetParent(session.ProjectRoot); parent is not null; parent = parent.Parent)
+            scratch = Path.Combine(scratch, "level");
         var buildPlayer = Path.Combine(buildRoot, "player");
         Directory.CreateDirectory(scratch);
         progress.WriteLine("host cache: cold build, log " + Path.Combine(buildRoot, "build.log"));
@@ -54,12 +56,15 @@ internal static class ProjectPlayerCache
             if (root.StartsWith(editor.DataPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) continue;
             CopyTree(root, Path.Combine(scratch, name));
         }
-        var parentConfig = Path.Combine(Path.GetDirectoryName(session.ProjectRoot)!, ".editorconfig");
-        if (File.Exists(parentConfig))
+        var sourceDirectory = new DirectoryInfo(session.ProjectRoot);
+        var targetDirectory = new DirectoryInfo(scratch);
+        while (sourceDirectory is not null)
         {
-            File.Copy(parentConfig, Path.Combine(scratch, ".editorconfig"), overwrite: true);
-            var response = Path.Combine(scratch, "Assets", "csc.rsp");
-            if (File.Exists(response)) File.WriteAllText(response, File.ReadAllText(response).Replace("../.editorconfig", ".editorconfig", StringComparison.Ordinal));
+            Directory.CreateDirectory(targetDirectory.FullName);
+            foreach (var config in sourceDirectory.EnumerateFiles().Where(f => f.Name == ".editorconfig" || f.Name.EndsWith(".globalconfig", StringComparison.Ordinal)))
+                File.Copy(config.FullName, Path.Combine(targetDirectory.FullName, config.Name), overwrite: true);
+            sourceDirectory = sourceDirectory.Parent;
+            targetDirectory = targetDirectory.Parent!;
         }
         var bootstrap = Path.Combine(scratch, "Assets", "UclProjectHost");
         if (Directory.Exists(bootstrap)) throw new ArgumentException("Assets/UclProjectHost is reserved for the scratch host bootstrap; input project conflicts.");
@@ -98,6 +103,7 @@ internal static class ProjectPlayerCache
         var inputs = new SortedDictionary<string, string>(StringComparer.Ordinal)
         {
             ["version"] = editor.Version.ToString(),
+            ["editorBinary"] = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(Path.Combine(editor.DataPath, "..", "Unity.exe")))),
             ["editorManaged"] = PlayerHostCache.TreeDigest(Path.Combine(editor.DataPath, "Managed")),
             ["protocol"] = "ucl-project-host/1 StandaloneWindows64 Development Mono stripping-disabled IncludeTestAssemblies",
             ["runner"] = Source("ProjectTestHost.cs"),
@@ -107,8 +113,13 @@ internal static class ProjectPlayerCache
             inputs[directory] = PlayerHostCache.TreeDigest(Path.Combine(session.ProjectRoot, directory));
         foreach (var (name, root) in session.Project.PackageRoots.OrderBy(p => p.Key, StringComparer.Ordinal))
             inputs["resolved:" + name] = PlayerHostCache.TreeDigest(root);
-        var parent = Path.Combine(Path.GetDirectoryName(session.ProjectRoot)!, ".editorconfig");
-        inputs["parentConfig"] = File.Exists(parent) ? File.ReadAllText(parent) : "missing";
+        var level = 0;
+        for (var directory = new DirectoryInfo(session.ProjectRoot); directory is not null; directory = directory.Parent)
+        {
+            foreach (var config in directory.EnumerateFiles().Where(f => f.Name == ".editorconfig" || f.Name.EndsWith(".globalconfig", StringComparison.Ordinal)))
+                inputs[$"config:{level}:{config.Name}"] = File.ReadAllText(config.FullName);
+            level++;
+        }
         return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(inputs))));
     }
 

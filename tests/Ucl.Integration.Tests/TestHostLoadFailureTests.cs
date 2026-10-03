@@ -125,6 +125,21 @@ public sealed class TestHostLoadFailureTests
         Assert.Equal(playMode ? TestCategory.UnityOnly : TestCategory.Passed, run.Cases[1].Category);
     }
 
+    [Fact]
+    public void Audited_case_is_not_executed_and_same_named_failure_in_other_assembly_stays_red()
+    {
+        const string source = "using NUnit.Framework; public class Cases { [Test] public void A_mismatch() { Assert.Fail(\"real failure\"); } [Test] public void Z_after() {} }";
+        var images = new Dictionary<string, byte[]> { ["FirstTests"] = Emit("FirstTests", source), ["SecondTests"] = Emit("SecondTests", source) };
+        var run = TestHost.Run([new("FirstTests", false), new("SecondTests", false)], images,
+            new Dictionary<string, string>(), null, Launch,
+            new HashSet<string>(StringComparer.Ordinal) { NUnitHost.Key("FirstTests", "Cases.A_mismatch") });
+        Assert.Equal(4, run.Discovered);
+        Assert.Empty(run.Crashes);
+        Assert.Equal(TestCategory.NeedsUnity, Assert.Single(run.Cases, c => c.Assembly == "FirstTests" && c.FullName == "Cases.A_mismatch").Category);
+        Assert.Equal(TestCategory.Failed, Assert.Single(run.Cases, c => c.Assembly == "SecondTests" && c.FullName == "Cases.A_mismatch").Category);
+        Assert.Equal(2, run.Cases.Count(c => c.Category == TestCategory.Passed));
+    }
+
     private static (int Exit, string Error) Launch(IReadOnlyList<string> args)
     {
         try { return (TestHost.Serve(args[0]), ""); }

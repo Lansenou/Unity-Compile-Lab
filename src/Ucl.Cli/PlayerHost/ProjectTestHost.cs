@@ -10,7 +10,7 @@ using UnityEngine;
 
 public sealed class ProjectTestHost : MonoBehaviour, ITestListener
 {
-    [Serializable] public sealed class Case { public string name; public string outcome; public string message; public double seconds; }
+    [Serializable] public sealed class Case { public string assembly; public string name; public string outcome; public string message; public double seconds; }
     [Serializable] public sealed class Report
     {
         public long firstTestUnixMs;
@@ -105,16 +105,25 @@ public sealed class ProjectTestHost : MonoBehaviour, ITestListener
     public void TestFinished(ITestResult result)
     {
         if (result.Test.IsSuite) return;
-        report.tests.Add(new Case { name = result.Test.FullName, outcome = result.ResultState.Status.ToString(),
+        report.tests.Add(new Case { assembly = AssemblyName(result.Test), name = result.Test.FullName, outcome = result.ResultState.Status.ToString(),
             message = result.Message ?? "", seconds = result.Duration });
         File.AppendAllText(output + ".jsonl", JsonUtility.ToJson(report.tests[report.tests.Count - 1]) + "\n");
     }
     public void TestOutput(TestOutput output) { }
+    static string AssemblyName(ITest test)
+    {
+        while (test != null)
+        {
+            if (test.TypeInfo != null) return test.TypeInfo.Type.Assembly.GetName().Name;
+            test = test.Parent;
+        }
+        return "";
+    }
     sealed class ExactFilter : TestFilter
     {
         readonly HashSet<string> names;
         public ExactFilter(HashSet<string> names) { this.names = names; }
-        public override bool Match(ITest test) { return names.Contains(test.FullName); }
+        public override bool Match(ITest test) { return names.Contains(AssemblyName(test) + "\t" + test.FullName); }
         public override TNode AddToXml(TNode parentNode, bool recursive) { return parentNode.AddElement("filter"); }
     }
 }
