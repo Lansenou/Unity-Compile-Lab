@@ -263,7 +263,10 @@ The existing Linux, Windows and macOS checks continue covering the managed path 
 
 The first engine run builds a scratch project under the user-level cache
 `<LocalApplicationData>/ucl/player-hosts/v1`. It copies settings, assets and resolved packages, adds an
-empty bootstrap scene, disables stripping, and includes test assemblies. It preserves ancestor directory
+empty bootstrap scene, disables stripping and Burst compilation, and includes test assemblies.
+Burst is disabled with a process-local build argument; the input project and global Editor preferences
+are unchanged. This host validates Mono behavior. Cases whose assertions require Burst execution need
+explicit Editor ownership and a separate Editor run. It preserves ancestor directory
 names and config precedence so relative analyzer-config globs continue matching. It never injects bootstrap code
 into the input project. Host-mode compilation defaults to `<LocalApplicationData>/ucl/test-compile`.
 A cold build may take several minutes. Warm use recomputes a content key and verifies all player bytes;

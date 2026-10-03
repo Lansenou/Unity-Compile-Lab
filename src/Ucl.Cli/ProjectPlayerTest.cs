@@ -47,21 +47,7 @@ internal static class ProjectPlayerTest
             }
             else exclusions = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.Combine(dlls, "compile-exclusions.json")))!;
         }
-        // dataPath describes the player's data tree. Source-layout assertions retain Editor ownership.
-        var reasons = new Dictionary<(string Assembly, string Class), string>();
-        foreach (var c in candidates.DistinctBy(c => (c.Assembly, c.ClassName)))
-        {
-            var plan = graph.Find(c.Assembly)!;
-            var className = c.ClassName.Split('.', '+').Last();
-            foreach (var source in plan.Sources)
-            {
-                var physical = session.Project.ToPhysical(source);
-                var text = File.ReadAllText(physical);
-                if (!Regex.IsMatch(text, @"\bclass\s+" + Regex.Escape(className) + @"\b", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1))) continue;
-                if (text.Contains("Application.dataPath", StringComparison.Ordinal)) reasons[(c.Assembly, c.ClassName)] = "Application.dataPath source-file expectations require the Editor.";
-                else if (exclusions.TryGetValue(physical, out var reason)) reasons[(c.Assembly, c.ClassName)] = "Editor API or unsupported player source file: " + reason;
-            }
-        }
+        var reasons = SourceReasons(graph, session.Project, candidates, exclusions);
         var selected = candidates.Where(c => !reasons.ContainsKey((c.Assembly, c.ClassName)) && File.Exists(Path.Combine(dlls, c.Assembly + ".dll"))).ToList();
         var caseFile = Path.Combine(runDirectory, "cases.txt");
         var assembliesFile = Path.Combine(runDirectory, "assemblies.txt");
@@ -104,5 +90,33 @@ internal static class ProjectPlayerTest
             };
         }
         return report with { Cases = cases };
+    }
+
+    internal static Dictionary<(string Assembly, string Class), string> SourceReasons(AssemblyGraph graph,
+        ProjectContext project, IReadOnlyList<TestCaseResult> candidates, IReadOnlyDictionary<string, string> exclusions,
+        Func<string, string>? read = null)
+    {
+        // dataPath describes the player's data tree. Source-layout assertions retain Editor ownership.
+        read ??= File.ReadAllText;
+        var sourceTexts = new Dictionary<string, string>(StringComparer.Ordinal);
+        var reasons = new Dictionary<(string Assembly, string Class), string>();
+        foreach (var c in candidates.DistinctBy(c => (c.Assembly, c.ClassName)))
+        {
+            var plan = graph.Find(c.Assembly)!;
+            var className = c.ClassName.Split('.', '+').Last();
+            foreach (var source in plan.Sources)
+            {
+                var physical = project.ToPhysical(source);
+                if (!sourceTexts.TryGetValue(physical, out var text))
+                {
+                    text = read(physical);
+                    sourceTexts.Add(physical, text);
+                }
+                if (!Regex.IsMatch(text, @"\bclass\s+" + Regex.Escape(className) + @"\b", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1))) continue;
+                if (text.Contains("Application.dataPath", StringComparison.Ordinal)) reasons[(c.Assembly, c.ClassName)] = "Application.dataPath source-file expectations require the Editor.";
+                else if (exclusions.TryGetValue(physical, out var reason)) reasons[(c.Assembly, c.ClassName)] = "Editor API or unsupported player source file: " + reason;
+            }
+        }
+        return reasons;
     }
 }

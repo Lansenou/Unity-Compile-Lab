@@ -147,6 +147,17 @@ public sealed class PlayerHostContractTests
     }
 
     [Fact]
+    public void Mono_host_build_disables_burst_only_in_the_build_process_arguments()
+    {
+        var type = typeof(CliOptions).Assembly.GetType("Ucl.Cli.ProjectPlayerCache", throwOnError: true)!;
+        var arguments = (string[])type.GetMethod("BuildArguments", BindingFlags.NonPublic | BindingFlags.Static)!
+            .Invoke(null, ["scratch", "player", "build"])!;
+        Assert.Contains("--burst-disable-compilation", arguments);
+        Assert.Equal("scratch", arguments[Array.IndexOf(arguments, "-projectPath") + 1]);
+        Assert.Equal(Path.Combine("player", "Host.exe"), arguments[Array.IndexOf(arguments, "-playerOutput") + 1]);
+    }
+
+    [Fact]
     public void Scratch_layout_preserves_inherited_config_glob_semantics()
     {
         using var temp = new TempDir();
@@ -198,6 +209,54 @@ public sealed class PlayerHostContractTests
         }
         Assert.NotEqual(Key(first), Key(renamedProject));
         Assert.NotEqual(Key(first), Key(renamedAncestor));
+    }
+
+
+    [Fact]
+    public void Source_ownership_shares_one_fresh_snapshot_without_changing_whole_file_exclusions()
+    {
+        using var temp = new TempDir();
+        var project = new ProjectContext { Root = temp.Path };
+        var source = Path.Combine(temp.Path, "Engine.cs");
+        var editorSource = Path.Combine(temp.Path, "Editor.cs");
+        var portableSource = Path.Combine(temp.Path, "Portable.cs");
+        var texts = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [source] = "class First {} class Second {} // Application.dataPath",
+            [editorSource] = "class Third {}",
+            [portableSource] = "class Fourth {}"
+        };
+        var reads = new Dictionary<string, int>(StringComparer.Ordinal);
+        string Read(string path) { reads[path] = reads.GetValueOrDefault(path) + 1; return texts[path]; }
+        var defines = new DefineSet();
+        var graph = new AssemblyGraph
+        {
+            Cell = new CompileCell(UnityVersion.Parse("6000.3.19f1").Value!, TargetKind.Editor,
+                BuildPlatform.StandaloneWindows64, null, false, HostOs.Windows),
+            BaseDefines = defines,
+            Assemblies = [new AssemblyPlan { Name = "Example", Kind = AssemblyKind.Asmdef,
+                Defines = defines, Sources = [source, editorSource, portableSource] }]
+        };
+        TestCaseResult Case(string name, string method = "Test") => new("Example", "Example." + name, "Example." + name + "." + method, TestCategory.NeedsUnity, string.Empty);
+        var cases = new[] { Case("First"), Case("First", "Other"), Case("Second"), Case("Third"), Case("Fourth") };
+        var exclusions = new Dictionary<string, string> { [editorSource] = "CS0234: Editor API" };
+        var type = typeof(CliOptions).Assembly.GetType("Ucl.Cli.ProjectPlayerTest", throwOnError: true)!;
+        Dictionary<(string Assembly, string Class), string> Reasons() =>
+            (Dictionary<(string Assembly, string Class), string>)type.GetMethod("SourceReasons", BindingFlags.NonPublic | BindingFlags.Static)!
+                .Invoke(null, [graph, project, cases, exclusions, (Func<string, string>)Read])!;
+        var first = Reasons();
+        Assert.Contains("Application.dataPath", first[("Example", "Example.First")], StringComparison.Ordinal);
+        Assert.Contains("Application.dataPath", first[("Example", "Example.Second")], StringComparison.Ordinal);
+        Assert.Contains("CS0234", first[("Example", "Example.Third")], StringComparison.Ordinal);
+        Assert.False(first.ContainsKey(("Example", "Example.Fourth")));
+        Assert.Equal(3, reads.Count);
+        Assert.All(reads.Values, count => Assert.Equal(1, count));
+        texts[source] = "class First {} class Second {}";
+        var second = Reasons();
+        Assert.False(second.ContainsKey(("Example", "Example.First")));
+        Assert.False(second.ContainsKey(("Example", "Example.Second")));
+        Assert.Contains("CS0234", second[("Example", "Example.Third")], StringComparison.Ordinal);
+        Assert.All(reads.Values, count => Assert.Equal(2, count));
     }
 
 }

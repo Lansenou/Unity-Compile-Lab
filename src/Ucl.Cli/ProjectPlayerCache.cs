@@ -73,8 +73,8 @@ internal static class ProjectPlayerCache
         File.WriteAllText(Path.Combine(bootstrap, "Editor", "Ucl.ProjectHost.Editor.asmdef"), "{\"name\":\"Ucl.ProjectHost.Editor\",\"references\":[],\"includePlatforms\":[\"Editor\"]}");
         Directory.CreateDirectory(buildPlayer);
         var executable = Path.Combine(editor.DataPath, "..", "Unity.exe");
-        Run(executable, ["-batchmode", "-nographics", "-quit", "-projectPath", scratch, "-executeMethod", "ProjectHostBuild.Build",
-            "-playerOutput", Path.Combine(buildPlayer, "Host.exe"), "-logFile", Path.Combine(buildRoot, "build.log")], buildRoot, TimeSpan.FromMinutes(30));
+        Run(executable, BuildArguments(scratch, buildPlayer, buildRoot), buildRoot, TimeSpan.FromMinutes(30));
+
         if (!File.Exists(Path.Combine(buildPlayer, "Host.exe"))) throw new IOException("Host build completed without a player; see " + Path.Combine(buildRoot, "build.log"));
         if (Key(session, editor) != key) throw new IOException("Project inputs changed during the host build; refusing to publish a stale player.");
         PlayerHostCache.Seal(buildPlayer, key);
@@ -85,6 +85,11 @@ internal static class ProjectPlayerCache
         Directory.Move(buildPlayer, playerDirectory);
         return Path.Combine(playerDirectory, "Host.exe");
     }
+
+    internal static string[] BuildArguments(string scratch, string playerDirectory, string buildRoot) =>
+        ["-batchmode", "-nographics", "-quit", "--burst-disable-compilation", "-projectPath", scratch,
+            "-executeMethod", "ProjectHostBuild.Build", "-playerOutput", Path.Combine(playerDirectory, "Host.exe"),
+            "-logFile", Path.Combine(buildRoot, "build.log")];
 
     // Preserve directory names as well as depth: inherited editorconfig globs are relative to each config.
     internal static string ScratchRoot(string buildRoot, string inputRoot)
@@ -112,7 +117,7 @@ internal static class ProjectPlayerCache
             ["version"] = editor.Version.ToString(),
             ["scratchLayout"] = ScratchRoot("", session.ProjectRoot).Replace('\\', '/'),
             ["editorBinary"] = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(Path.Combine(editor.DataPath, "..", "Unity.exe")))),
-            ["protocol"] = "ucl-project-host/3 StandaloneWindows64 Development Mono stripping-disabled IncludeTestAssemblies",
+            ["protocol"] = "ucl-project-host/4 StandaloneWindows64 Development Mono stripping-disabled Burst-disabled IncludeTestAssemblies",
             ["runner"] = Source("ProjectTestHost.cs"),
             ["builder"] = Source("ProjectHostBuild.cs"),
         };
