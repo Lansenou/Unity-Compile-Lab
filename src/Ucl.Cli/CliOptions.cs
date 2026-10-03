@@ -56,6 +56,15 @@ public sealed record CliOptions
     /// <summary><c>--changed</c> git ref.</summary>
     public string? Changed { get; init; }
 
+    /// <summary><c>--host</c>: run eligible engine cases in a cached Mono player.</summary>
+    public bool Host { get; init; }
+
+    /// <summary><c>--nographics</c>: opt out of graphics in the player.</summary>
+    public bool NoGraphics { get; init; }
+
+    /// <summary><c>--editor-cases</c>: exact full names with audited player differences.</summary>
+    public string? EditorCases { get; init; }
+
     /// <summary><c>--filter</c> (test): a regular expression over test full names.</summary>
     public string? Filter { get; init; }
 

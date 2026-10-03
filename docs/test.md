@@ -248,3 +248,58 @@ numbers (docs/real-project-checklist.md) are the ones that matter.
   CoreCLR lacks).
 * Direct `LogAssert` calls are identified from IL; helper failures require the runtime scope exception and a framework frame.
 * Discovery failures before any case is known cannot identify an individual case; the host crash still returns exit 1.
+
+## Optional project player host (Windows)
+
+`ucl test <project> --host --format nunit3 -o <results.xml>` uses the existing .NET path for managed
+cases and a cached per-project Mono player for compatible native-engine cases. The XML records the
+`ucl-route` property (`dotnet`, `host`, `needs-editor`) per case; JSON adds the optional `route` field.
+With `-o`, the usual text summary is printed as well. Failed cases and infrastructure problems remain red.
+
+The adapter currently requires Windows, Unity **6000.3.19f1**, Mono standalone support, and Unity Test
+Framework **1.6.0**. Building requires a licensed Editor. Other combinations must use the Editor; the
+internal UTF runner is deliberately pinned. Host runs are not performed by the public CI machines.
+The existing Linux, Windows and macOS checks continue covering the managed path and cache contracts.
+
+The first engine run builds a scratch project under the user-level cache
+`<LocalApplicationData>/ucl/player-hosts/v1`. It copies settings, assets and resolved packages, adds an
+empty bootstrap scene, disables stripping and Burst compilation, and includes test assemblies.
+Burst is disabled with a process-local build argument; the input project and global Editor preferences
+are unchanged. This host validates Mono behavior. Cases whose assertions require Burst execution need
+explicit Editor ownership and a separate Editor run. It preserves ancestor directory
+names and config precedence so relative analyzer-config globs continue matching. It never injects bootstrap code
+into the input project. Host-mode compilation defaults to `<LocalApplicationData>/ucl/test-compile`.
+A cold build may take several minutes. Warm use recomputes a content key and verifies all player bytes;
+changing assets, settings, packages, Unity revision, inherited config, options or bootstrap invalidates it.
+Overlapping package trees share file hashes within one key calculation, using at most eight concurrent
+reads. Every invocation reads content afresh; timestamps never authorize reuse.
+A corrupt cache entry is retained separately and rebuilt. Concurrent builds use per-key locks; runs use
+unique evidence directories and local result files, with no shared server port.
+
+Graphics stay enabled. `--nographics` is optional and can change rendering, color-space and buffer
+outcomes. The spike's full-cohort boot exceeded five seconds; this mode does not promise sub-five-second
+boot. Discovery XML and whole-report rewrites were removed from the hot path, but discovery and fixture
+setup still count toward boot. Each finished case is appended to a durable JSONL progress file.
+
+The adapter uses the existing language, nullable, diagnostic and analyzer-config options. Assemblies
+with enabled source generators/analyzers retain explicit Editor ownership until the player adapter
+supports them. `--analyzers off` matches the existing managed command and disables those inputs in both
+paths. `--no-cache` disables the managed image cache; player and player-test integrity caches remain enabled.
+
+Editor-only source files and unsupported helper dependencies are excluded as whole files, with compiler
+diagnostics retained in the cache. Fixtures that use `Application.dataPath` for source-layout assertions
+retain Editor ownership. Cases absent from player discovery retain an explicit exclusion reason. Source
+and test bodies are never rewritten to make them pass. Player settings and runtime lifecycle still differ
+from the Editor; validate outcome parity on the exact revision before switching a gate.
+
+`--filter` keeps the existing regular expression over NUnit full names. A fully qualified class or
+namespace selects its cases as with Unity's class filter. It does not implement Unity's semicolon or
+negated-filter syntax. `--editor-cases <file>` assigns listed exact full names (or `assembly|full name` keys) to Editor ownership before managed execution, after a
+project's independent parity audit. This is an explicit ownership input, not an automatic failure retry:
+an existing managed failure or host failure is never silently rerun or converted to an exclusion. Retain the reason and revision with
+that audit file, and recheck it whenever tests change.
+
+The existing `--emit-unity-filter` excludes fully passing classes. It is conservative and may rerun
+host-owned cases from mixed fixtures in the Editor. A hybrid gate must merge results by assembly and
+full name, retain every real failure, and check complete case coverage. No gate migration is implied by
+installing this optional backend.

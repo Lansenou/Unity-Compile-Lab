@@ -18,6 +18,8 @@ internal static class TestCommand
 {
     public static int Run(CliOptions options, TextWriter stdout, TextWriter stderr, IEnvironment env)
     {
+        if (options.Host && options.CacheDir is null)
+            options = options with { CacheDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ucl", "test-compile") };
         Regex? filter = null;
         if (options.Filter is { } pattern)
         {
@@ -37,7 +39,14 @@ internal static class TestCommand
         var report = new TestRunReport { ToolVersion = App.Version, Problems = session.Problems, Timings = options.Timings };
         if (session.Problems.Count == 0 && session.Cells.FirstOrDefault() is (var cell, { } editor))
         {
-            report = RunCell(session, cell, editor, options, filter, report);
+            try
+            {
+                report = RunCell(session, cell, editor, options, filter, report, stderr);
+            }
+            catch (Exception e) when (options.Host && e is ArgumentException or IOException or OperationCanceledException)
+            {
+                report = report with { Problems = [new Problem(ProblemIds.BadArguments, "Player host: " + e.Message)] };
+            }
         }
 
         var problem = OutputSink.Write(options.Output, TestReport.Render(report, options.Format), session.ProjectRoot, stdout);
@@ -52,11 +61,23 @@ internal static class TestCommand
             return ExitCodes.Configuration;
         }
 
+        if (options.Host && options.Output is not null)
+            stdout.Write(TestReport.Text(report));
+
         return report.ExitCode;
     }
 
-    private static TestRunReport RunCell(Session session, CompileCell cell, EditorInstall editor, CliOptions options, Regex? filter, TestRunReport report)
+    private static TestRunReport RunCell(Session session, CompileCell cell, EditorInstall editor, CliOptions options, Regex? filter, TestRunReport report, TextWriter progress)
     {
+        if (options.Host)
+        {
+            ProjectPlayerCache.Validate(session, editor);
+            if (cell.Platform != BuildPlatform.StandaloneWindows64)
+                throw new ArgumentException("--host requires --platform StandaloneWindows64.");
+            var relative = Path.GetRelativePath(session.ProjectRoot, session.CacheDir);
+            if (relative == "." || !relative.StartsWith("..", StringComparison.Ordinal) && !Path.IsPathRooted(relative))
+                throw new ArgumentException("--host requires --cache-dir outside the input project.");
+        }
         var graph = session.Graph(cell);
         report = report with { Cell = cell, Problems = graph.Problems };
         if (graph.Problems.Count > 0)
@@ -96,8 +117,24 @@ internal static class TestCommand
             images,
             files,
             options.Filter,
-            arguments => TestHostLauncher.Launch(arguments, session.ProjectRoot));
-        return report with { Cases = run.Cases, HostCrashes = run.Crashes };
+            arguments => TestHostLauncher.Launch(arguments, session.ProjectRoot),
+            options.EditorCases is null ? null : File.ReadAllLines(options.EditorCases).Where(n => n.Length > 0).ToHashSet(StringComparer.Ordinal));
+        report = report with { Cases = run.Cases, HostCrashes = run.Crashes };
+        if (!options.Host) return report;
+        try
+        {
+            return ProjectPlayerTest.Run(session, graph, editor, options, report, progress);
+        }
+        catch (Exception e) when (e is IOException or InvalidOperationException or OperationCanceledException)
+        {
+            return report with
+            {
+                Cases = report.Cases.Select(c => c.Category == TestCategory.NeedsUnity
+                    ? c with { Route = "host", Category = TestCategory.Failed, Reason = "Player infrastructure failure: " + e.Message }
+                    : c with { Route = c.Category == TestCategory.UnityOnly ? "needs-editor" : "dotnet" }).ToList(),
+                HostCrashes = [.. report.HostCrashes, new TestHostCrash(null, null, e.Message)],
+            };
+        }
     }
 
     private const string TestFramework = "nunit.framework.dll";

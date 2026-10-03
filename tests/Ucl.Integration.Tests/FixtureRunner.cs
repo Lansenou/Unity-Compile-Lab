@@ -26,6 +26,11 @@ public static class FixtureRunner
             "check", project, "--format", "json", "--cache-dir", cacheDir,
             "--unity-version", cell.UnityVersion, "--target", cell.Target, "--platform", cell.Platform,
         };
+        // Pin fixture runs to the stub install: a real Hub install of the same version must not win discovery.
+        var stub = Path.Combine(Repo.StubEditors, cell.UnityVersion);
+        if (RealEditor.Path is null && Directory.Exists(stub))
+            args.AddRange(["--editor", stub]);
+
         if (cell.EditorOs is not null)
         {
             args.AddRange(["--editor-os", cell.EditorOs]);

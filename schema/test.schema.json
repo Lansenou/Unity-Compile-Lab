@@ -72,6 +72,7 @@
           "class": { "type": "string" },
           "name": { "type": "string", "description": "NUnit full name." },
           "category": { "enum": ["passed", "failed", "skipped", "ignored", "needs-unity", "unity-only"] },
+          "route": { "enum": ["dotnet", "host", "needs-editor"], "description": "Execution owner, only in --host mode." },
           "reason": { "type": "string" },
           "durationMs": { "type": "integer", "minimum": 0, "description": "Only with --timings." }
         }

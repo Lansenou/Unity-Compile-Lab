@@ -86,6 +86,9 @@ public static class TestReport
             }
         }
 
+        if (report.Cases.Any(c => c.Route is not null))
+            sb.Append("routing: ").Append(string.Join(", ", report.Cases.GroupBy(c => c.Route).OrderBy(g => g.Key, StringComparer.Ordinal).Select(g => $"{g.Count()} {g.Key}"))).Append('\n');
+
         var members = NeedsUnityMembers(report).ToArray();
         if (members.Length > 0)
         {
@@ -208,6 +211,7 @@ public static class TestReport
                 w.WriteString("class", c.ClassName);
                 w.WriteString("name", c.FullName);
                 w.WriteString("category", Name(c.Category));
+                if (c.Route is not null) w.WriteString("route", c.Route);
                 if (c.Category == TestCategory.NeedsUnity) w.WriteString("engineMember", c.EngineMember);
                 if (c.Reason.Length > 0)
                 {
@@ -277,6 +281,7 @@ public static class TestReport
         ArgumentNullException.ThrowIfNull(report);
         var id = 1;
         var run = Counted(new XElement("test-run", new XAttribute("id", 0), new XAttribute("name", "ucl test")), report.Cases);
+        if (report.ExitCode != 0) run.SetAttributeValue("result", "Failed");
         run.Add(new XAttribute("engine-version", report.ToolVersion));
         foreach (var assembly in report.Cases.GroupBy(c => c.Assembly, StringComparer.Ordinal))
         {
@@ -298,6 +303,9 @@ public static class TestReport
                     new XAttribute("fullname", c.FullName),
                     new XAttribute("classname", c.ClassName),
                     new XAttribute("result", result));
+                if (c.Route is not null)
+                    testCase.Add(new XElement("properties", new XElement("property", new XAttribute("name", "ucl-route"), new XAttribute("value", c.Route))));
+
                 if (label is not null)
                 {
                     testCase.Add(new XAttribute("label", label));

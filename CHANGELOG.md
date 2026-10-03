@@ -7,7 +7,13 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ## [Unreleased]
 
+### Added
+
+* Added opt-in `ucl test --host` for a keyed Windows Mono player, graphics enabled by default, with per-case routing, player integrity checks, pinned UTF support and NUnit XML results.
+
 ### Fixed
+
+* Pinned fixture checks to stub editors so a real Hub install of the same version cannot change their expected platform-engine defines.
 
 * Include constructors detected by the finalizer prescan in needs-unity member rankings.
 

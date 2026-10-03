@@ -45,6 +45,11 @@ public static class HelpText
           --timings               report per-assembly times
           --jobs <n>              parallel compiles (default: processor count)
 
+        test host options (see docs/test.md):
+          --host                 run compatible engine cases in a cached Windows Mono player
+          --nographics           disable player graphics (host mode only; may change outcomes)
+          --editor-cases <file>   exact full names with independently audited Editor ownership
+
         exit codes:
           0  clean (warnings allowed)
           1  compile, analyzer or ucl rule errors
