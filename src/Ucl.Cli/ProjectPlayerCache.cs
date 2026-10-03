@@ -39,9 +39,7 @@ internal static class ProjectPlayerCache
         using var fileLock = Lock(Path.Combine(cacheRoot, key + ".lock"));
         if (PlayerHostCache.Valid(playerDirectory, key)) return Path.Combine(playerDirectory, "Host.exe");
         var buildRoot = Path.Combine(cacheRoot, "build-" + Guid.NewGuid().ToString("N"));
-        var scratch = Path.Combine(buildRoot, "project");
-        for (var parent = Directory.GetParent(session.ProjectRoot); parent is not null; parent = parent.Parent)
-            scratch = Path.Combine(scratch, "level");
+        var scratch = ScratchRoot(buildRoot, session.ProjectRoot);
         var buildPlayer = Path.Combine(buildRoot, "player");
         Directory.CreateDirectory(scratch);
         progress.WriteLine("host cache: cold build, log " + Path.Combine(buildRoot, "build.log"));
@@ -88,6 +86,15 @@ internal static class ProjectPlayerCache
         return Path.Combine(playerDirectory, "Host.exe");
     }
 
+    // Preserve directory names as well as depth: inherited editorconfig globs are relative to each config.
+    internal static string ScratchRoot(string buildRoot, string inputRoot)
+    {
+        var names = new Stack<string>();
+        for (var directory = new DirectoryInfo(inputRoot); directory.Parent is not null; directory = directory.Parent)
+            names.Push(directory.Name);
+        return names.Aggregate(Path.Combine(buildRoot, "project"), (path, name) => Path.Combine(path, name));
+    }
+
     internal static FileStream Lock(string path)
     {
         var end = DateTime.UtcNow + TimeSpan.FromMinutes(30);
@@ -104,15 +111,20 @@ internal static class ProjectPlayerCache
         {
             ["version"] = editor.Version.ToString(),
             ["editorBinary"] = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(Path.Combine(editor.DataPath, "..", "Unity.exe")))),
-            ["editorManaged"] = PlayerHostCache.TreeDigest(Path.Combine(editor.DataPath, "Managed")),
-            ["protocol"] = "ucl-project-host/1 StandaloneWindows64 Development Mono stripping-disabled IncludeTestAssemblies",
+            ["protocol"] = "ucl-project-host/2 StandaloneWindows64 Development Mono stripping-disabled IncludeTestAssemblies",
             ["runner"] = Source("ProjectTestHost.cs"),
             ["builder"] = Source("ProjectHostBuild.cs"),
         };
+        var roots = new SortedDictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["editorManaged"] = Path.Combine(editor.DataPath, "Managed"),
+        };
         foreach (var directory in new[] { "Assets", "Packages", "ProjectSettings", "Library/PackageCache" })
-            inputs[directory] = PlayerHostCache.TreeDigest(Path.Combine(session.ProjectRoot, directory));
+            roots[directory] = Path.Combine(session.ProjectRoot, directory);
         foreach (var (name, root) in session.Project.PackageRoots.OrderBy(p => p.Key, StringComparer.Ordinal))
-            inputs["resolved:" + name] = PlayerHostCache.TreeDigest(root);
+            roots["resolved:" + name] = root;
+        var digests = PlayerHostCache.TreeDigests(roots.Values.ToArray());
+        foreach (var (name, root) in roots) inputs[name] = digests[root];
         var level = 0;
         for (var directory = new DirectoryInfo(session.ProjectRoot); directory is not null; directory = directory.Parent)
         {

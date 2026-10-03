@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Ucl.Discovery;
 using Xunit;
 
@@ -44,4 +46,34 @@ public sealed class PlayerHostCacheTests
         File.WriteAllText(Path.Combine(temp.Path, "host-manifest.json"), "{}");
         Assert.False(PlayerHostCache.Valid(temp.Path, "key"));
     }
+    [Fact]
+    public void Overlapping_tree_batch_preserves_serial_fingerprints_and_detects_content_changes()
+    {
+        using var temp = new TempDir();
+        var child = Path.Combine(temp.Path, "package");
+        Directory.CreateDirectory(child);
+        for (var i = 0; i < 32; i++) File.WriteAllText(Path.Combine(child, $"file-{i}.txt"), i.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        File.WriteAllText(Path.Combine(temp.Path, "root.txt"), "root");
+        var missing = Path.Combine(temp.Path, "missing");
+        var batch = PlayerHostCache.TreeDigests([temp.Path, child, missing]);
+        Assert.Equal(Serial(temp.Path), batch[temp.Path]);
+        Assert.Equal(Serial(child), batch[child]);
+        Assert.Equal("missing", batch[missing]);
+        File.WriteAllText(Path.Combine(child, "file-1.txt"), "changed");
+        var changed = PlayerHostCache.TreeDigests([temp.Path, child]);
+        Assert.NotEqual(batch[temp.Path], changed[temp.Path]);
+        Assert.NotEqual(batch[child], changed[child]);
+
+        static string Serial(string root)
+        {
+            using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+            foreach (var path in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
+            {
+                hash.AppendData(Encoding.UTF8.GetBytes(Path.GetRelativePath(root, path).Replace('\\', '/') + "\0"));
+                hash.AppendData(SHA256.HashData(File.ReadAllBytes(path)));
+            }
+            return Convert.ToHexStringLower(hash.GetHashAndReset());
+        }
+    }
+
 }

@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -22,8 +23,8 @@ public static class PlayerTestCompiler
             ["tests"] = string.Join("\n", tests.Order(StringComparer.Ordinal)),
             ["analyzers"] = analyzers.ToString(),
             ["editorGenerators"] = string.Join("\n", (editorGenerators ?? []).Select(p => Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(p))))),
-            ["adapter"] = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(typeof(PlayerTestCompiler).Assembly.Location))),
-            ["roslyn"] = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(typeof(CSharpCompilation).Assembly.Location))),
+            ["adapter"] = BinaryIdentity(typeof(PlayerTestCompiler).Assembly),
+            ["roslyn"] = BinaryIdentity(typeof(CSharpCompilation).Assembly),
         };
         foreach (var plan in graph.Assemblies)
             foreach (var logical in plan.Sources.Concat(plan.PrecompiledReferences).Concat(plan.Analyzers)
@@ -33,6 +34,15 @@ public static class PlayerTestCompiler
                 inputs["file:" + logical] = File.Exists(path) ? Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))) : "missing";
             }
         return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(inputs))));
+    }
+
+    private static string BinaryIdentity(Assembly assembly)
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, assembly.GetName().Name + ".dll");
+        if (!File.Exists(path)) path = Environment.ProcessPath;
+        if (path is null || !File.Exists(path)) throw new InvalidOperationException("Cannot identify the tool binary for the player-test cache.");
+        using var stream = File.OpenRead(path);
+        return assembly.ManifestModule.ModuleVersionId.ToString("N") + ":" + Convert.ToHexString(SHA256.HashData(stream));
     }
 
     /// <summary>Emits selected tests and dependencies. Exclusions retain original compiler diagnostics.</summary>

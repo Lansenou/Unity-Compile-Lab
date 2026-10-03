@@ -5,6 +5,8 @@ using Ucl.Core.Graph;
 using Ucl.Core.Model;
 using Ucl.Core.Rules;
 using Ucl.Discovery;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Ucl.Cli;
 using Ucl.Core.Testing;
 using Ucl.Reporting;
@@ -142,6 +144,24 @@ public sealed class PlayerHostContractTests
             new HashSet<string>(StringComparer.Ordinal) { "Example" });
         Assert.Contains("generators", reasons[source], StringComparison.Ordinal);
         Assert.False(File.Exists(Path.Combine(output, "Example.dll")));
+    }
+
+    [Fact]
+    public void Scratch_layout_preserves_inherited_config_glob_semantics()
+    {
+        using var temp = new TempDir();
+        var input = Path.Combine(temp.Path, "AppProject");
+        var cache = Path.Combine(temp.Path, "cache");
+        var type = typeof(CliOptions).Assembly.GetType("Ucl.Cli.ProjectPlayerCache", throwOnError: true)!;
+        var scratch = (string)type.GetMethod("ScratchRoot", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, [cache, input])!;
+        Assert.Equal("AppProject", Path.GetFileName(scratch));
+        var configText = "root = true\n[AppProject/Assets/*.cs]\ndotnet_diagnostic.CS0168.severity = error\n";
+        var original = AnalyzerConfigSet.Create(new[] { AnalyzerConfig.Parse(configText, Path.Combine(temp.Path, ".editorconfig")) });
+        var rebased = AnalyzerConfigSet.Create(new[] { AnalyzerConfig.Parse(configText, Path.Combine(Directory.GetParent(scratch)!.FullName, ".editorconfig")) });
+        var expected = original.GetOptionsForSourcePath(Path.Combine(input, "Assets", "Example.cs")).TreeOptions["CS0168"];
+        var actual = rebased.GetOptionsForSourcePath(Path.Combine(scratch, "Assets", "Example.cs")).TreeOptions["CS0168"];
+        Assert.Equal(ReportDiagnostic.Error, expected);
+        Assert.Equal(expected, actual);
     }
 
 }

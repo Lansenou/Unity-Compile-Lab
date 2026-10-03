@@ -263,10 +263,13 @@ The existing Linux, Windows and macOS checks continue covering the managed path 
 
 The first engine run builds a scratch project under the user-level cache
 `<LocalApplicationData>/ucl/player-hosts/v1`. It copies settings, assets and resolved packages, adds an
-empty bootstrap scene, disables stripping, and includes test assemblies. It never injects bootstrap code
+empty bootstrap scene, disables stripping, and includes test assemblies. It preserves ancestor directory
+names and config precedence so relative analyzer-config globs continue matching. It never injects bootstrap code
 into the input project. Host-mode compilation defaults to `<LocalApplicationData>/ucl/test-compile`.
 A cold build may take several minutes. Warm use recomputes a content key and verifies all player bytes;
 changing assets, settings, packages, Unity revision, inherited config, options or bootstrap invalidates it.
+Overlapping package trees share file hashes within one key calculation, using at most eight concurrent
+reads. Every invocation reads content afresh; timestamps never authorize reuse.
 A corrupt cache entry is retained separately and rebuilt. Concurrent builds use per-key locks; runs use
 unique evidence directories and local result files, with no shared server port.
 
