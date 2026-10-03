@@ -9,6 +9,8 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Fixed
 
+* Preserve NUnit failure details, including static initializer inner exceptions and assertion "But was" lines.
+
 * Include constructors detected by the finalizer prescan in needs-unity member rankings.
 
 * Decide unity-only/Explicit eligibility before IL scans so excluded unloadable bodies keep

@@ -11,7 +11,10 @@ Player compilation still reports 344 errors. Finalizer prescan member attributio
 progress: the original CommandBuffer fixture was red for a null engineMember, and now names
 the constructor with `(finalizer prescan)` provenance. Player filtering and project-value
 shims require real licensed-editor evidence; no rule or comparison output is invented.
-Failure details and synchronization-context divergence remain next. Logging and native math
+Failure details are in progress: an original static initializer fixture was red for its hidden
+inner cause, then green with the full NUnit message; the same run proves the wrong-exception
+`But was` line, continuation after both failures and all four report formats. Synchronization-context
+divergence remains next. Logging and native math
 shims are deferred: reported counts are under 50 versus 686 GameObject creation cases.
 
 ## Test-host false-failure follow-up (2026-10-02)

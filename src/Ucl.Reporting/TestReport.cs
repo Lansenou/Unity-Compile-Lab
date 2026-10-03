@@ -74,7 +74,7 @@ public static class TestReport
                 sb.Append("  ").Append(Name(c.Category).PadRight(11)).Append(' ').Append(c.FullName);
                 if (c.Reason.Length > 0)
                 {
-                    sb.Append(": ").Append(c.Reason);
+                    sb.Append(": ").Append(c.Reason.Replace("\r\n", "\n", StringComparison.Ordinal).Replace("\n", "\n    ", StringComparison.Ordinal));
                 }
 
                 if (report.Timings)
