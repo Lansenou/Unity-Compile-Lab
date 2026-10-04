@@ -5,6 +5,7 @@ using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Ucl.Core.Graph;
 using Ucl.Discovery;
 
@@ -83,6 +84,20 @@ public static class PlayerTestCompiler
             {
                 var configSet = AnalyzerConfigSet.Create(configs.Select(p => AnalyzerConfig.Parse(File.ReadAllText(p), p)).ToList());
                 options = options.WithSyntaxTreeOptionsProvider(new TreeOptionsProvider(configSet, trees));
+            }
+            // Player dataPath is not the input Assets tree. Remove whole context-dependent files;
+            // normal compiler diagnostics then exclude inherited fixtures and helper callers.
+            var ownership = CSharpCompilation.Create(plan.Name, trees, references, options);
+            foreach (var tree in trees.ToArray())
+            {
+                var names = tree.GetRoot().DescendantNodes().OfType<SimpleNameSyntax>()
+                    .Where(n => n.Identifier.ValueText == "dataPath").ToArray();
+                if (names.Length == 0) continue;
+                var model = ownership.GetSemanticModel(tree);
+                if (!names.Any(n => model.GetSymbolInfo(n).Symbol is IPropertySymbol property
+                    && property.ContainingType.ToDisplayString() == "UnityEngine.Application")) continue;
+                exclusions[tree.FilePath] = "Application.dataPath source context requires the Editor.";
+                trees.Remove(tree);
             }
             while (trees.Count > 0)
             {

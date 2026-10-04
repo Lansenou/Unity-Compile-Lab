@@ -239,7 +239,7 @@ public sealed class PlayerHostContractTests
         };
         TestCaseResult Case(string name, string method = "Test") => new("Example", "Example." + name, "Example." + name + "." + method, TestCategory.NeedsUnity, string.Empty);
         var cases = new[] { Case("First"), Case("First", "Other"), Case("Second"), Case("Third"), Case("Fourth") };
-        var exclusions = new Dictionary<string, string> { [editorSource] = "CS0234: Editor API" };
+        var exclusions = new Dictionary<string, string> { [source] = "Application.dataPath source context", [editorSource] = "CS0234: Editor API" };
         var type = typeof(CliOptions).Assembly.GetType("Ucl.Cli.ProjectPlayerTest", throwOnError: true)!;
         Dictionary<(string Assembly, string Class), string> Reasons() =>
             (Dictionary<(string Assembly, string Class), string>)type.GetMethod("SourceReasons", BindingFlags.NonPublic | BindingFlags.Static)!
@@ -249,14 +249,106 @@ public sealed class PlayerHostContractTests
         Assert.Contains("Application.dataPath", first[("Example", "Example.Second")], StringComparison.Ordinal);
         Assert.Contains("CS0234", first[("Example", "Example.Third")], StringComparison.Ordinal);
         Assert.False(first.ContainsKey(("Example", "Example.Fourth")));
-        Assert.Equal(3, reads.Count);
+        Assert.Equal(2, reads.Count);
         Assert.All(reads.Values, count => Assert.Equal(1, count));
-        texts[source] = "class First {} class Second {}";
+        exclusions.Remove(source);
         var second = Reasons();
         Assert.False(second.ContainsKey(("Example", "Example.First")));
         Assert.False(second.ContainsKey(("Example", "Example.Second")));
         Assert.Contains("CS0234", second[("Example", "Example.Third")], StringComparison.Ordinal);
-        Assert.All(reads.Values, count => Assert.Equal(2, count));
+        Assert.Equal(1, reads[source]);
+        Assert.Equal(2, reads[editorSource]);
+    }
+
+    [Fact]
+    public void Source_context_exclusions_propagate_to_inherited_fixtures_without_rewriting_sources()
+    {
+        using var temp = new TempDir();
+        var managed = Path.Combine(temp.Path, "managed");
+        Directory.CreateDirectory(managed);
+        File.Copy(typeof(object).Assembly.Location, Path.Combine(managed, "System.Private.CoreLib.dll"));
+        var texts = new Dictionary<string, string>
+        {
+            ["Engine.cs"] = "namespace UnityEngine { public static class Application { public static string dataPath => \"player\"; } }",
+            ["Base.cs"] = "using App = UnityEngine.Application; namespace Example { public class BaseFixture { protected string Root => App.dataPath; } }",
+            ["Derived.cs"] = "namespace Example { public class DerivedFixture : BaseFixture { public string Read() => Root; } }",
+            ["Caller.cs"] = "namespace Example { public class CallerFixture { public BaseFixture Create() => new BaseFixture(); } }",
+            ["Portable.cs"] = "namespace Example { public class PortableFixture { public string Read() => \"Application.dataPath\"; } } // Application.dataPath",
+            ["Inactive.cs"] = "#if NEVER\nclass Hidden { string Root => UnityEngine.Application.dataPath; }\n#endif\nnamespace Example { public class InactiveFixture {} }",
+            ["Unrelated.cs"] = "namespace Other { public static class Application { public static string dataPath => \"portable\"; } public class UnrelatedFixture { public string Read() => Application.dataPath; } }"
+        };
+        foreach (var (name, source) in texts) File.WriteAllText(Path.Combine(temp.Path, name), source);
+        var defines = new DefineSet();
+        var graph = new AssemblyGraph
+        {
+            Cell = new CompileCell(UnityVersion.Parse("6000.3.19f1").Value!, TargetKind.Editor,
+                BuildPlatform.StandaloneWindows64, null, false, HostOs.Windows),
+            BaseDefines = defines,
+            Assemblies = [new AssemblyPlan { Name = "Example", Kind = AssemblyKind.Asmdef,
+                Defines = defines, Sources = texts.Keys.Select(n => Path.Combine(temp.Path, n)).ToList() }]
+        };
+        var output = Path.Combine(temp.Path, "output");
+        var reasons = PlayerTestCompiler.Compile(graph, new ProjectContext { Root = temp.Path }, managed, output,
+            new HashSet<string>(StringComparer.Ordinal) { "Example" }, analyzers: false);
+        Assert.Contains("Application.dataPath", reasons[Path.Combine(temp.Path, "Base.cs")], StringComparison.Ordinal);
+        Assert.Contains("BaseFixture", reasons[Path.Combine(temp.Path, "Derived.cs")], StringComparison.Ordinal);
+        Assert.Contains("BaseFixture", reasons[Path.Combine(temp.Path, "Caller.cs")], StringComparison.Ordinal);
+        Assert.False(reasons.ContainsKey(Path.Combine(temp.Path, "Portable.cs")));
+        Assert.False(reasons.ContainsKey(Path.Combine(temp.Path, "Inactive.cs")));
+        Assert.False(reasons.ContainsKey(Path.Combine(temp.Path, "Unrelated.cs")));
+        Assert.True(File.Exists(Path.Combine(output, "Example.dll")));
+        foreach (var (name, source) in texts) Assert.Equal(source, File.ReadAllText(Path.Combine(temp.Path, name)));
+    }
+
+    [Fact]
+    public void Editor_filter_excludes_completed_mixed_cases_and_retains_failures_and_ownership_collisions()
+    {
+        TestCaseResult Case(string assembly, string name, TestCategory category, string? route) =>
+            new(assembly, "Example.Mixed", "Example.Mixed." + name, category, "retained reason") { Route = route };
+        var report = new TestRunReport
+        {
+            ToolVersion = "test",
+            Cases =
+            [
+                Case("First", "Complete(\"a.b\")", TestCategory.Passed, "host"),
+                Case("First", "Failure", TestCategory.Failed, "dotnet"),
+                Case("First", "Ignored", TestCategory.Ignored, "host"),
+                Case("First", "Pending", TestCategory.NeedsUnity, "needs-editor"),
+                Case("First", "Collision", TestCategory.Passed, "host"),
+                Case("Second", "Collision", TestCategory.NeedsUnity, "needs-editor"),
+                Case("First", "Unknown", TestCategory.Passed, null),
+                new("First", "Example.Complete", "Example.Complete.Skipped", TestCategory.Skipped, "skip") { Route = "host" },
+                new("First", "Example.Complete", "Example.Complete.Failed", TestCategory.Failed, "failure") { Route = "host" },
+                new("Second", "Example.Complete.Nested", "Example.Complete.Nested.Pending", TestCategory.NeedsUnity, "pending") { Route = "needs-editor" },
+                new("First", "Example.Finished", "Example.Finished.Done", TestCategory.Skipped, "skip") { Route = "host" },
+                Case("First", "Delimiter(\"a;b\")", TestCategory.Passed, "host"),
+                Case("First", "Tail", TestCategory.Passed, "host"),
+                Case("Second", "Tail\n", TestCategory.NeedsUnity, "needs-editor")
+            ]
+        };
+        var before = TestReport.NUnit3(report);
+        var filter = TestReport.UnityFilter(report);
+        bool Included(string name) => !filter.Split(';', StringSplitOptions.RemoveEmptyEntries)
+            .Any(p => System.Text.RegularExpressions.Regex.IsMatch(name, p[1..]));
+        Assert.False(Included(report.Cases[0].FullName));
+        Assert.True(Included("Example.Mixed.Complete(\"axb\")"));
+        Assert.False(Included(report.Cases[1].FullName));
+        Assert.False(Included(report.Cases[2].FullName));
+        Assert.True(Included(report.Cases[3].FullName));
+        Assert.True(Included(report.Cases[4].FullName));
+        Assert.True(Included(report.Cases[6].FullName));
+        Assert.False(Included(report.Cases[7].FullName));
+        Assert.False(Included(report.Cases[8].FullName));
+        Assert.True(Included(report.Cases[9].FullName));
+        Assert.Contains("!^Example\\.Finished\\.", filter, StringComparison.Ordinal);
+        Assert.True(Included(report.Cases[11].FullName));
+        Assert.False(Included(report.Cases[12].FullName));
+        Assert.True(Included(report.Cases[13].FullName));
+        Assert.Equal(filter, TestReport.UnityFilter(report with { Cases = report.Cases.Reverse().ToList() }));
+        Assert.Equal(before, TestReport.NUnit3(report));
+        Assert.Equal(1, report.ExitCode);
+        var legacy = report with { Cases = report.Cases.Select(c => c with { Route = null }).ToList() };
+        Assert.Equal(UnityTestFilter.Build(legacy.Cases), TestReport.UnityFilter(legacy));
     }
 
 }

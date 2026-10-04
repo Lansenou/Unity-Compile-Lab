@@ -13,6 +13,12 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Fixed
 
+- Player-host compilation retained Editor ownership for source-context calls,
+  including `Application.dataPath` aliases.
+- Routed player-host reports avoided completed-case duplicate Editor execution
+  through `--emit-unity-filter`, preserving original failures and conservative name collisions.
+
+
 * Pinned fixture checks to stub editors so a real Hub install of the same version cannot change their expected platform-engine defines.
 
 * Include constructors detected by the finalizer prescan in needs-unity member rankings.

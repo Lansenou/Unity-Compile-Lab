@@ -52,7 +52,7 @@ internal static class TestCommand
         var problem = OutputSink.Write(options.Output, TestReport.Render(report, options.Format), session.ProjectRoot, stdout);
         if (problem is null && options.EmitUnityFilter is { } filterFile && report.Problems.Count == 0)
         {
-            problem = OutputSink.Write(filterFile, UnityTestFilter.Build(report.Cases) + "\n", session.ProjectRoot, stdout);
+            problem = OutputSink.Write(filterFile, TestReport.UnityFilter(report) + "\n", session.ProjectRoot, stdout);
         }
 
         if (problem is not null)

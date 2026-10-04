@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Ucl.Core.Model;
 using Ucl.Core.Testing;
@@ -28,6 +29,30 @@ public static class TestReport
         _ => "unity-only",
     };
 
+    /// <summary>Unity negated-regex filter for cases already completed by this report's execution owners.</summary>
+    public static string UnityFilter(TestRunReport report)
+    {
+        ArgumentNullException.ThrowIfNull(report);
+        if (report.Cases.All(c => c.Route is null)) return UnityTestFilter.Build(report.Cases);
+        var complete = report.Cases.GroupBy(c => c.FullName, StringComparer.Ordinal)
+            .Where(g => g.All(c => c.Route is "dotnet" or "host"
+                && c.Category is not (TestCategory.NeedsUnity or TestCategory.UnityOnly)))
+            .Select(g => g.Key).ToHashSet(StringComparer.Ordinal);
+        var filters = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var group in report.Cases.GroupBy(c => c.ClassName, StringComparer.Ordinal))
+        {
+            var prefix = group.Key + ".";
+            if (!prefix.Contains(';') && group.All(c => c.FullName.StartsWith(prefix, StringComparison.Ordinal) && complete.Contains(c.FullName))
+                && report.Cases.Where(c => c.FullName.StartsWith(prefix, StringComparison.Ordinal)).All(c => complete.Contains(c.FullName)))
+            {
+                filters.Add("!^" + Regex.Escape(prefix));
+                continue;
+            }
+            foreach (var name in group.Select(c => c.FullName).Where(complete.Contains).Where(n => !n.Contains(';')))
+                filters.Add("!^" + Regex.Escape(name) + "\\z");
+        }
+        return string.Join(';', filters.Order(StringComparer.Ordinal));
+    }
     /// <summary>Renders <paramref name="report"/> in <paramref name="format"/> (text, json, junit, nunit3).</summary>
     public static string Render(TestRunReport report, string format)
     {

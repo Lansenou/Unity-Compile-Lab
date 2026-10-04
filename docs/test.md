@@ -287,8 +287,7 @@ supports them. `--analyzers off` matches the existing managed command and disabl
 paths. `--no-cache` disables the managed image cache; player and player-test integrity caches remain enabled.
 
 Editor-only source files and unsupported helper dependencies are excluded as whole files, with compiler
-diagnostics retained in the cache. Fixtures that use `Application.dataPath` for source-layout assertions
-retain Editor ownership. Cases absent from player discovery retain an explicit exclusion reason. Source
+diagnostics retained in the cache. Recompiled source files that reference `UnityEngine.Application.dataPath`, including aliases, retain Editor ownership as whole files. Compiler exclusions propagate to inherited fixtures and helper callers when they cannot compile without those files. Comments, string literals and unrelated types do not trigger this rule. Helpers reused from player or precompiled DLLs are not scanned; source-context cases using them require explicit audited Editor ownership. Cases absent from player discovery retain an explicit exclusion reason. Source
 and test bodies are never rewritten to make them pass. Player settings and runtime lifecycle still differ
 from the Editor; validate outcome parity on the exact revision before switching a gate.
 
@@ -299,7 +298,18 @@ project's independent parity audit. This is an explicit ownership input, not an 
 an existing managed failure or host failure is never silently rerun or converted to an exclusion. Retain the reason and revision with
 that audit file, and recheck it whenever tests change.
 
-The existing `--emit-unity-filter` excludes fully passing classes. It is conservative and may rerun
-host-owned cases from mixed fixtures in the Editor. A hybrid gate must merge results by assembly and
-full name, retain every real failure, and check complete case coverage. No gate migration is implied by
+Without `--host`, `--emit-unity-filter` keeps the existing fully-passing-class behavior.
+With routed host results, it excludes completed `dotnet` and `host` cases, including
+failures and skips already retained in the ucl report. Mixed fixtures use escaped,
+anchored full-name exclusions; wholly completed fixtures use class exclusions when
+their prefix matches no pending discovered case. Same-name collisions across
+assemblies retain conservative ownership. Exact names containing UTF's `;` delimiter
+stay eligible for the Editor rather than emitting an ambiguous filter. Use the same
+discovery scope as the ucl run and respect platform command-line limits, splitting
+Editor batches when needed.
+
+A hybrid gate must merge results by assembly and full name, retain every real failure
+from the original ucl report, and check complete case coverage. An Editor-only XML
+result cannot replace the hybrid result. Excluding an already failed case from a
+duplicate Editor run never makes the gate green. No gate migration is implied by
 installing this optional backend.

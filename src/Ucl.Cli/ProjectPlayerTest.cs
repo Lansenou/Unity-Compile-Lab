@@ -96,7 +96,7 @@ internal static class ProjectPlayerTest
         ProjectContext project, IReadOnlyList<TestCaseResult> candidates, IReadOnlyDictionary<string, string> exclusions,
         Func<string, string>? read = null)
     {
-        // dataPath describes the player's data tree. Source-layout assertions retain Editor ownership.
+        // The compiler owns whole-file exclusions; routing uses their original source paths.
         read ??= File.ReadAllText;
         var sourceTexts = new Dictionary<string, string>(StringComparer.Ordinal);
         var reasons = new Dictionary<(string Assembly, string Class), string>();
@@ -107,14 +107,14 @@ internal static class ProjectPlayerTest
             foreach (var source in plan.Sources)
             {
                 var physical = project.ToPhysical(source);
+                if (!exclusions.TryGetValue(physical, out var reason)) continue;
                 if (!sourceTexts.TryGetValue(physical, out var text))
                 {
                     text = read(physical);
                     sourceTexts.Add(physical, text);
                 }
                 if (!Regex.IsMatch(text, @"\bclass\s+" + Regex.Escape(className) + @"\b", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1))) continue;
-                if (text.Contains("Application.dataPath", StringComparison.Ordinal)) reasons[(c.Assembly, c.ClassName)] = "Application.dataPath source-file expectations require the Editor.";
-                else if (exclusions.TryGetValue(physical, out var reason)) reasons[(c.Assembly, c.ClassName)] = "Editor API or unsupported player source file: " + reason;
+                reasons[(c.Assembly, c.ClassName)] = "Editor API or unsupported player source file: " + reason;
             }
         }
         return reasons;
