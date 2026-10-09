@@ -23,6 +23,8 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
   keeps the streamed results, fails the case in flight and reports the rest as not run. A record or
   `results.json` cut off by the kill no longer discards the complete records, and the case in flight is
   matched by assembly as well as name.
+- The player-host `dataPath` substitution replaced `nameof(...)` operands too, which no longer compiled; it
+  now replaces only evaluated reads.
 - Player-host compilation retained Editor ownership for source-context calls,
   including `Application.dataPath` aliases.
 - Routed player-host reports avoided completed-case duplicate Editor execution

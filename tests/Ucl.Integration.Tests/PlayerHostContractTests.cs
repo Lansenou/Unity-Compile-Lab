@@ -408,6 +408,7 @@ public sealed class PlayerHostContractTests
             ["Caller.cs"] = "namespace Example { public class CallerFixture { public BaseFixture Create() => new BaseFixture(); } }",
             ["Portable.cs"] = "namespace Example { public class PortableFixture { public string Read() => \"Application.dataPath\"; } } // Application.dataPath",
             ["Inactive.cs"] = "#if NEVER\nclass Hidden { string Root => UnityEngine.Application.dataPath; }\n#endif\nnamespace Example { public class InactiveFixture {} }",
+            ["Names.cs"] = "using static UnityEngine.Application; namespace Example { public class NamesFixture { public string Read() => nameof(UnityEngine.Application.dataPath) + nameof(dataPath) + \"|\" + UnityEngine.Application.dataPath + \"|\" + dataPath; } }",
             ["Unrelated.cs"] = "namespace Other { public static class Application { public static string dataPath => \"portable\"; } public class UnrelatedFixture { public string Read() => Application.dataPath; } }"
         };
         foreach (var (name, source) in texts) File.WriteAllText(Path.Combine(temp.Path, name), source);
@@ -430,6 +431,8 @@ public sealed class PlayerHostContractTests
             var assembly = context.LoadFromStream(new MemoryStream(File.ReadAllBytes(Path.Combine(output, "Example.dll"))));
             string Read(string type) => (string)assembly.GetType(type, throwOnError: true)!.GetMethod("Read")!.Invoke(Activator.CreateInstance(assembly.GetType(type)!), null)!;
             Assert.Equal(temp.Path.Replace('\\', '/') + "/Assets", Read("Example.DerivedFixture"));
+            var assets = temp.Path.Replace('\\', '/') + "/Assets";
+            Assert.Equal("dataPathdataPath|" + assets + "|" + assets, Read("Example.NamesFixture"));
             Assert.Equal("Application.dataPath", Read("Example.PortableFixture"));
             Assert.Equal("portable", Read("Other.UnrelatedFixture"));
         }

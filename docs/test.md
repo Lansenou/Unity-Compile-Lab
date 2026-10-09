@@ -300,7 +300,8 @@ diagnostics retained in the cache. Compiler exclusions propagate to inherited fi
 
 The player sees the project layout the Editor sees. Reads of `UnityEngine.Application.dataPath` in
 recompiled sources (aliases and `using static` included, resolved by symbol) compile to the Editor's value,
-the input project's `Assets` folder with forward slashes; the input files are unchanged. The player runs
+the input project's `Assets` folder with forward slashes; `nameof` operands are names, not reads, and keep
+their text. The input files are unchanged. The player runs
 with the project root as its working directory, and its test assemblies are copied to a private folder
 under `<project>/Library/ucl` for the run, so `TestDirectory` and relative `Assets/...` paths resolve as
 in the Editor. Helpers reused from player or precompiled DLLs keep the player's own `dataPath`; cases

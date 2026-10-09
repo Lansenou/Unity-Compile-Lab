@@ -175,7 +175,7 @@ project and leaves those cases in the slowest runner. Candidate B maps the layou
 working directory is the project root, test assemblies are staged under `Library/ucl/<run>` (the
 one project folder ucl may write), the .NET host's image folder moves to the same place, and
 symbol-resolved reads of `UnityEngine.Application.dataPath` in recompiled sources compile to the
-Editor's string. Candidate B is selected. It changes no input file, applies to every read whatever
+Editor's string (`nameof` operands are not reads and stay as they are). Candidate B is selected. It changes no input file, applies to every read whatever
 the test's outcome, and keeps the existing whole-file diagnostics. Reused player or precompiled
 helpers still report the player's own folder; such cases need audited ownership. Tests that write
 through these paths write where the Editor would.
@@ -186,7 +186,7 @@ Editor-owned because it names the Editor platform: discovery records it as a sep
 (`EditorPlatform`), since the unity-only reason reports the Play Mode assembly or `[UnityTest]` first. Play Mode cases are loaded under the EditMode
 test platform (one `Load` call); only the `platform` test parameter differs.
 
-`PlayerTestCompiler` owns the substitution and keys it (`player-test-compiler/3`, the `dataPath`
+`PlayerTestCompiler` owns the substitution and keys it (`player-test-compiler/4`, the `dataPath`
 value). `ProjectPlayerTest` owns staging, the working directory and candidate selection;
 `TestHost` owns its image folder. No new process, thread or lifetime: staged folders are removed
 after each run, best effort, like the existing image folder.
