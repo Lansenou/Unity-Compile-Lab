@@ -351,4 +351,47 @@ public sealed class PlayerHostContractTests
         Assert.Equal(UnityTestFilter.Build(legacy.Cases), TestReport.UnityFilter(legacy));
     }
 
+    /// <summary>The Editor test list names every case ucl did not complete, once, in discovery order; no regex, no length limit.</summary>
+    [Fact]
+    public void Editor_test_list_names_every_pending_case_once_and_keeps_collisions()
+    {
+        TestCaseResult Case(string assembly, string name, TestCategory category, string? route) =>
+            new(assembly, "Example.Mixed", "Example.Mixed." + name, category, "reason") { Route = route };
+        var report = new TestRunReport
+        {
+            ToolVersion = "test",
+            Cases =
+            [
+                Case("First", "Complete(\"a.b\")", TestCategory.Passed, "host"),
+                Case("First", "Failure", TestCategory.Failed, "dotnet"),
+                Case("First", "Pending(1.5d)", TestCategory.NeedsUnity, "needs-editor"),
+                Case("First", "Collision", TestCategory.Passed, "host"),
+                Case("Second", "Collision", TestCategory.NeedsUnity, "needs-editor"),
+                Case("First", "Unknown", TestCategory.Passed, null),
+                Case("First", "Play", TestCategory.UnityOnly, "needs-editor"),
+                Case("First", "Delimiter(\"a;b\")", TestCategory.NeedsUnity, "needs-editor"),
+            ]
+        };
+        Assert.Equal(
+            "Example.Mixed.Pending(1.5d)\nExample.Mixed.Collision\nExample.Mixed.Unknown\nExample.Mixed.Play\nExample.Mixed.Delimiter(\"a;b\")\n",
+            TestReport.UnityTestList(report));
+        var legacy = report with { Cases = report.Cases.Select(c => c with { Route = null }).ToList() };
+        Assert.Equal("Example.Mixed.Pending(1.5d)\nExample.Mixed.Collision\nExample.Mixed.Play\nExample.Mixed.Delimiter(\"a;b\")\n",
+            TestReport.UnityTestList(legacy));
+        Assert.Equal("", TestReport.UnityTestList(report with { Cases = [report.Cases[0]] }));
+    }
+
+    /// <summary>A name with a line break cannot be listed one per line; it is counted, never silently written.</summary>
+    [Fact]
+    public void Editor_test_list_omits_and_counts_names_with_line_breaks()
+    {
+        var report = new TestRunReport
+        {
+            ToolVersion = "test",
+            Cases = [new("A", "Example.Lines", "Example.Lines.Tail\n", TestCategory.NeedsUnity, "pending") { Route = "needs-editor" },
+                new("A", "Example.Lines", "Example.Lines.Plain", TestCategory.NeedsUnity, "pending") { Route = "needs-editor" }]
+        };
+        Assert.Equal("Example.Lines.Plain\n", TestReport.UnityTestList(report));
+        Assert.Equal(1, TestReport.UnlistableEditorCases(report));
+    }
 }

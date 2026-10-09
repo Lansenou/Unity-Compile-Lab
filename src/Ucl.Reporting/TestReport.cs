@@ -53,6 +53,38 @@ public static class TestReport
         }
         return string.Join(';', filters.Order(StringComparer.Ordinal));
     }
+
+    /// <summary>
+    /// The full names of every case this report did not complete, one per line in discovery order: the Unity Test
+    /// Framework's <c>-orderedTestListFile</c> input, which runs only the listed cases. A file has no command-line limit
+    /// and no regex escaping. A name shared by a completed and a pending case is listed (conservative); names with
+    /// line breaks cannot be listed (<see cref="UnlistableEditorCases"/>).
+    /// </summary>
+    public static string UnityTestList(TestRunReport report)
+    {
+        ArgumentNullException.ThrowIfNull(report);
+        return string.Concat(PendingNames(report).Where(n => !HasLineBreak(n)).Select(n => n + "\n"));
+    }
+
+    /// <summary>Pending case names that <see cref="UnityTestList"/> cannot write because they contain a line break.</summary>
+    public static int UnlistableEditorCases(TestRunReport report)
+    {
+        ArgumentNullException.ThrowIfNull(report);
+        return PendingNames(report).Count(HasLineBreak);
+    }
+
+    // Complete: run by .NET or the player (any route when the report is not routed) to a category other than
+    // NeedsUnity/UnityOnly, the same rule as UnityFilter's routed exclusions.
+    private static IEnumerable<string> PendingNames(TestRunReport report)
+    {
+        var routed = report.Cases.Any(c => c.Route is not null);
+        return report.Cases.GroupBy(c => c.FullName, StringComparer.Ordinal)
+            .Where(g => !g.All(c => (!routed || c.Route is "dotnet" or "host")
+                && c.Category is not (TestCategory.NeedsUnity or TestCategory.UnityOnly)))
+            .Select(g => g.Key);
+    }
+
+    private static bool HasLineBreak(string name) => name.Contains('\n', StringComparison.Ordinal) || name.Contains('\r', StringComparison.Ordinal);
     /// <summary>Renders <paramref name="report"/> in <paramref name="format"/> (text, json, junit, nunit3).</summary>
     public static string Render(TestRunReport report, string format)
     {

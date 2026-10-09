@@ -130,3 +130,29 @@ Contract tests cover failure retention, name escaping, ownership collisions,
 non-routed legacy behavior and deterministic output. Native UTF filter validation
 on synthetic cases is required before publication. This optimization establishes
 no full-gate speedup until a matching-source head-to-head measurement exists.
+
+## Editor remainder as a test list
+
+Language: ApiDesignLanguage sections 1, 4, 7 and 13 apply. One CLI option
+(`--emit-unity-test-list`) and one formatter (`TestReport.UnityTestList`) are added;
+no schema, discovery rule or category changes.
+
+A phase-timed full hybrid run on a 6000.3 project with about 6,300 EditMode cases
+found the Editor remainder executing 5,774 cases although ucl completed 4,889 of
+6,271. The routed exclusion filter was 52 KB, beyond the Windows command line; a
+241-class inclusion filter (12.6 KB) reached Unity, which logged it without
+backslashes and cut at 8,186 characters, ending in a bare `^` that matches every
+case. The hybrid gate therefore paid ucl plus a full Editor run.
+
+Candidate A compresses the regex filter (shared prefixes, alternation, class
+inclusion) to stay under the limit. It depends on project naming, still loses
+escapes, and fails silently when a project grows. Candidate B writes the pending
+full names to a file for UTF's documented `-orderedTestListFile`, which keeps only
+the listed leaves. Candidate B is selected: no length limit, no escaping, the same
+completion rule as the routed filter. Its limits are explicit: UTF resolves each
+name to the first matching leaf and skips unknown names, so the collector checks
+coverage; names with line breaks are counted and reported, never written.
+
+`TestReport` owns the formatting (pure, no files or processes); `TestCommand`
+writes it through the existing output sink after the report, only when the report
+has no problems. Production hand count for TestReport is unchanged (Ca = 1, Ce = 1).

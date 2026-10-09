@@ -57,6 +57,13 @@ internal static class TestCommand
             problem = OutputSink.Write(filterFile, TestReport.UnityFilter(report) + "\n", session.ProjectRoot, stdout);
         }
 
+        if (problem is null && options.EmitUnityTestList is { } listFile && report.Problems.Count == 0)
+        {
+            problem = OutputSink.Write(listFile, TestReport.UnityTestList(report), session.ProjectRoot, stdout);
+            if (TestReport.UnlistableEditorCases(report) is > 0 and var unlisted)
+                stderr.WriteLine($"warning: {unlisted} case name(s) left for Unity contain a line break and are not in {listFile}; run them by class.");
+        }
+
         if (problem is not null)
         {
             stderr.WriteLine(TextReport.FormatProblem(problem));

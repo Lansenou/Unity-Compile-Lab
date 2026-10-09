@@ -117,6 +117,7 @@ public static class ArgParser
                     case "--editor-cases": o = o with { EditorCases = Next() }; break;
                     case "--filter": o = o with { Filter = Next() }; break;
                     case "--emit-unity-filter": o = o with { EmitUnityFilter = Next() }; break;
+                    case "--emit-unity-test-list": o = o with { EmitUnityTestList = Next() }; break;
                     case "--jobs" or "-j":
                         var n = Next();
                         o = o with { Jobs = int.TryParse(n, NumberStyles.None, CultureInfo.InvariantCulture, out var j) && j > 0 ? j : throw new ArgumentException($"--jobs needs a positive number, not '{n}'") };

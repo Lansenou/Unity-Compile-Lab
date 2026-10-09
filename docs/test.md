@@ -314,6 +314,27 @@ stay eligible for the Editor rather than emitting an ambiguous filter. Use the s
 discovery scope as the ucl run and respect platform command-line limits, splitting
 Editor batches when needed.
 
+On Windows, Unity 6000.3.19f1 receives a `-testFilter` value without its backslashes and cut to its
+first 8,186 characters (observed in the Editor log's echoed command line; the same argument reached a
+native child of the same shell intact). A cut filter can end in a bare `^`, which matches every case,
+so a long exclusion or inclusion filter silently reruns almost the whole suite. Check the filter's
+length, or use the test list below.
+
+`--emit-unity-test-list <file>` writes the full name of every case `ucl test` did not complete, one per
+line in discovery order: the cases a hybrid gate leaves for the Editor. Completion uses the routed
+filter's rule (`dotnet` or `host` route, a category other than needs-unity and unity-only; without
+`--host`, every case that ran under .NET). Pass the file to the Unity Test Framework's
+`-orderedTestListFile`, which runs only the listed cases:
+
+```sh
+Unity -batchmode -runTests -testPlatform EditMode -orderedTestListFile editor-cases.txt -projectPath ...
+```
+
+A file has no command-line limit and needs no regex escaping. A name shared by a completed and a
+pending case is listed. The framework runs the first case it finds with a listed name and skips
+names it cannot find, so the hybrid collector must still check that every pending case has an
+Editor result. Names containing a line break cannot be listed; they are counted in a warning.
+
 A hybrid gate must merge results by assembly and full name, retain every real failure
 from the original ucl report, and check complete case coverage. An Editor-only XML
 result cannot replace the hybrid result. Excluding an already failed case from a

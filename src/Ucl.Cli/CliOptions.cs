@@ -71,6 +71,9 @@ public sealed record CliOptions
     /// <summary><c>--emit-unity-filter</c> (test): file to write the Unity <c>-testFilter</c> exclusion list to.</summary>
     public string? EmitUnityFilter { get; init; }
 
+    /// <summary><c>--emit-unity-test-list</c> (test): file to write the full names of cases left for Unity to, one per line.</summary>
+    public string? EmitUnityTestList { get; init; }
+
     /// <summary><c>--summary</c>: text output keeps only each cell's root failures and result line.</summary>
     public bool Summary { get; init; }
 

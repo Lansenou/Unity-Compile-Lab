@@ -11,7 +11,8 @@ public static class HelpText
           ucl check [<project>] [options]      compile every assembly (default command)
           ucl test [<project>] [options]       run EditMode tests under .NET and classify every case
                                                (--filter <regex>, --format text|json|junit|nunit3,
-                                               --emit-unity-filter <file>; docs/test.md)
+                                               --emit-unity-filter <file>, --emit-unity-test-list <file>;
+                                               docs/test.md)
           ucl graph [<project>] [options]      print the assembly graph (--format text|dot|json)
           ucl explain <file.cs> [--project P]  which assembly owns a file, with which defines and why
           ucl bee-diff [<project>]             compare ucl's compiler inputs with the Editor's own

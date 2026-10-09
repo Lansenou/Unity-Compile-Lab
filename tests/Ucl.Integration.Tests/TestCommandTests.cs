@@ -70,6 +70,17 @@ public sealed class TestCommandTests
     }
 
     [Fact]
+    public void Emits_the_unity_test_list_of_cases_that_need_unity()
+    {
+        using var temp = new TempDir();
+        var (project, env, expected) = Setup(temp);
+        var file = Path.Combine(temp.Path, "out", "editor-cases.txt");
+        Test(env, project, "--emit-unity-test-list", file);
+        var names = expected.Cases.Where(c => c.Category is "needs-unity" or "unity-only").Select(c => c.Name).Distinct();
+        Assert.Equal(string.Concat(names.Select(n => n + "\n")), File.ReadAllText(file));
+    }
+
+    [Fact]
     public void Text_lists_what_did_not_pass_and_the_counts()
     {
         using var temp = new TempDir();

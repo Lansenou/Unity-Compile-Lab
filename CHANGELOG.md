@@ -12,6 +12,10 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 * Added opt-in `ucl test --host` for a keyed Windows Mono player, graphics enabled by default, with per-case routing, player integrity checks, pinned UTF support and NUnit XML results.
 * `ucl test --timings` writes one `timing: <phase> <seconds> s` line per sequential phase to stderr
   (session, graph, compile, managed, player cache/compile/routing/run with boot/cases/exit detail, report).
+* `ucl test --emit-unity-test-list <file>` writes the full names of the cases left for the Editor, one per
+  line, for the Unity Test Framework's `-orderedTestListFile`. Unity 6000.3 on Windows drops backslashes
+  from a `-testFilter` value and cuts it at 8,186 characters, so a long ownership filter can rerun the
+  whole suite; the list has no such limit.
 
 ### Fixed
 
