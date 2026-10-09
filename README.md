@@ -61,7 +61,8 @@ If the editor is not in a Unity Hub default folder, pass `--editor <install fold
 
 `ucl test` runs code paths that never call the Unity engine's native side. Creating or using an
 engine object, including through a helper, is `needs-unity` and must run in the Editor.
-PlayMode tests and `[UnityTest]` tests never run here (`unity-only`). Editor log scopes also need Unity.
+PlayMode tests and `[UnityTest]` tests never run under .NET (`unity-only`); with `--host` (Windows) a
+player built from the project runs them. Editor log scopes also need Unity.
 
 The share depends on the project: plain C# logic can run most tests; tests that build GameObjects,
 textures or meshes may run few. Run `ucl test` once and read its summary counts before relying on it.
@@ -142,6 +143,35 @@ cache hits report no current-run analyzer time. See
   rule sets.
 
 Details: [docs/architecture.md](docs/architecture.md), [docs/platforms.md](docs/platforms.md).
+
+## Limits
+
+* `ucl test` does not replace the Unity Test Runner. Without `--host` it runs managed code paths only;
+  engine calls, Play Mode and `[UnityTest]` cases are left for the Editor (`--emit-unity-test-list`).
+* `--host` (Windows) runs those cases in a Mono player built from the project. A player is not the
+  Editor: no `UnityEditor` API, Mono instead of Burst, the player's own graphics and lifecycle. Outcomes
+  can differ from the Editor's; compare both on your project before you drop an Editor run.
+* The first `--host` run builds that player. On one large project (about 6,000 test cases) the cold build
+  took about 10 minutes: about 4.5 minutes of Editor import (including script compilation) and about
+  4 minutes of player build, most of it player script compilation. Any change under `Assets`, `Packages`
+  or `ProjectSettings`, test and Editor scripts included, rebuilds it.
+* The player has no per-case time limit; one slow Play Mode case holds the run (60-minute cap).
+* On that project the hybrid gate (`ucl test --host`, then the Editor for the rest) was not faster than
+  the Editor alone: 783 s in sequence and 610 s with both at once, against 672 s for the Editor's full
+  EditMode run. The .NET pass alone took 171 to 325 s on a shared 12-core machine, and the Editor still
+  had to start for the cases only it can run.
+* Asset import, shaders, Burst and real platform players still need Unity.
+
+## When `ucl` helps
+
+| Situation | Use | Why |
+|---|---|---|
+| Compile errors after an edit, for any platform | `ucl check` | Seconds, no Editor start, no licence |
+| Compile gate in CI or a pre-commit hook | `ucl check --changed <ref>` | Warm cache: 0.35 s on the benchmark project ([Speed](#speed)) |
+| Tests of plain C# logic (no engine calls) | `ucl test` | Runs under .NET without Unity |
+| Test suite that mostly creates engine objects | Unity Test Runner | Most cases need the Editor anyway |
+| Full test gate of a large project | Unity Test Runner | Measured: the hybrid gate was not faster (above) |
+| Package compiled for several platforms | `ucl check --platform ...` | No Unity install per platform |
 
 ## Speed
 

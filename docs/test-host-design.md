@@ -189,3 +189,28 @@ test platform (one `Load` call); only the `platform` test parameter differs.
 value). `ProjectPlayerTest` owns staging, the working directory and candidate selection;
 `TestHost` owns its image folder. No new process, thread or lifetime: staged folders are removed
 after each run, best effort, like the existing image folder.
+
+## Player cache key and cold build
+
+The player key hashes the whole `Assets`, `Packages` and `ProjectSettings` trees, the resolved packages,
+the bootstrap sources and the Editor binary, so any project change rebuilds the player. On one private
+6000.3 project over 30 days, 909 of 1,255 commits under the Unity project changed the key; 653 of them
+touched more than Editor or test scripts, 123 touched non-script files, and 15 touched only packages,
+settings or plugins. A clean cold build there took 578 s: 263 s of Editor import (81 s of script
+compilation, 32 s of domain reload, the rest asset and shader import), 254 s of `BuildPlayer` (207 s of
+player script compilation) and about 61 s of copying, hashing, start and quit. The same build step
+ranged from 53 s to 292 s of player script compilation across runs on a shared machine.
+
+Two ways to change the key less often, neither implemented:
+
+1. Leave Editor-only and test assemblies out of the key. ucl compiles the test assemblies itself,
+   keyed on their own inputs (`tests-<key>`), so the player needs only runtime code. On that project
+   this would have avoided 256 of the 909 rebuilds.
+2. A minimal player: packages, settings and native plugins only; ucl compiles the project's runtime
+   assemblies with the test assemblies. The key then covers what changed in 15 of the 1,255 commits.
+   A first trial (Assets reduced to plugin binaries) kept 4 of 1,843 routed cases. ucl compiled the
+   runtime assemblies from the Editor cell, with `UNITY_EDITOR` defined, against player DLLs; files with
+   Editor-only code dropped out and their dependents with them. The runtime assemblies would need the
+   player cell's defines (as `ucl check --target player` compiles them) while test assemblies keep the
+   Editor cell's. The trial's cold build was not faster under load: packages still made up 72% of the
+   compiled script items and most of the import.
