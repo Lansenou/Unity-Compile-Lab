@@ -3,6 +3,35 @@
 Updated at the end of every phase. Spend figures are estimates from token counts (the session has no
 billing view); treat them as rough.
 
+## PR 37 player-host ownership correction (2026-10-04, draft)
+
+Recompiled source files that bind `UnityEngine.Application.dataPath`, including
+aliases, now retain Editor ownership. Ordinary compiler exclusions propagate to
+inherited fixtures and helper callers. Comments, strings, inactive code and
+unrelated types remain portable. Reused player/precompiled helper contexts still
+require an explicit ownership audit; this does not change Unity discovery rules.
+
+Routed host reports emit ownership-aware Editor filters. Completed cases in mixed
+fixtures use exact escaped names with strict end anchors; class-prefix and
+cross-assembly collisions remain conservative. Delimiter-bearing exact names stay
+eligible for the Editor. Original failures remain in the ucl result and gate exit.
+
+Fresh local scripts/check.sh passed: 636 core, 75 discovery and 330 integration
+tests, 96.69% core and 89.96% overall line coverage, 211 independent verification
+cells. Both public regressions failed before their fixes and passed alone and in
+the full batch. The strict-anchor newline collision has its own red/green proof.
+
+A synthetic nine-case native cohort matched its same-source Editor oracle exactly:
+six cases completed by ucl (five managed, one player), three Editor-owned cases.
+The emitted filter ran four Editor cases, including one conservative delimiter
+duplicate, and avoided five completed cases. The merged result retained the
+intentional failure. Input file hashes remained unchanged after ucl execution.
+
+This is source correctness and filter validation, not a fresh private full-gate
+speed measurement. Prior private per-case evidence was unavailable in this
+continuation; the four previously reported full-run differences remain unverified.
+The full migration criterion is not met. Keep existing Editor gates; PR 37 remains
+draft and no merge or gate rollout is requested.
 ## v0.8.109 follow-up
 
 Counts-only rerun: 5950 discovered, 3066 passed, 57 failed, 2316 needs-unity,

@@ -112,8 +112,12 @@ public static class ArgParser
                     case "--changed": o = o with { Changed = Next() }; break;
                     case "--timings": o = o with { Timings = true }; break;
                     case "--summary": o = o with { Summary = true }; break;
+                    case "--host": o = o with { Host = true }; break;
+                    case "--nographics": o = o with { NoGraphics = true }; break;
+                    case "--editor-cases": o = o with { EditorCases = Next() }; break;
                     case "--filter": o = o with { Filter = Next() }; break;
                     case "--emit-unity-filter": o = o with { EmitUnityFilter = Next() }; break;
+                    case "--emit-unity-test-list": o = o with { EmitUnityTestList = Next() }; break;
                     case "--jobs" or "-j":
                         var n = Next();
                         o = o with { Jobs = int.TryParse(n, NumberStyles.None, CultureInfo.InvariantCulture, out var j) && j > 0 ? j : throw new ArgumentException($"--jobs needs a positive number, not '{n}'") };
@@ -136,6 +140,9 @@ public static class ArgParser
                 return Result<CliOptions>.Failure(e.Message);
             }
         }
+
+        if (o.Host && o.Command != "test" || (o.NoGraphics || o.EditorCases is not null) && !o.Host)
+            return Result<CliOptions>.Failure("--host is for test; --nographics and --editor-cases require --host.");
 
         return Result<CliOptions>.Success(o with
         {

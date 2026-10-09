@@ -4,7 +4,7 @@
 
 `ucl test` runs code paths that never call the Unity engine's native side. Creating or using an
 engine object, including through a helper, is `needs-unity` and must run in the Editor.
-PlayMode tests and `[UnityTest]` tests never run here (`unity-only`). Editor log scopes also need Unity.
+PlayMode tests and `[UnityTest]` tests never run under .NET (`unity-only`); with `--host` the project player runs them. Editor log scopes also need Unity.
 
 The share depends on the project: plain C# logic can run most tests; tests that build GameObjects,
 textures or meshes may run few. Run `ucl test` once and read its summary counts before relying on it.
@@ -40,6 +40,12 @@ ucl test path/to/Project --emit-unity-filter skip.txt      # -testFilter value f
 
 Other options as for `check`: `--editor`, `--unity-version`, `--platform` (the active build target, default
 StandaloneWindows64), `--editor-os`, `--analyzers`, `--cache-dir`, `--no-cache`, `--jobs`, `--timings`, `--output`.
+
+`--timings` also writes one `timing: <phase> <seconds> s` line to stderr per sequential phase: `session`,
+`graph`, `compile`, `managed`, with `--host` `player-cache` (key and integrity check, or the cold build),
+`player-compile`, `player-routing` and `player-run` (with `player-boot`, `player-cases` and `player-exit`
+details from the player's own clock), and `report`. Each phase is the wall time since the previous one, so
+the phases add up to the run; reports and exit codes are unchanged.
 
 Exit codes: 0 every case that ran passed (or was classified needs-unity, unity-only, skipped or ignored); 1 a
 case failed for a real reason, or a test assembly does not compile (nothing runs then); 3 configuration
@@ -189,6 +195,11 @@ Report formatting remains explicitly invariant.
 
 The test host runs with the project root as its working directory, including after a restart.
 Relative `Assets/...` paths resolve within that project; the parent process directory is unchanged.
+`ucl test` writes the compiled images to a private folder under `<project>/Library/ucl` (deleted after the
+run), so NUnit's `TestContext.CurrentContext.TestDirectory` is a folder under the project, as the Editor's
+`Library/ScriptAssemblies` is, and fixtures found by walking up from it resolve the same way. The folder is
+one level deeper than the Editor's `Library/ScriptAssemblies`, because ucl writes only under `Library/ucl`, so a path built with a fixed number of parent steps from `TestDirectory`
+resolves one level lower than in the Editor.
 
 `LogAssert` requires Unity's log scope and is classified `needs-unity`, without running direct
 calls. Helpers reaching a missing scope are classified from the framework's exact
@@ -243,8 +254,122 @@ numbers (docs/real-project-checklist.md) are the ones that matter.
 
 ## Limits
 
-* EditMode only: Play Mode assemblies are classified unity-only, never run.
+* EditMode only: Play Mode assemblies are classified unity-only, never run under .NET (`--host` runs them in the project player).
 * No per-test timeout: a test that never returns blocks the run (NUnit's timeout needs thread abort, which
   CoreCLR lacks).
 * Direct `LogAssert` calls are identified from IL; helper failures require the runtime scope exception and a framework frame.
 * Discovery failures before any case is known cannot identify an individual case; the host crash still returns exit 1.
+
+## Optional project player host (Windows)
+
+`ucl test <project> --host --format nunit3 -o <results.xml>` uses the existing .NET path for managed
+cases and a cached per-project Mono player for compatible native-engine cases. The XML records the
+`ucl-route` property (`dotnet`, `host`, `needs-editor`) per case; JSON adds the optional `route` field.
+With `-o`, the usual text summary is printed as well. Failed cases and infrastructure problems remain red.
+
+The adapter currently requires Windows, Unity **6000.3.19f1**, Mono standalone support, and Unity Test
+Framework **1.6.0**. Building requires a licensed Editor. Other combinations must use the Editor; the
+internal UTF runner is deliberately pinned. Host runs are not performed by the public CI machines.
+The existing Linux, Windows and macOS checks continue covering the managed path and cache contracts.
+
+The first engine run builds a scratch project under the user-level cache
+`<LocalApplicationData>/ucl/player-hosts/v1`. It copies settings, assets and resolved packages, adds an
+empty bootstrap scene, disables stripping and Burst compilation, and includes test assemblies.
+Burst is disabled with a process-local build argument; the input project and global Editor preferences
+are unchanged. This host validates Mono behavior. Cases whose assertions require Burst execution need
+explicit Editor ownership and a separate Editor run. It preserves ancestor directory
+names and config precedence so relative analyzer-config globs continue matching. It never injects bootstrap code
+into the input project. Host-mode compilation defaults to `<LocalApplicationData>/ucl/test-compile`.
+A cold build may take several minutes. Warm use recomputes a content key and verifies all player bytes;
+changing assets, settings, packages, Unity revision, inherited config, options or bootstrap invalidates it.
+Overlapping package trees share file hashes within one key calculation, using at most eight concurrent
+reads. Every invocation reads content afresh; timestamps never authorize reuse.
+A corrupt cache entry is retained separately and rebuilt. Concurrent builds use per-key locks; runs use
+unique evidence directories and local result files, with no shared server port.
+
+Graphics stay enabled. `--nographics` is optional and can change rendering, color-space and buffer
+outcomes. The spike's full-cohort boot exceeded five seconds; this mode does not promise sub-five-second
+boot. Discovery XML and whole-report rewrites were removed from the hot path, but discovery and fixture
+setup still count toward boot. Each finished case is appended to a durable JSONL progress file.
+
+The adapter uses the existing language, nullable, diagnostic and analyzer-config options. Assemblies
+with enabled source generators/analyzers retain explicit Editor ownership until the player adapter
+supports them. `--analyzers off` matches the existing managed command and disables those inputs in both
+paths. `--no-cache` disables the managed image cache; player and player-test integrity caches remain enabled.
+
+Editor-only source files and unsupported helper dependencies are excluded as whole files, with compiler
+diagnostics retained in the cache. Compiler exclusions propagate to inherited fixtures and helper callers when they cannot compile without those files. Cases absent from player discovery retain an explicit exclusion reason.
+
+The player sees the project layout the Editor sees. Reads of `UnityEngine.Application.dataPath` in
+recompiled sources (aliases and `using static` included, resolved by symbol) compile to the Editor's value,
+the input project's `Assets` folder with forward slashes; `nameof` operands are names, not reads, and keep
+their text. The input files are unchanged. The player runs with the project root as its working
+directory, and its test assemblies are copied to a private folder under `<project>/Library/ucl` for the
+run, so relative `Assets/...` paths and fixtures found by walking up from `TestDirectory` resolve as in
+the Editor (fixed parent steps do not; see the .NET host above). Helpers reused from player or precompiled DLLs keep the player's own `dataPath`; cases
+that depend on them need audited Editor ownership. A test that writes through these paths writes where
+it would in the Editor.
+
+The player also runs `[UnityTest]` and `[RequiresPlayMode]` cases (its coroutine runner drives them
+frame by frame) and the cases of Play Mode assemblies. `[UnityPlatform]` on the method, its class or its
+assembly keeps a case with the Editor, whose platform it names, even in a Play Mode assembly or next to
+`[UnityTest]`. As in the Editor, Editor-only test assemblies load and run under the EditMode test
+platform and the others under PlayMode, one run each, so the `platform` test parameter matches the Editor
+and a Play Mode test or `[UnitySetUp]` that yields an Edit Mode instruction (`IEditModeTestYieldInstruction`)
+fails as it does there.
+
+The player writes each result as the case ends and writes `results.json` to a temporary file it then
+renames. If it dies or reaches the 60-minute run limit before a complete `results.json` exists, the
+completed cases keep their results (a record cut off by the kill is dropped), the case in flight fails
+("player ... during this case", matched by assembly and name), the remaining selected cases fail as not
+run, and the report records a host crash.
+There is no per-case time limit: a slow Play Mode case holds the run until it ends or the limit is reached.
+
+Source and test bodies are never rewritten to make them pass; the `dataPath` substitution is a layout
+mapping, applied to every read whatever its outcome. Player settings and runtime lifecycle still differ
+from the Editor; validate outcome parity on the exact revision before switching a gate.
+
+`--filter` keeps the existing regular expression over NUnit full names. A fully qualified class or
+namespace selects its cases as with Unity's class filter. It does not implement Unity's semicolon or
+negated-filter syntax. `--editor-cases <file>` assigns listed exact full names (or `assembly|full name` keys) to Editor ownership before managed execution, after a
+project's independent parity audit. This is an explicit ownership input, not an automatic failure retry:
+an existing managed failure or host failure is never silently rerun or converted to an exclusion. Retain the reason and revision with
+that audit file, and recheck it whenever tests change.
+
+Without `--host`, `--emit-unity-filter` keeps the existing fully-passing-class behavior.
+With routed host results, it excludes completed `dotnet` and `host` cases, including
+failures and skips already retained in the ucl report. Mixed fixtures use escaped,
+anchored full-name exclusions; wholly completed fixtures use class exclusions when
+their prefix matches no pending discovered case. Same-name collisions across
+assemblies retain conservative ownership. Exact names containing UTF's `;` delimiter
+stay eligible for the Editor rather than emitting an ambiguous filter. Use the same
+discovery scope as the ucl run and respect platform command-line limits, splitting
+Editor batches when needed.
+
+On Windows, Unity 6000.3.19f1 receives a `-testFilter` value without its backslashes and cut to its
+first 8,186 characters (observed in the Editor log's echoed command line; the same argument reached a
+native child of the same shell intact). A cut filter can end in a bare `^`, which matches every case,
+so a long exclusion or inclusion filter silently reruns almost the whole suite. Check the filter's
+length, or use the test list below.
+
+`--emit-unity-test-list <file>` writes the full name of every case `ucl test` did not complete, one per
+line in discovery order: the cases a hybrid gate leaves for the Editor. Completion uses the routed
+filter's rule (`dotnet` or `host` route, a category other than needs-unity and unity-only; without
+`--host`, every case that ran under .NET). Pass the file to the Unity Test Framework's
+`-orderedTestListFile`, which runs only the listed cases. Use an absolute path: Unity resolves a relative
+one against the project folder, and a missing file is a run error.
+
+```sh
+Unity -batchmode -runTests -testPlatform EditMode -orderedTestListFile "$PWD/editor-cases.txt" -projectPath ...
+```
+
+A file has no command-line limit and needs no regex escaping. A name shared by a completed and a
+pending case is listed. The framework runs the first case it finds with a listed name and skips
+names it cannot find, so the hybrid collector must still check that every pending case has an
+Editor result. Names containing a line break cannot be listed; they are counted in a warning.
+
+A hybrid gate must merge results by assembly and full name, retain every real failure
+from the original ucl report, and check complete case coverage. An Editor-only XML
+result cannot replace the hybrid result. Excluding an already failed case from a
+duplicate Editor run never makes the gate green. No gate migration is implied by
+installing this optional backend.

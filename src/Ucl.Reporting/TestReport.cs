@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Ucl.Core.Model;
 using Ucl.Core.Testing;
@@ -27,6 +28,56 @@ public static class TestReport
         TestCategory.NeedsUnity => "needs-unity",
         _ => "unity-only",
     };
+
+    /// <summary>Unity negated-regex filter for cases already completed by this report's execution owners.</summary>
+    public static string UnityFilter(TestRunReport report)
+    {
+        ArgumentNullException.ThrowIfNull(report);
+        if (report.Cases.All(c => c.Route is null)) return UnityTestFilter.Build(report.Cases);
+        var complete = report.Cases.GroupBy(c => c.FullName, StringComparer.Ordinal)
+            .Where(g => g.All(c => c.Route is "dotnet" or "host"
+                && c.Category is not (TestCategory.NeedsUnity or TestCategory.UnityOnly)))
+            .Select(g => g.Key).ToHashSet(StringComparer.Ordinal);
+        var filters = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var group in report.Cases.GroupBy(c => c.ClassName, StringComparer.Ordinal))
+        {
+            var prefix = group.Key + ".";
+            if (!prefix.Contains(';') && group.All(c => c.FullName.StartsWith(prefix, StringComparison.Ordinal) && complete.Contains(c.FullName))
+                && report.Cases.Where(c => c.FullName.StartsWith(prefix, StringComparison.Ordinal)).All(c => complete.Contains(c.FullName)))
+            {
+                filters.Add("!^" + Regex.Escape(prefix));
+                continue;
+            }
+            foreach (var name in group.Select(c => c.FullName).Where(complete.Contains).Where(n => !n.Contains(';')))
+                filters.Add("!^" + Regex.Escape(name) + "\\z");
+        }
+        return string.Join(';', filters.Order(StringComparer.Ordinal));
+    }
+
+    /// <summary>
+    /// The full names of every case this report did not complete, one per line in discovery order: the Unity Test
+    /// Framework's <c>-orderedTestListFile</c> input, which runs only the listed cases. A file has no command-line limit
+    /// and no regex escaping. A name shared by a completed and a pending case is listed (conservative); names with
+    /// line breaks cannot be listed (<see cref="UnlistableEditorCases"/>).
+    /// </summary>
+    public static string UnityTestList(TestRunReport report) =>
+        string.Concat(PendingNames(report).Where(n => !HasLineBreak(n)).Select(n => n + "\n"));
+
+    /// <summary>Pending case names that <see cref="UnityTestList"/> cannot write because they contain a line break.</summary>
+    public static int UnlistableEditorCases(TestRunReport report) => PendingNames(report).Count(HasLineBreak);
+
+    // Complete: UnityFilter's rule (dotnet or host route, any route when unrouted; not NeedsUnity/UnityOnly).
+    private static IEnumerable<string> PendingNames(TestRunReport report)
+    {
+        ArgumentNullException.ThrowIfNull(report);
+        var routed = report.Cases.Any(c => c.Route is not null);
+        return report.Cases.GroupBy(c => c.FullName, StringComparer.Ordinal)
+            .Where(g => !g.All(c => (!routed || c.Route is "dotnet" or "host")
+                && c.Category is not (TestCategory.NeedsUnity or TestCategory.UnityOnly)))
+            .Select(g => g.Key);
+    }
+
+    private static bool HasLineBreak(string name) => name.Contains('\n', StringComparison.Ordinal) || name.Contains('\r', StringComparison.Ordinal);
 
     /// <summary>Renders <paramref name="report"/> in <paramref name="format"/> (text, json, junit, nunit3).</summary>
     public static string Render(TestRunReport report, string format)
@@ -85,6 +136,9 @@ public static class TestReport
                 sb.Append('\n');
             }
         }
+
+        if (report.Cases.Any(c => c.Route is not null))
+            sb.Append("routing: ").Append(string.Join(", ", report.Cases.GroupBy(c => c.Route).OrderBy(g => g.Key, StringComparer.Ordinal).Select(g => $"{g.Count()} {g.Key}"))).Append('\n');
 
         var members = NeedsUnityMembers(report).ToArray();
         if (members.Length > 0)
@@ -208,6 +262,7 @@ public static class TestReport
                 w.WriteString("class", c.ClassName);
                 w.WriteString("name", c.FullName);
                 w.WriteString("category", Name(c.Category));
+                if (c.Route is not null) w.WriteString("route", c.Route);
                 if (c.Category == TestCategory.NeedsUnity) w.WriteString("engineMember", c.EngineMember);
                 if (c.Reason.Length > 0)
                 {
@@ -277,6 +332,7 @@ public static class TestReport
         ArgumentNullException.ThrowIfNull(report);
         var id = 1;
         var run = Counted(new XElement("test-run", new XAttribute("id", 0), new XAttribute("name", "ucl test")), report.Cases);
+        if (report.ExitCode != 0) run.SetAttributeValue("result", "Failed");
         run.Add(new XAttribute("engine-version", report.ToolVersion));
         foreach (var assembly in report.Cases.GroupBy(c => c.Assembly, StringComparer.Ordinal))
         {
@@ -298,6 +354,9 @@ public static class TestReport
                     new XAttribute("fullname", c.FullName),
                     new XAttribute("classname", c.ClassName),
                     new XAttribute("result", result));
+                if (c.Route is not null)
+                    testCase.Add(new XElement("properties", new XElement("property", new XAttribute("name", "ucl-route"), new XAttribute("value", c.Route))));
+
                 if (label is not null)
                 {
                     testCase.Add(new XAttribute("label", label));

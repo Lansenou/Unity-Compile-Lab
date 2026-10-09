@@ -70,6 +70,17 @@ public sealed class TestCommandTests
     }
 
     [Fact]
+    public void Emits_the_unity_test_list_of_cases_that_need_unity()
+    {
+        using var temp = new TempDir();
+        var (project, env, expected) = Setup(temp);
+        var file = Path.Combine(temp.Path, "out", "editor-cases.txt");
+        Test(env, project, "--emit-unity-test-list", file);
+        var names = expected.Cases.Where(c => c.Category is "needs-unity" or "unity-only").Select(c => c.Name).Distinct();
+        Assert.Equal(string.Concat(names.Select(n => n + "\n")), File.ReadAllText(file));
+    }
+
+    [Fact]
     public void Text_lists_what_did_not_pass_and_the_counts()
     {
         using var temp = new TempDir();
@@ -111,6 +122,22 @@ public sealed class TestCommandTests
         var warm = Cli.Run(env, "test", project, "--cache-dir", cache, "--editor-os", "linux", "--format", "json").Stdout;
         Assert.Equal(cold, warm);
         Assert.Equal(cold, Test(env, project, "--format", "json").Stdout);
+    }
+
+    /// <summary>--timings writes one wall-time line per sequential phase to stderr; reports stay unchanged.</summary>
+    [Fact]
+    public void Timings_report_each_phase_on_stderr()
+    {
+        using var temp = new TempDir();
+        var (project, env, _) = Setup(temp);
+        var plain = Test(env, project, "--format", "json");
+        var timed = Test(env, project, "--format", "json", "--timings");
+        Assert.DoesNotContain("timing:", plain.Stderr, StringComparison.Ordinal);
+        var phases = timed.Stderr.Split('\n').Where(l => l.StartsWith("timing: ", StringComparison.Ordinal))
+            .Select(l => l.Split(' ')[1]).ToList();
+        Assert.Equal(["session", "graph", "compile", "managed", "report"], phases);
+        Assert.Matches(@"(?m)^timing: managed \d+\.\d{3} s\r?$", timed.Stderr);
+        Assert.Equal(plain.Exit, timed.Exit);
     }
 
     [Fact]

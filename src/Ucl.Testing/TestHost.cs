@@ -25,13 +25,19 @@ public static class TestHost
     /// <param name="images">Every project assembly image by name; written to a temporary folder for the host to load.</param>
     /// <param name="files">Plugin and editor DLLs by assembly simple name.</param>
     /// <param name="filter">The <c>--filter</c> pattern, or null.</param>
+    /// <param name="editorCases">Audited Editor-owned names or assembly-qualified keys, classified before test execution.</param>
     /// <param name="launch">Starts a host with the given arguments (after the command name), waits, and returns its exit code and error output.</param>
+    /// <param name="imageRoot">Folder for the run's private image folder, or null for the system temporary folder. <c>ucl test</c>
+    /// passes <c>&lt;project&gt;/Library/ucl</c>, so NUnit's <c>TestDirectory</c> sits under the project as the Editor's
+    /// <c>Library/ScriptAssemblies</c> does, one level deeper.</param>
     public static TestRun Run(
         IReadOnlyList<TestAssemblyImage> tests,
         IReadOnlyDictionary<string, byte[]> images,
         IReadOnlyDictionary<string, string> files,
         string? filter,
-        Func<IReadOnlyList<string>, (int Exit, string Error)> launch)
+        Func<IReadOnlyList<string>, (int Exit, string Error)> launch,
+        IReadOnlySet<string>? editorCases = null,
+        string? imageRoot = null)
     {
         ArgumentNullException.ThrowIfNull(tests);
         ArgumentNullException.ThrowIfNull(images);
@@ -39,8 +45,8 @@ public static class TestHost
         ArgumentNullException.ThrowIfNull(launch);
 
         // Assemblies are loaded from files, never from memory: NUnit asks for an assembly's path. The folder is
-        // private to this run and outside the project (the read-only contract), and is deleted afterwards.
-        var folder = Path.Combine(Path.GetTempPath(), "ucl-test-" + Guid.NewGuid().ToString("N"));
+        // private to this run, inside Library/ucl at most (the read-only contract), and is deleted afterwards.
+        var folder = Path.Combine(imageRoot ?? Path.GetTempPath(), "ucl-test-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(folder);
         var paths = new Dictionary<string, string>(files, StringComparer.OrdinalIgnoreCase);
         foreach (var (name, image) in images)
@@ -60,7 +66,7 @@ public static class TestHost
         {
             while (true)
             {
-                File.WriteAllText(requestPath, JsonSerializer.Serialize(new Request(tests, paths, filter, [.. done.Keys], resultsPath), Json));
+                File.WriteAllText(requestPath, JsonSerializer.Serialize(new Request(tests, paths, filter, [.. done.Keys], resultsPath, editorCases is null ? [] : [.. editorCases.Order(StringComparer.Ordinal)]), Json));
                 File.Delete(resultsPath);
                 var (exit, error) = launch([requestPath]);
 
@@ -162,7 +168,7 @@ public static class TestHost
         var filter = request.Filter is null ? null : new Regex(request.Filter, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
         using var writer = new StreamWriter(request.Results, append: false, new UTF8Encoding(false)) { AutoFlush = true };
         var events = new LineWriter(writer);
-        var total = NUnitHost.Run(request.Tests, request.Paths, filter, request.Skip.ToHashSet(StringComparer.Ordinal), events);
+        var total = NUnitHost.Run(request.Tests, request.Paths, filter, request.Skip.ToHashSet(StringComparer.Ordinal), events, request.EditorCases.ToHashSet(StringComparer.Ordinal));
         events.Write(new Line("done", null, total));
         return 0;
     }
@@ -184,7 +190,8 @@ public static class TestHost
         IReadOnlyDictionary<string, string> Paths,
         string? Filter,
         IReadOnlyList<string> Skip,
-        string Results);
+        string Results,
+        IReadOnlyList<string> EditorCases);
 
     private sealed record Line(string Event, TestCaseResult? Case, int Discovered = 0);
 

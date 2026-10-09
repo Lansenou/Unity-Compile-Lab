@@ -9,6 +9,15 @@ namespace Ucl.Core.Testing;
 /// <param name="DurationMs">Wall-clock milliseconds; reported only with <c>--timings</c>.</param>
 public sealed record TestCaseResult(string Assembly, string ClassName, string FullName, TestCategory Category, string Reason, long DurationMs = 0)
 {
+    /// <summary>Execution owner when player-host mode is enabled: dotnet, host, or needs-editor.</summary>
+    public string? Route { get; init; }
+
     /// <summary>First engine exception frame, or the engine constructor found by finalizer prescan; null when unavailable.</summary>
     public string? EngineMember { get; init; }
+
+    /// <summary>
+    /// <c>[UnityPlatform]</c> on the method, its class or its assembly: the case names the Editor's platform, so the
+    /// Editor owns it whatever other rule classified it.
+    /// </summary>
+    public bool EditorPlatform { get; init; }
 }

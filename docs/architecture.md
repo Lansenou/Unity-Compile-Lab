@@ -283,3 +283,7 @@ failure. Collector reports are merged by the pinned local ReportGenerator tool; 
 are excluded; the Core unit report omits generated sources as before. The independent verify executable's --coverage mode
 checks exact covered/valid line counts: Core 90%, all source modules 75%. Empty/unreadable reports fail.
 Raw collector reports and merged Cobertura/JSON summaries are retained under coverage/ as CI artifacts.
+
+## Optional project player tests
+
+The [player host design](test-host-design.md) and [test contract](test.md#optional-project-player-host-windows) describe the Windows Mono adapter. Ucl.Discovery.PlayerHostCache owns content fingerprints and complete player integrity manifests. Ucl.Compilation.PlayerTestCompiler emits test sources against player references and records whole-file exclusions. Ucl.Cli owns scratch construction, process supervision, cache locks and routing between the existing managed host and the player. Ucl.Core.Testing.TestCaseResult.Route records the optional execution owner; reporting keeps failures and exclusion reasons.

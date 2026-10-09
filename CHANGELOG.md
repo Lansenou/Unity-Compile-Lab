@@ -7,7 +7,34 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ## [Unreleased]
 
+### Added
+
+* Added opt-in `ucl test --host` for a keyed Windows Mono player, graphics enabled by default, with per-case routing, player integrity checks, pinned UTF support and NUnit XML results.
+* `ucl test --timings` writes one `timing: <phase> <seconds> s` line per sequential phase to stderr
+  (session, graph, compile, managed, player cache/compile/routing/run with boot/cases/exit detail, report).
+* `ucl test --emit-unity-test-list <file>` writes the full names of the cases left for the Editor, one per
+  line, for the Unity Test Framework's `-orderedTestListFile`. Unity 6000.3 on Windows drops backslashes
+  from a `-testFilter` value and cuts it at 8,186 characters, so a long ownership filter can rerun the
+  whole suite; the list has no such limit.
+
 ### Fixed
+
+- A player host that died or timed out before writing its results discarded every completed case; it now
+  keeps the streamed results, fails the case in flight and reports the rest as not run. A record or
+  `results.json` cut off by the kill no longer discards the complete records, and the case in flight is
+  matched by assembly as well as name.
+- The player-host `dataPath` substitution replaced `nameof(...)` operands too, which no longer compiled; it
+  now replaces only evaluated reads.
+- The player host loaded Play Mode assemblies under the EditMode test platform, so Play Mode tests that
+  yield an Edit Mode instruction passed where the Editor fails them. Editor-only assemblies now run under
+  EditMode and the others under PlayMode, one run each, as in the Editor.
+- Player-host compilation retained Editor ownership for source-context calls,
+  including `Application.dataPath` aliases.
+- Routed player-host reports avoided completed-case duplicate Editor execution
+  through `--emit-unity-filter`, preserving original failures and conservative name collisions.
+
+
+* Pinned fixture checks to stub editors so a real Hub install of the same version cannot change their expected platform-engine defines.
 
 * Include constructors detected by the finalizer prescan in needs-unity member rankings.
 
@@ -33,6 +60,13 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Changed
 
+* `ucl test --host` gives the player the Editor's project layout: `Application.dataPath` reads in recompiled
+  sources compile to the input `Assets` folder (no longer Editor-owned), the player runs in the project root,
+  and test assemblies load from a private folder under `Library/ucl`, so walking up from NUnit's
+  `TestDirectory` reaches the project as in the Editor. The .NET host's images also load from `Library/ucl`.
+  That folder is one level deeper than `Library/ScriptAssemblies`, so fixed parent steps differ.
+* `ucl test --host` runs `[UnityTest]`, `[RequiresPlayMode]` and Play Mode assembly cases in the player;
+  `[UnityPlatform]` cases stay with the Editor.
 * Put the member-specific scope of ucl test upfront in the README and test docs, with public
   source links and actual original stub-editor fixture counts.
 

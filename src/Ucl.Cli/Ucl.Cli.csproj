@@ -11,6 +11,10 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="PlayerHost/**/*.cs" />
+    <EmbeddedResource Include="PlayerHost/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../Ucl.Core/Ucl.Core.csproj" />
     <ProjectReference Include="../Ucl.Discovery/Ucl.Discovery.csproj" />
     <ProjectReference Include="../Ucl.Compilation/Ucl.Compilation.csproj" />

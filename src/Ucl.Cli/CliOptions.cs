@@ -56,11 +56,23 @@ public sealed record CliOptions
     /// <summary><c>--changed</c> git ref.</summary>
     public string? Changed { get; init; }
 
+    /// <summary><c>--host</c>: run eligible engine cases in a cached Mono player.</summary>
+    public bool Host { get; init; }
+
+    /// <summary><c>--nographics</c>: opt out of graphics in the player.</summary>
+    public bool NoGraphics { get; init; }
+
+    /// <summary><c>--editor-cases</c>: exact full names with audited player differences.</summary>
+    public string? EditorCases { get; init; }
+
     /// <summary><c>--filter</c> (test): a regular expression over test full names.</summary>
     public string? Filter { get; init; }
 
     /// <summary><c>--emit-unity-filter</c> (test): file to write the Unity <c>-testFilter</c> exclusion list to.</summary>
     public string? EmitUnityFilter { get; init; }
+
+    /// <summary><c>--emit-unity-test-list</c> (test): file to write the full names of cases left for Unity to, one per line.</summary>
+    public string? EmitUnityTestList { get; init; }
 
     /// <summary><c>--summary</c>: text output keeps only each cell's root failures and result line.</summary>
     public bool Summary { get; init; }

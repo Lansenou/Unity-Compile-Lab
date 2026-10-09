@@ -125,6 +125,61 @@ public sealed class TestHostLoadFailureTests
         Assert.Equal(playMode ? TestCategory.UnityOnly : TestCategory.Passed, run.Cases[1].Category);
     }
 
+    [Fact]
+    public void Audited_case_is_not_executed_and_same_named_failure_in_other_assembly_stays_red()
+    {
+        const string source = "using NUnit.Framework; public class Cases { [Test] public void A_mismatch() { Assert.Fail(\"real failure\"); } [Test] public void Z_after() {} }";
+        var images = new Dictionary<string, byte[]> { ["FirstTests"] = Emit("FirstTests", source), ["SecondTests"] = Emit("SecondTests", source) };
+        var run = TestHost.Run([new("FirstTests", false), new("SecondTests", false)], images,
+            new Dictionary<string, string>(), null, Launch,
+            new HashSet<string>(StringComparer.Ordinal) { NUnitHost.Key("FirstTests", "Cases.A_mismatch") });
+        Assert.Equal(4, run.Discovered);
+        Assert.Empty(run.Crashes);
+        Assert.Equal(TestCategory.NeedsUnity, Assert.Single(run.Cases, c => c.Assembly == "FirstTests" && c.FullName == "Cases.A_mismatch").Category);
+        Assert.Equal(TestCategory.Failed, Assert.Single(run.Cases, c => c.Assembly == "SecondTests" && c.FullName == "Cases.A_mismatch").Category);
+        Assert.Equal(2, run.Cases.Count(c => c.Category == TestCategory.Passed));
+    }
+
+    [Fact]
+    public void Images_load_under_the_given_root_so_TestDirectory_follows_the_project_layout()
+    {
+        using var temp = new TempDir();
+        var root = Path.Combine(temp.Path, "Project", "Library", "ucl");
+        var source = "using NUnit.Framework; public class Cases { [Test] public void Where() { Assert.That(System.IO.Path.GetDirectoryName(TestContext.CurrentContext.TestDirectory), Is.EqualTo(@\""
+            + root + "\")); } }";
+        var run = TestHost.Run([new("LayoutTests", false)], new Dictionary<string, byte[]> { ["LayoutTests"] = Emit("LayoutTests", source) },
+            new Dictionary<string, string>(), null, Launch, imageRoot: root);
+        Assert.Empty(run.Crashes);
+        var where = Assert.Single(run.Cases);
+        Assert.True(where.Category == TestCategory.Passed, where.Reason);
+    }
+
+    [Theory]
+    [InlineData(true, "", "", "[UnityPlatform]")]
+    [InlineData(false, "[UnityPlatform]", "", "[UnityTest]")]
+    [InlineData(false, "", "[assembly: UnityEngine.TestTools.UnityPlatform]", "[UnityTest]")]
+    [InlineData(false, "", "", "[UnityPlatform, UnityEngine.TestTools.RequiresPlayMode]")]
+    public void Platform_cases_stay_with_the_Editor_whatever_other_reason_classifies_them(bool playMode, string classAttribute, string assemblyAttribute, string methodAttributes)
+    {
+        var source = "using NUnit.Framework; using UnityEngine.TestTools; " + assemblyAttribute + " " + classAttribute
+            + " public class Cases { [Test] " + methodAttributes + " public void A_platform() {} [Test] public void Z_other() {} }"
+            + " namespace UnityEngine.TestTools { public class UnityTestAttribute : System.Attribute { } public class UnityPlatformAttribute : System.Attribute { }"
+            + " public class RequiresPlayModeAttribute : System.Attribute { } }";
+        source = source.Replace("[UnityTest]", "[UnityEngine.TestTools.UnityTest]", StringComparison.Ordinal);
+        var run = TestHost.Run([new("PlatformTests", playMode)], new Dictionary<string, byte[]> { ["PlatformTests"] = Emit("PlatformTests", source) },
+            new Dictionary<string, string>(), null, Launch);
+        Assert.Empty(run.Crashes);
+        var platform = Assert.Single(run.Cases, c => c.FullName == "Cases.A_platform");
+        Assert.True(platform.EditorPlatform);
+        var candidate = typeof(Ucl.Cli.CliOptions).Assembly.GetType("Ucl.Cli.ProjectPlayerTest", throwOnError: true)!
+            .GetMethod("PlayerCandidate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        Assert.False((bool)candidate.Invoke(null, [platform])!);
+        var other = Assert.Single(run.Cases, c => c.FullName == "Cases.Z_other");
+        Assert.Equal(classAttribute.Length > 0 || assemblyAttribute.Length > 0, other.EditorPlatform);
+        var report = new TestRunReport { ToolVersion = "test", Cases = [platform with { Route = "needs-editor" }] };
+        Assert.Equal("Cases.A_platform\n", Ucl.Reporting.TestReport.UnityTestList(report));
+    }
+
     private static (int Exit, string Error) Launch(IReadOnlyList<string> args)
     {
         try { return (TestHost.Serve(args[0]), ""); }
