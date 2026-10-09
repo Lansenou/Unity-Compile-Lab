@@ -81,7 +81,7 @@ public sealed class PlayerHostContractTests
         };
         var type = typeof(CliOptions).Assembly.GetType("Ucl.Cli.ProjectPlayerTest", throwOnError: true)!;
         var routed = (TestRunReport)type.GetMethod("Run", BindingFlags.Public | BindingFlags.Static)!.Invoke(null,
-            [null, null, null, new CliOptions { EditorCases = audit }, report, TextWriter.Null])!;
+            [null, null, null, new CliOptions { EditorCases = audit }, report, TextWriter.Null, null])!;
         Assert.Equal(1, routed.ExitCode);
         Assert.Equal(TestCategory.Failed, Assert.Single(routed.Cases).Category);
         Assert.Equal("assertion failed", routed.Cases[0].Reason);
