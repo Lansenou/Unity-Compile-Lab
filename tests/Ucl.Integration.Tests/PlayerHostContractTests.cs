@@ -304,7 +304,7 @@ public sealed class PlayerHostContractTests
             {"assembly":"A.Tests","name":"A.C.Second","outcome":"Failed","message":"real failure","seconds":1.0}
 
             """);
-        File.WriteAllText(resultsFile + ".started", "A.C.Third");
+        File.WriteAllText(resultsFile + ".started", "A.Tests\nA.C.Third");
         TestCaseResult Case(string name) => new("A.Tests", "A.C", "A.C." + name, TestCategory.NeedsUnity, "engine call");
         var results = new Dictionary<(string Assembly, string Name), System.Text.Json.JsonElement>();
         var crash = (TestHostCrash?)typeof(CliOptions).Assembly.GetType("Ucl.Cli.ProjectPlayerTest", throwOnError: true)!
@@ -320,6 +320,77 @@ public sealed class PlayerHostContractTests
         Assert.Equal("A.C.Second", crash.After);
         Assert.Equal("A.C.Third", crash.During);
         Assert.Contains("-1", crash.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void A_torn_last_stream_record_keeps_the_complete_ones_and_the_case_in_flight_is_matched_by_assembly()
+    {
+        using var temp = new TempDir();
+        var resultsFile = Path.Combine(temp.Path, "results.json");
+        File.WriteAllText(resultsFile + ".jsonl", """
+            {"assembly":"A.Tests","name":"A.C.First","outcome":"Passed","message":"","seconds":0.5}
+            {"assembly":"A.Tests","name":"A.C.Second","outcome":"Failed","message":"real failure","seconds":1.0}
+            {"assembly":"A.Tests","name":"A.C.Thi
+            """);
+        File.WriteAllText(resultsFile + ".started", "A.Tests\nA.C.Third");
+        TestCaseResult[] selected =
+        [
+            Case("A.Tests", "First"), Case("A.Tests", "Second"), Case("A.Tests", "Third"), Case("B.Tests", "Third"),
+        ];
+        var results = new Dictionary<(string Assembly, string Name), System.Text.Json.JsonElement>();
+        var crash = (TestHostCrash?)PlayerTest("Salvage").Invoke(null, [resultsFile, "exited -1", selected, results]);
+        Assert.Equal(["Passed", "Failed", "Failed", "Failed"], selected.Select(c => results[(c.Assembly, c.FullName)].GetProperty("outcome").GetString()));
+        Assert.Contains("during this case", results[("A.Tests", "A.C.Third")].GetProperty("message").GetString(), StringComparison.Ordinal);
+        Assert.Contains("not run", results[("B.Tests", "A.C.Third")].GetProperty("message").GetString(), StringComparison.Ordinal);
+        Assert.NotNull(crash);
+        Assert.Equal("A.C.Second", crash.After);
+        Assert.Equal("A.C.Third", crash.During);
+    }
+
+    [Fact]
+    public void A_torn_results_json_falls_back_to_the_streamed_results()
+    {
+        using var temp = new TempDir();
+        var resultsFile = Path.Combine(temp.Path, "results.json");
+        File.WriteAllText(resultsFile, """{"firstTestUnixMs":1,"finishedUnixMs":2,"fatal":"","tests":[{"assembly":"A.Tests","na""");
+        File.WriteAllText(resultsFile + ".jsonl", """
+            {"assembly":"A.Tests","name":"A.C.First","outcome":"Passed","message":"","seconds":0.5}
+
+            """);
+        File.WriteAllText(resultsFile + ".started", "A.Tests\nA.C.First");
+        TestCaseResult[] selected = [Case("A.Tests", "First"), Case("A.Tests", "Second")];
+        var results = new Dictionary<(string Assembly, string Name), System.Text.Json.JsonElement>();
+        var crash = (TestHostCrash?)PlayerTest("Collect").Invoke(null, [resultsFile, 0, "exited 0", 0L, 0L, null, selected, results]);
+        Assert.NotNull(crash);
+        Assert.Null(crash.During);
+        Assert.Contains("results.json", crash.Text, StringComparison.Ordinal);
+        Assert.Equal("Passed", results[("A.Tests", "A.C.First")].GetProperty("outcome").GetString());
+        Assert.Contains("not run", results[("A.Tests", "A.C.Second")].GetProperty("message").GetString(), StringComparison.Ordinal);
+
+        File.WriteAllText(resultsFile, """{"firstTestUnixMs":1,"finishedUnixMs":2,"fatal":"","tests":[{"assembly":"A.Tests","name":"A.C.First","outcome":"Passed","message":"","seconds":0.5}]}""");
+        results.Clear();
+        Assert.Null(PlayerTest("Collect").Invoke(null, [resultsFile, 0, "exited 0", 0L, 0L, null, selected, results]));
+        Assert.Equal([("A.Tests", "A.C.First")], results.Keys);
+    }
+
+    [Fact]
+    public void The_player_bootstrap_writes_its_final_results_atomically_and_names_the_case_in_flight_with_its_assembly()
+    {
+        var source = BootstrapSource();
+        Assert.Contains("File.WriteAllText(output + \".tmp\", JsonUtility.ToJson(report, true));", source, StringComparison.Ordinal);
+        Assert.Contains("File.Move(output + \".tmp\", output);", source, StringComparison.Ordinal);
+        Assert.Contains("File.WriteAllText(output + \".started\", AssemblyName(test) + \"\\n\" + test.FullName);", source, StringComparison.Ordinal);
+    }
+
+    private static TestCaseResult Case(string assembly, string name) => new(assembly, "A.C", "A.C." + name, TestCategory.NeedsUnity, "engine call");
+
+    private static MethodInfo PlayerTest(string method) => typeof(CliOptions).Assembly.GetType("Ucl.Cli.ProjectPlayerTest", throwOnError: true)!
+        .GetMethod(method, BindingFlags.NonPublic | BindingFlags.Static)!;
+
+    private static string BootstrapSource()
+    {
+        using var stream = typeof(CliOptions).Assembly.GetManifestResourceStream("Ucl.Cli.PlayerHost.ProjectTestHost.cs")!;
+        return new StreamReader(stream).ReadToEnd();
     }
 
     [Fact]

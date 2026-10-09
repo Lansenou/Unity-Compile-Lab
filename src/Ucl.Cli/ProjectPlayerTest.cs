@@ -82,10 +82,7 @@ internal static class ProjectPlayerTest
                 catch (Exception e) when (e is IOException or UnauthorizedAccessException) { progress.WriteLine("host run: could not remove " + staged); }
             }
             var exited = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            if (File.Exists(resultsFile)) ReadResults(resultsFile, exitCode, launched, exited, timer, results);
-            // The player streams each result as it ends; a player that dies or times out keeps them, as the .NET host does.
-            else if (File.Exists(resultsFile + ".jsonl")) crash = Salvage(resultsFile, ending, selected, results);
-            else throw new IOException($"Player {ending} without results; see {runDirectory}");
+            crash = Collect(resultsFile, exitCode, ending, launched, exited, timer, selected, results);
         }
         timer?.Mark("player-run");
         foreach (var c in candidates)
@@ -110,6 +107,24 @@ internal static class ProjectPlayerTest
         return report with { Cases = cases, HostCrashes = crash is null ? report.HostCrashes : [.. report.HostCrashes, crash] };
     }
 
+    // The player streams each result as it ends; a player that dies, times out or leaves a torn results.json keeps them,
+    // as the .NET host does.
+    internal static TestHostCrash? Collect(string resultsFile, int exitCode, string ending, long launched, long exited, PhaseTimer? timer,
+        IReadOnlyList<TestCaseResult> selected, Dictionary<(string Assembly, string Name), JsonElement> results)
+    {
+        if (File.Exists(resultsFile))
+        {
+            try
+            {
+                ReadResults(resultsFile, exitCode, launched, exited, timer, results);
+                return null;
+            }
+            catch (JsonException) when (File.Exists(resultsFile + ".jsonl")) { results.Clear(); }
+        }
+        if (File.Exists(resultsFile + ".jsonl")) return Salvage(resultsFile, ending, selected, results);
+        throw new IOException($"Player {ending} without results; see {Path.GetDirectoryName(resultsFile)}");
+    }
+
     private static void ReadResults(string resultsFile, int exitCode, long launched, long exited, PhaseTimer? timer,
         Dictionary<(string Assembly, string Name), JsonElement> results)
     {
@@ -130,26 +145,33 @@ internal static class ProjectPlayerTest
             throw new IOException($"Player infrastructure failure, exit {exitCode}; see {Path.GetDirectoryName(resultsFile)}");
     }
 
-    // Completed cases keep their results; the case in flight (results.json.started) fails, later cases are not run.
+    // Completed cases keep their results, a record torn by the kill is dropped; the case in flight (results.json.started:
+    // assembly, then name) fails, later cases are not run.
     internal static TestHostCrash Salvage(string resultsFile, string ending, IReadOnlyList<TestCaseResult> selected,
         Dictionary<(string Assembly, string Name), JsonElement> results)
     {
         string? after = null;
         foreach (var line in File.ReadLines(resultsFile + ".jsonl").Where(l => l.Trim().Length > 0))
         {
-            using var leaf = JsonDocument.Parse(line);
-            after = leaf.RootElement.GetProperty("name").GetString()!;
-            results[(leaf.RootElement.GetProperty("assembly").GetString()!, after)] = leaf.RootElement.Clone();
+            JsonDocument leaf;
+            try { leaf = JsonDocument.Parse(line); }
+            catch (JsonException) { continue; }
+            using (leaf)
+            {
+                after = leaf.RootElement.GetProperty("name").GetString()!;
+                results[(leaf.RootElement.GetProperty("assembly").GetString()!, after)] = leaf.RootElement.Clone();
+            }
         }
         var started = resultsFile + ".started";
-        var during = File.Exists(started) ? File.ReadAllText(started).Trim() : null;
-        if (during is not null && selected.Any(c => c.FullName == during && results.ContainsKey((c.Assembly, c.FullName)))) during = null;
+        var marker = File.Exists(started) ? File.ReadAllLines(started) : [];
+        (string Assembly, string Name)? during = marker.Length == 2 ? (marker[0], marker[1]) : null;
+        if (during is { } key && results.ContainsKey(key)) during = null;
         foreach (var c in selected.Where(c => !results.ContainsKey((c.Assembly, c.FullName))))
         {
-            var message = c.FullName == during ? $"player {ending} during this case" : $"not run: player {ending} before this case";
+            var message = (c.Assembly, c.FullName) == during ? $"player {ending} during this case" : $"not run: player {ending} before this case";
             results[(c.Assembly, c.FullName)] = JsonSerializer.SerializeToElement(new { assembly = c.Assembly, name = c.FullName, outcome = "Failed", message, seconds = 0.0 });
         }
-        return new TestHostCrash(after, during, $"Player {ending} before writing results.json; see {Path.GetDirectoryName(resultsFile)}");
+        return new TestHostCrash(after, during?.Name, $"Player {ending} without a complete results.json; see {Path.GetDirectoryName(resultsFile)}");
     }
 
     // Engine cases, [UnityTest] (the player runs its coroutines) and Play Mode cases; [UnityPlatform] on the method, class

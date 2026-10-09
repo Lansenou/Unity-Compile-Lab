@@ -92,15 +92,17 @@ public sealed class ProjectTestHost : MonoBehaviour, ITestListener
     void Finish()
     {
         report.finishedUnixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        File.WriteAllText(output, JsonUtility.ToJson(report, true));
+        // A kill mid-write leaves no results.json rather than a torn one; the parent then reads the stream.
+        File.WriteAllText(output + ".tmp", JsonUtility.ToJson(report, true));
+        if (File.Exists(output)) File.Delete(output);
+        File.Move(output + ".tmp", output);
         Application.Quit(report.fatal.Length == 0 && !report.tests.Any(t => t.outcome == "Failed") ? 0 : 1);
     }
     public void TestStarted(ITest test)
     {
         if (test.IsSuite) return;
         if (report.firstTestUnixMs == 0) report.firstTestUnixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        File.WriteAllText(output + ".started", test.FullName);
-
+        File.WriteAllText(output + ".started", AssemblyName(test) + "\n" + test.FullName);
     }
     public void TestFinished(ITestResult result)
     {

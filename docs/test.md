@@ -313,9 +313,11 @@ assembly keeps a case with the Editor, whose platform it names, even in a Play M
 `[UnityTest]`. Play Mode cases are discovered under the EditMode test platform, so a test
 that reads the `platform` test parameter sees `EditMode`.
 
-The player writes each result as the case ends. If it dies or reaches the 60-minute run limit before
-writing `results.json`, the completed cases keep their results, the case in flight fails ("player ...
-during this case"), the remaining selected cases fail as not run, and the report records a host crash.
+The player writes each result as the case ends and writes `results.json` to a temporary file it then
+renames. If it dies or reaches the 60-minute run limit before a complete `results.json` exists, the
+completed cases keep their results (a record cut off by the kill is dropped), the case in flight fails
+("player ... during this case", matched by assembly and name), the remaining selected cases fail as not
+run, and the report records a host crash.
 There is no per-case time limit: a slow Play Mode case holds the run until it ends or the limit is reached.
 
 Source and test bodies are never rewritten to make them pass; the `dataPath` substitution is a layout
