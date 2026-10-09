@@ -130,7 +130,8 @@ internal static class TestCommand
             files,
             options.Filter,
             arguments => TestHostLauncher.Launch(arguments, session.ProjectRoot),
-            options.EditorCases is null ? null : File.ReadAllLines(options.EditorCases).Where(n => n.Length > 0).ToHashSet(StringComparer.Ordinal));
+            options.EditorCases is null ? null : File.ReadAllLines(options.EditorCases).Where(n => n.Length > 0).ToHashSet(StringComparer.Ordinal),
+            Path.Combine(session.ProjectRoot, "Library", "ucl"));
         report = report with { Cases = run.Cases, HostCrashes = run.Crashes };
         timer.Mark("managed");
         if (!options.Host) return report;

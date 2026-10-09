@@ -21,9 +21,9 @@ internal static class ProjectPlayerTest
         {
             Route = c.Category is TestCategory.NeedsUnity or TestCategory.UnityOnly ? "needs-editor" : "dotnet",
         }).ToList();
-        var candidates = cases.Where(c => c.Category == TestCategory.NeedsUnity && !Audited(c)).ToList();
-        foreach (var c in cases.Where(c => c.Category == TestCategory.NeedsUnity && Audited(c)).ToList())
-            cases[cases.IndexOf(c)] = c with { Route = "needs-editor", Category = TestCategory.NeedsUnity, Reason = "Audited Editor ownership (--editor-cases)." };
+        var candidates = cases.Where(c => PlayerCandidate(c) && !Audited(c)).ToList();
+        foreach (var c in cases.Where(c => PlayerCandidate(c) && Audited(c)).ToList())
+            cases[cases.IndexOf(c)] = c with { Route = "needs-editor", Reason = "Audited Editor ownership (--editor-cases)." };
         if (candidates.Count == 0) return report with { Cases = cases };
         var player = ProjectPlayerCache.Get(session, editor, progress);
         timer?.Mark("player-cache");
@@ -55,17 +55,25 @@ internal static class ProjectPlayerTest
         var assembliesFile = Path.Combine(runDirectory, "assemblies.txt");
         var resultsFile = Path.Combine(runDirectory, "results.json");
         File.WriteAllLines(caseFile, selected.Select(c => c.Assembly + "\t" + c.FullName));
-        File.WriteAllLines(assembliesFile, tests.Select(n => Path.Combine(dlls, n + ".dll")).Where(File.Exists));
         progress.WriteLine($"host run: {selected.Count} selected cases, evidence {runDirectory}");
         timer?.Mark("player-routing");
         var results = new Dictionary<(string Assembly, string Name), JsonElement>();
         if (selected.Count > 0)
         {
-            var arguments = new List<string> { "-batchmode", "-logFile", Path.Combine(runDirectory, "player.log"), "-assemblyDirectory", dlls,
+            var staged = StageAssemblies(dlls, session.ProjectRoot);
+            File.WriteAllLines(assembliesFile, tests.Select(n => Path.Combine(staged, n + ".dll")).Where(File.Exists));
+            var arguments = new List<string> { "-batchmode", "-logFile", Path.Combine(runDirectory, "player.log"), "-assemblyDirectory", staged,
                 "-assemblies", assembliesFile, "-cases", caseFile, "-results", resultsFile };
             if (options.NoGraphics) arguments.Add("-nographics");
             var launched = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var process = ProjectPlayerCache.Run(player, arguments, runDirectory, TimeSpan.FromMinutes(60), allowTestFailure: true);
+            // The Editor's working directory is the project root; relative project paths resolve the same way.
+            ProcessResult process;
+            try { process = ProjectPlayerCache.Run(player, arguments, session.ProjectRoot, TimeSpan.FromMinutes(60), allowTestFailure: true); }
+            finally
+            {
+                try { Directory.Delete(staged, recursive: true); }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException) { progress.WriteLine("host run: could not remove " + staged); }
+            }
             var exited = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             if (!File.Exists(resultsFile)) throw new IOException($"Player exited {process.ExitCode} without results; see {runDirectory}");
             using var result = JsonDocument.Parse(File.ReadAllText(resultsFile));
@@ -105,6 +113,19 @@ internal static class ProjectPlayerTest
             };
         }
         return report with { Cases = cases };
+    }
+
+    // Engine cases, [UnityTest] (the player runs its coroutines) and Play Mode cases; [UnityPlatform] means the Editor's platform.
+    internal static bool PlayerCandidate(TestCaseResult c) => c.Category == TestCategory.NeedsUnity
+        || c.Category == TestCategory.UnityOnly && c.Reason != TestClassifier.UnityOnlyAttributes["UnityEngine.TestTools.UnityPlatformAttribute"];
+
+    // NUnit's TestDirectory is the test assembly's folder: Library/ucl/<run> mirrors the Editor's Library/ScriptAssemblies.
+    internal static string StageAssemblies(string dlls, string projectRoot)
+    {
+        var staged = Path.Combine(projectRoot, "Library", "ucl", "player-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(staged);
+        foreach (var dll in Directory.EnumerateFiles(dlls, "*.dll")) File.Copy(dll, Path.Combine(staged, Path.GetFileName(dll)));
+        return staged;
     }
 
     internal static Dictionary<(string Assembly, string Class), string> SourceReasons(AssemblyGraph graph,

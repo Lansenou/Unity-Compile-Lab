@@ -4,7 +4,7 @@
 
 `ucl test` runs code paths that never call the Unity engine's native side. Creating or using an
 engine object, including through a helper, is `needs-unity` and must run in the Editor.
-PlayMode tests and `[UnityTest]` tests never run here (`unity-only`). Editor log scopes also need Unity.
+PlayMode tests and `[UnityTest]` tests never run under .NET (`unity-only`); with `--host` the project player runs them. Editor log scopes also need Unity.
 
 The share depends on the project: plain C# logic can run most tests; tests that build GameObjects,
 textures or meshes may run few. Run `ucl test` once and read its summary counts before relying on it.
@@ -195,6 +195,9 @@ Report formatting remains explicitly invariant.
 
 The test host runs with the project root as its working directory, including after a restart.
 Relative `Assets/...` paths resolve within that project; the parent process directory is unchanged.
+`ucl test` writes the compiled images to a private folder under `<project>/Library/ucl` (deleted after the
+run), so NUnit's `TestContext.CurrentContext.TestDirectory` is a folder under the project, as the Editor's
+`Library/ScriptAssemblies` is, and fixtures found by walking up from it resolve the same way.
 
 `LogAssert` requires Unity's log scope and is classified `needs-unity`, without running direct
 calls. Helpers reaching a missing scope are classified from the framework's exact
@@ -249,7 +252,7 @@ numbers (docs/real-project-checklist.md) are the ones that matter.
 
 ## Limits
 
-* EditMode only: Play Mode assemblies are classified unity-only, never run.
+* EditMode only: Play Mode assemblies are classified unity-only, never run under .NET (`--host` runs them in the project player).
 * No per-test timeout: a test that never returns blocks the run (NUnit's timeout needs thread abort, which
   CoreCLR lacks).
 * Direct `LogAssert` calls are identified from IL; helper failures require the runtime scope exception and a framework frame.
@@ -293,8 +296,24 @@ supports them. `--analyzers off` matches the existing managed command and disabl
 paths. `--no-cache` disables the managed image cache; player and player-test integrity caches remain enabled.
 
 Editor-only source files and unsupported helper dependencies are excluded as whole files, with compiler
-diagnostics retained in the cache. Recompiled source files that reference `UnityEngine.Application.dataPath`, including aliases, retain Editor ownership as whole files. Compiler exclusions propagate to inherited fixtures and helper callers when they cannot compile without those files. Comments, string literals and unrelated types do not trigger this rule. Helpers reused from player or precompiled DLLs are not scanned; source-context cases using them require explicit audited Editor ownership. Cases absent from player discovery retain an explicit exclusion reason. Source
-and test bodies are never rewritten to make them pass. Player settings and runtime lifecycle still differ
+diagnostics retained in the cache. Compiler exclusions propagate to inherited fixtures and helper callers when they cannot compile without those files. Cases absent from player discovery retain an explicit exclusion reason.
+
+The player sees the project layout the Editor sees. Reads of `UnityEngine.Application.dataPath` in
+recompiled sources (aliases and `using static` included, resolved by symbol) compile to the Editor's value,
+the input project's `Assets` folder with forward slashes; the input files are unchanged. The player runs
+with the project root as its working directory, and its test assemblies are copied to a private folder
+under `<project>/Library/ucl` for the run, so `TestDirectory` and relative `Assets/...` paths resolve as
+in the Editor. Helpers reused from player or precompiled DLLs keep the player's own `dataPath`; cases
+that depend on them need audited Editor ownership. A test that writes through these paths writes where
+it would in the Editor.
+
+The player also runs `[UnityTest]` and `[RequiresPlayMode]` cases (its coroutine runner drives them
+frame by frame) and the cases of Play Mode assemblies. `[UnityPlatform]` cases stay with the Editor,
+whose platform they name. Play Mode cases are discovered under the EditMode test platform, so a test
+that reads the `platform` test parameter sees `EditMode`.
+
+Source and test bodies are never rewritten to make them pass; the `dataPath` substitution is a layout
+mapping, applied to every read whatever its outcome. Player settings and runtime lifecycle still differ
 from the Editor; validate outcome parity on the exact revision before switching a gate.
 
 `--filter` keeps the existing regular expression over NUnit full names. A fully qualified class or
@@ -324,10 +343,11 @@ length, or use the test list below.
 line in discovery order: the cases a hybrid gate leaves for the Editor. Completion uses the routed
 filter's rule (`dotnet` or `host` route, a category other than needs-unity and unity-only; without
 `--host`, every case that ran under .NET). Pass the file to the Unity Test Framework's
-`-orderedTestListFile`, which runs only the listed cases:
+`-orderedTestListFile`, which runs only the listed cases. Use an absolute path: Unity resolves a relative
+one against the project folder, and a missing file is a run error.
 
 ```sh
-Unity -batchmode -runTests -testPlatform EditMode -orderedTestListFile editor-cases.txt -projectPath ...
+Unity -batchmode -runTests -testPlatform EditMode -orderedTestListFile "$PWD/editor-cases.txt" -projectPath ...
 ```
 
 A file has no command-line limit and needs no regex escaping. A name shared by a completed and a

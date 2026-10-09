@@ -19,7 +19,8 @@ public static class PlayerTestCompiler
     {
         var inputs = new SortedDictionary<string, string>(StringComparer.Ordinal)
         {
-            ["protocol"] = "player-test-compiler/2",
+            ["protocol"] = "player-test-compiler/3",
+            ["dataPath"] = DataPath(project),
             ["graph"] = JsonSerializer.Serialize(graph),
             ["tests"] = string.Join("\n", tests.Order(StringComparer.Ordinal)),
             ["analyzers"] = analyzers.ToString(),
@@ -36,6 +37,9 @@ public static class PlayerTestCompiler
             }
         return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(inputs))));
     }
+
+    // UnityEngine.Application.dataPath in the Editor: the project's Assets folder, with forward slashes.
+    private static string DataPath(ProjectContext project) => project.Root.Replace('\\', '/').TrimEnd('/') + "/Assets";
 
     private static string BinaryIdentity(Assembly assembly)
     {
@@ -85,19 +89,19 @@ public static class PlayerTestCompiler
                 var configSet = AnalyzerConfigSet.Create(configs.Select(p => AnalyzerConfig.Parse(File.ReadAllText(p), p)).ToList());
                 options = options.WithSyntaxTreeOptionsProvider(new TreeOptionsProvider(configSet, trees));
             }
-            // Player dataPath is not the input Assets tree. Remove whole context-dependent files;
-            // normal compiler diagnostics then exclude inherited fixtures and helper callers.
+            // The player's dataPath is its own data folder; the Editor's is the input Assets tree. Reads of
+            // UnityEngine.Application.dataPath compile to the Editor's value; the input files are never changed.
             var ownership = CSharpCompilation.Create(plan.Name, trees, references, options);
-            foreach (var tree in trees.ToArray())
+            for (var i = 0; i < trees.Count; i++)
             {
-                var names = tree.GetRoot().DescendantNodes().OfType<SimpleNameSyntax>()
-                    .Where(n => n.Identifier.ValueText == "dataPath").ToArray();
-                if (names.Length == 0) continue;
-                var model = ownership.GetSemanticModel(tree);
-                if (!names.Any(n => model.GetSymbolInfo(n).Symbol is IPropertySymbol property
-                    && property.ContainingType.ToDisplayString() == "UnityEngine.Application")) continue;
-                exclusions[tree.FilePath] = "Application.dataPath source context requires the Editor.";
-                trees.Remove(tree);
+                var model = ownership.GetSemanticModel(trees[i]);
+                var reads = trees[i].GetRoot().DescendantNodes().OfType<SimpleNameSyntax>()
+                    .Where(n => n.Identifier.ValueText == "dataPath" && model.GetSymbolInfo(n).Symbol is IPropertySymbol property
+                        && property.ContainingType.ToDisplayString() == "UnityEngine.Application")
+                    .Select(n => n.Parent is MemberAccessExpressionSyntax access && access.Name == n ? (ExpressionSyntax)access : n).ToArray();
+                if (reads.Length == 0) continue;
+                var literal = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(DataPath(project)));
+                trees[i] = trees[i].WithRootAndOptions(trees[i].GetRoot().ReplaceNodes(reads, (_, _) => literal), trees[i].Options);
             }
             while (trees.Count > 0)
             {

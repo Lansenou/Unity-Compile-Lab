@@ -261,7 +261,39 @@ public sealed class PlayerHostContractTests
     }
 
     [Fact]
-    public void Source_context_exclusions_propagate_to_inherited_fixtures_without_rewriting_sources()
+    public void Player_runs_engine_unity_test_and_play_mode_cases_but_not_platform_cases()
+    {
+        var type = typeof(CliOptions).Assembly.GetType("Ucl.Cli.ProjectPlayerTest", throwOnError: true)!;
+        bool Candidate(TestCategory category, string reason) => (bool)type.GetMethod("PlayerCandidate", BindingFlags.NonPublic | BindingFlags.Static)!
+            .Invoke(null, [new TestCaseResult("A", "A.C", "A.C.T", category, reason)])!;
+        string Attribute(string name) => TestClassifier.UnityOnlyAttributes["UnityEngine.TestTools." + name];
+        Assert.True(Candidate(TestCategory.NeedsUnity, "engine call"));
+        Assert.True(Candidate(TestCategory.UnityOnly, Attribute("UnityTestAttribute")));
+        Assert.True(Candidate(TestCategory.UnityOnly, Attribute("RequiresPlayModeAttribute")));
+        Assert.True(Candidate(TestCategory.UnityOnly, TestClassifier.UnityOnlyReason(true, [])!));
+        Assert.False(Candidate(TestCategory.UnityOnly, Attribute("UnityPlatformAttribute")));
+        Assert.False(Candidate(TestCategory.Passed, string.Empty));
+    }
+
+    [Fact]
+    public void Player_test_assemblies_are_staged_under_Library_ucl_like_the_Editor_script_assemblies()
+    {
+        using var temp = new TempDir();
+        var dlls = Path.Combine(temp.Path, "cache", "tests-key");
+        Directory.CreateDirectory(dlls);
+        File.WriteAllText(Path.Combine(dlls, "Example.Tests.dll"), "tests");
+        File.WriteAllText(Path.Combine(dlls, "Example.dll"), "runtime");
+        File.WriteAllText(Path.Combine(dlls, "compile-exclusions.json"), "{}");
+        var project = Path.Combine(temp.Path, "Project");
+        var staged = (string)typeof(CliOptions).Assembly.GetType("Ucl.Cli.ProjectPlayerTest", throwOnError: true)!
+            .GetMethod("StageAssemblies", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, [dlls, project])!;
+        Assert.Equal(Path.Combine(project, "Library", "ucl"), Path.GetDirectoryName(staged));
+        Assert.Equal(["Example.Tests.dll", "Example.dll"], Directory.GetFiles(staged).Select(Path.GetFileName).Order(StringComparer.Ordinal));
+        Assert.Equal("tests", File.ReadAllText(Path.Combine(staged, "Example.Tests.dll")));
+    }
+
+    [Fact]
+    public void Application_dataPath_reads_compile_to_the_input_project_Assets_tree_without_rewriting_sources()
     {
         using var temp = new TempDir();
         var managed = Path.Combine(temp.Path, "managed");
@@ -290,13 +322,17 @@ public sealed class PlayerHostContractTests
         var output = Path.Combine(temp.Path, "output");
         var reasons = PlayerTestCompiler.Compile(graph, new ProjectContext { Root = temp.Path }, managed, output,
             new HashSet<string>(StringComparer.Ordinal) { "Example" }, analyzers: false);
-        Assert.Contains("Application.dataPath", reasons[Path.Combine(temp.Path, "Base.cs")], StringComparison.Ordinal);
-        Assert.Contains("BaseFixture", reasons[Path.Combine(temp.Path, "Derived.cs")], StringComparison.Ordinal);
-        Assert.Contains("BaseFixture", reasons[Path.Combine(temp.Path, "Caller.cs")], StringComparison.Ordinal);
-        Assert.False(reasons.ContainsKey(Path.Combine(temp.Path, "Portable.cs")));
-        Assert.False(reasons.ContainsKey(Path.Combine(temp.Path, "Inactive.cs")));
-        Assert.False(reasons.ContainsKey(Path.Combine(temp.Path, "Unrelated.cs")));
-        Assert.True(File.Exists(Path.Combine(output, "Example.dll")));
+        Assert.Empty(reasons);
+        var context = new System.Runtime.Loader.AssemblyLoadContext("datapath", isCollectible: true);
+        try
+        {
+            var assembly = context.LoadFromStream(new MemoryStream(File.ReadAllBytes(Path.Combine(output, "Example.dll"))));
+            string Read(string type) => (string)assembly.GetType(type, throwOnError: true)!.GetMethod("Read")!.Invoke(Activator.CreateInstance(assembly.GetType(type)!), null)!;
+            Assert.Equal(temp.Path.Replace('\\', '/') + "/Assets", Read("Example.DerivedFixture"));
+            Assert.Equal("Application.dataPath", Read("Example.PortableFixture"));
+            Assert.Equal("portable", Read("Other.UnrelatedFixture"));
+        }
+        finally { context.Unload(); }
         foreach (var (name, source) in texts) Assert.Equal(source, File.ReadAllText(Path.Combine(temp.Path, name)));
     }
 

@@ -140,6 +140,20 @@ public sealed class TestHostLoadFailureTests
         Assert.Equal(2, run.Cases.Count(c => c.Category == TestCategory.Passed));
     }
 
+    [Fact]
+    public void Images_load_under_the_given_root_so_TestDirectory_follows_the_project_layout()
+    {
+        using var temp = new TempDir();
+        var root = Path.Combine(temp.Path, "Project", "Library", "ucl");
+        var source = "using NUnit.Framework; public class Cases { [Test] public void Where() { Assert.That(System.IO.Path.GetDirectoryName(TestContext.CurrentContext.TestDirectory), Is.EqualTo(@\""
+            + root + "\")); } }";
+        var run = TestHost.Run([new("LayoutTests", false)], new Dictionary<string, byte[]> { ["LayoutTests"] = Emit("LayoutTests", source) },
+            new Dictionary<string, string>(), null, Launch, imageRoot: root);
+        Assert.Empty(run.Crashes);
+        var where = Assert.Single(run.Cases);
+        Assert.True(where.Category == TestCategory.Passed, where.Reason);
+    }
+
     private static (int Exit, string Error) Launch(IReadOnlyList<string> args)
     {
         try { return (TestHost.Serve(args[0]), ""); }

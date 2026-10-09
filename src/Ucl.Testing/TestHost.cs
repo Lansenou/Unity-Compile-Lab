@@ -27,13 +27,17 @@ public static class TestHost
     /// <param name="filter">The <c>--filter</c> pattern, or null.</param>
     /// <param name="editorCases">Audited Editor-owned names or assembly-qualified keys, classified before test execution.</param>
     /// <param name="launch">Starts a host with the given arguments (after the command name), waits, and returns its exit code and error output.</param>
+    /// <param name="imageRoot">Folder for the run's private image folder, or null for the system temporary folder. <c>ucl test</c>
+    /// passes <c>&lt;project&gt;/Library/ucl</c>, so NUnit's <c>TestDirectory</c> sits under the project as the Editor's
+    /// <c>Library/ScriptAssemblies</c> does.</param>
     public static TestRun Run(
         IReadOnlyList<TestAssemblyImage> tests,
         IReadOnlyDictionary<string, byte[]> images,
         IReadOnlyDictionary<string, string> files,
         string? filter,
         Func<IReadOnlyList<string>, (int Exit, string Error)> launch,
-        IReadOnlySet<string>? editorCases = null)
+        IReadOnlySet<string>? editorCases = null,
+        string? imageRoot = null)
     {
         ArgumentNullException.ThrowIfNull(tests);
         ArgumentNullException.ThrowIfNull(images);
@@ -41,8 +45,8 @@ public static class TestHost
         ArgumentNullException.ThrowIfNull(launch);
 
         // Assemblies are loaded from files, never from memory: NUnit asks for an assembly's path. The folder is
-        // private to this run and outside the project (the read-only contract), and is deleted afterwards.
-        var folder = Path.Combine(Path.GetTempPath(), "ucl-test-" + Guid.NewGuid().ToString("N"));
+        // private to this run, inside Library/ucl at most (the read-only contract), and is deleted afterwards.
+        var folder = Path.Combine(imageRoot ?? Path.GetTempPath(), "ucl-test-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(folder);
         var paths = new Dictionary<string, string>(files, StringComparer.OrdinalIgnoreCase);
         foreach (var (name, image) in images)

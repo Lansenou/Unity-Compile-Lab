@@ -156,3 +156,36 @@ coverage; names with line breaks are counted and reported, never written.
 `TestReport` owns the formatting (pure, no files or processes); `TestCommand`
 writes it through the existing output sink after the report, only when the report
 has no problems. Production hand count for TestReport is unchanged (Ca = 1, Ce = 1).
+
+## Project layout in the player
+
+Language: ApiDesignLanguage sections 1, 4, 7 and 13 apply. One optional public parameter
+(`TestHost.Run` `imageRoot`) is added; no CLI option, schema or category changes. This section
+supersedes the whole-file `Application.dataPath` ownership above.
+
+Measured on the same project, 55 completed cases (36 player, 19 .NET) failed only because fixtures
+were located from NUnit's `TestDirectory` (the test assembly's folder) or from a working-directory
+relative `Assets/...` path, and 360 player candidates were Editor-owned only for reading
+`Application.dataPath`. In the Editor all three resolve inside the project: the working directory
+is the project root, `TestDirectory` is `Library/ScriptAssemblies`, and `dataPath` is
+`<project>/Assets`.
+
+Candidate A keeps Editor ownership and adds rules for every new path idiom; it grows with each
+project and leaves those cases in the slowest runner. Candidate B maps the layout: the player's
+working directory is the project root, test assemblies are staged under `Library/ucl/<run>` (the
+one project folder ucl may write), the .NET host's image folder moves to the same place, and
+symbol-resolved reads of `UnityEngine.Application.dataPath` in recompiled sources compile to the
+Editor's string. Candidate B is selected. It changes no input file, applies to every read whatever
+the test's outcome, and keeps the existing whole-file diagnostics. Reused player or precompiled
+helpers still report the player's own folder; such cases need audited ownership. Tests that write
+through these paths write where the Editor would.
+
+`[UnityTest]`, `[RequiresPlayMode]` and Play Mode assembly cases become player candidates: the
+bootstrap already installs UTF's coroutine work-item factory and runner. `[UnityPlatform]` stays
+Editor-owned because it names the Editor platform. Play Mode cases are loaded under the EditMode
+test platform (one `Load` call); only the `platform` test parameter differs.
+
+`PlayerTestCompiler` owns the substitution and keys it (`player-test-compiler/3`, the `dataPath`
+value). `ProjectPlayerTest` owns staging, the working directory and candidate selection;
+`TestHost` owns its image folder. No new process, thread or lifetime: staged folders are removed
+after each run, best effort, like the existing image folder.

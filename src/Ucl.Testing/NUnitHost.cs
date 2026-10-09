@@ -220,7 +220,7 @@ public static class NUnitHost
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            // Left in the temp folder; the OS cleans it.
+            // Left behind in the image root (the temp folder or Library/ucl).
         }
     }
 
