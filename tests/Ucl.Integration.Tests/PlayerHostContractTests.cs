@@ -293,6 +293,34 @@ public sealed class PlayerHostContractTests
     }
 
     [Fact]
+    public void A_player_that_dies_keeps_its_streamed_results_fails_the_case_in_flight_and_reports_the_rest_not_run()
+    {
+        using var temp = new TempDir();
+        var resultsFile = Path.Combine(temp.Path, "results.json");
+        File.WriteAllText(resultsFile + ".jsonl", """
+            {"assembly":"A.Tests","name":"A.C.First","outcome":"Passed","message":"","seconds":0.5}
+            {"assembly":"A.Tests","name":"A.C.Second","outcome":"Failed","message":"real failure","seconds":1.0}
+
+            """);
+        File.WriteAllText(resultsFile + ".started", "A.C.Third");
+        TestCaseResult Case(string name) => new("A.Tests", "A.C", "A.C." + name, TestCategory.NeedsUnity, "engine call");
+        var results = new Dictionary<(string Assembly, string Name), System.Text.Json.JsonElement>();
+        var crash = (TestHostCrash?)typeof(CliOptions).Assembly.GetType("Ucl.Cli.ProjectPlayerTest", throwOnError: true)!
+            .GetMethod("Salvage", BindingFlags.NonPublic | BindingFlags.Static)!
+            .Invoke(null, [resultsFile, "exited -1", new[] { Case("First"), Case("Second"), Case("Third"), Case("Fourth") }, results]);
+        string Outcome(string name) => results[("A.Tests", "A.C." + name)].GetProperty("outcome").GetString()!;
+        string Message(string name) => results[("A.Tests", "A.C." + name)].GetProperty("message").GetString()!;
+        Assert.Equal(["Passed", "Failed", "Failed", "Failed"], new[] { "First", "Second", "Third", "Fourth" }.Select(Outcome));
+        Assert.Equal("real failure", Message("Second"));
+        Assert.Contains("during this case", Message("Third"), StringComparison.Ordinal);
+        Assert.Contains("not run", Message("Fourth"), StringComparison.Ordinal);
+        Assert.NotNull(crash);
+        Assert.Equal("A.C.Second", crash.After);
+        Assert.Equal("A.C.Third", crash.During);
+        Assert.Contains("-1", crash.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Application_dataPath_reads_compile_to_the_input_project_Assets_tree_without_rewriting_sources()
     {
         using var temp = new TempDir();

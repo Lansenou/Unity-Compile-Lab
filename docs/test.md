@@ -312,6 +312,11 @@ frame by frame) and the cases of Play Mode assemblies. `[UnityPlatform]` cases s
 whose platform they name. Play Mode cases are discovered under the EditMode test platform, so a test
 that reads the `platform` test parameter sees `EditMode`.
 
+The player writes each result as the case ends. If it dies or reaches the 60-minute run limit before
+writing `results.json`, the completed cases keep their results, the case in flight fails ("player ...
+during this case"), the remaining selected cases fail as not run, and the report records a host crash.
+There is no per-case time limit: a slow Play Mode case holds the run until it ends or the limit is reached.
+
 Source and test bodies are never rewritten to make them pass; the `dataPath` substitution is a layout
 mapping, applied to every read whatever its outcome. Player settings and runtime lifecycle still differ
 from the Editor; validate outcome parity on the exact revision before switching a gate.

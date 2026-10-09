@@ -19,6 +19,8 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 ### Fixed
 
+- A player host that died or timed out before writing its results discarded every completed case; it now
+  keeps the streamed results, fails the case in flight and reports the rest as not run.
 - Player-host compilation retained Editor ownership for source-context calls,
   including `Application.dataPath` aliases.
 - Routed player-host reports avoided completed-case duplicate Editor execution
