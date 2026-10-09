@@ -14,6 +14,13 @@ public static class TestClassifier
         ["UnityEngine.TestTools.RequiresPlayModeAttribute"] = "[RequiresPlayMode] runs in Play Mode",
     };
 
+    /// <summary>
+    /// True when <c>[UnityPlatform]</c> is among <paramref name="attributeTypes"/> (method, class and assembly): the case
+    /// names the Editor's platform, independent of which unity-only reason <see cref="UnityOnlyReason"/> reports.
+    /// </summary>
+    public static bool NamesPlatform(IEnumerable<string> attributeTypes) =>
+        attributeTypes.Contains("UnityEngine.TestTools.UnityPlatformAttribute", StringComparer.Ordinal);
+
     /// <summary>The type whose use needs Unity: log expectations require a Unity log scope.</summary>
     public const string LogAssertType = "UnityEngine.TestTools.LogAssert";
 

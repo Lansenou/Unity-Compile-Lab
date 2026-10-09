@@ -53,6 +53,15 @@ public class TestClassifierTests
         Assert.Null(TestClassifier.UnityOnlyReason(false, ["NUnit.Framework.TestAttribute"]));
     }
 
+    [Fact]
+    public void Platform_ownership_is_independent_of_the_reported_unity_only_reason()
+    {
+        string[] attributes = ["UnityEngine.TestTools.UnityTestAttribute", "UnityEngine.TestTools.UnityPlatformAttribute"];
+        Assert.Contains("[UnityTest]", TestClassifier.UnityOnlyReason(false, attributes), StringComparison.Ordinal);
+        Assert.True(TestClassifier.NamesPlatform(attributes));
+        Assert.False(TestClassifier.NamesPlatform(["UnityEngine.TestTools.UnityTestAttribute"]));
+    }
+
     [Theory]
     [InlineData(null, "")]
     [InlineData("one", "one")]

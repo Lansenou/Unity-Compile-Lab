@@ -79,7 +79,7 @@ public static class NUnitHost
                     var method = leaf.Method?.MethodInfo;
                     var attributes = assemblyAttributes
                         .Concat(leaf.TypeInfo?.Type is { } type ? AttributeTypes(type.GetCustomAttributesData()) : [])
-                        .Concat(method is null ? [] : AttributeTypes(method.GetCustomAttributesData()));
+                        .Concat(method is null ? [] : AttributeTypes(method.GetCustomAttributesData())).ToList();
                     TestCaseResult? decided = null;
                     if (TestClassifier.UnityOnlyReason(test.PlayMode, attributes) is { } reason)
                     {
@@ -105,6 +105,9 @@ public static class NUnitHost
                     {
                         decided = Case(test.Name, leaf, TestCategory.NeedsUnity, string.Join(" | ", scanFailures.Distinct(StringComparer.Ordinal)));
                     }
+
+                    // [UnityPlatform] names the Editor's platform whichever reason above won (Play Mode assembly first).
+                    if (decided is not null && TestClassifier.NamesPlatform(attributes)) decided = decided with { EditorPlatform = true };
 
                     if (decided is null)
                     {

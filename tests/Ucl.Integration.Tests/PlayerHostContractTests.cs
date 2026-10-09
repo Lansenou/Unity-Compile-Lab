@@ -264,14 +264,16 @@ public sealed class PlayerHostContractTests
     public void Player_runs_engine_unity_test_and_play_mode_cases_but_not_platform_cases()
     {
         var type = typeof(CliOptions).Assembly.GetType("Ucl.Cli.ProjectPlayerTest", throwOnError: true)!;
-        bool Candidate(TestCategory category, string reason) => (bool)type.GetMethod("PlayerCandidate", BindingFlags.NonPublic | BindingFlags.Static)!
-            .Invoke(null, [new TestCaseResult("A", "A.C", "A.C.T", category, reason)])!;
+        bool Candidate(TestCategory category, string reason, bool platform = false) => (bool)type.GetMethod("PlayerCandidate", BindingFlags.NonPublic | BindingFlags.Static)!
+            .Invoke(null, [new TestCaseResult("A", "A.C", "A.C.T", category, reason) { EditorPlatform = platform }])!;
         string Attribute(string name) => TestClassifier.UnityOnlyAttributes["UnityEngine.TestTools." + name];
         Assert.True(Candidate(TestCategory.NeedsUnity, "engine call"));
         Assert.True(Candidate(TestCategory.UnityOnly, Attribute("UnityTestAttribute")));
         Assert.True(Candidate(TestCategory.UnityOnly, Attribute("RequiresPlayModeAttribute")));
         Assert.True(Candidate(TestCategory.UnityOnly, TestClassifier.UnityOnlyReason(true, [])!));
-        Assert.False(Candidate(TestCategory.UnityOnly, Attribute("UnityPlatformAttribute")));
+        Assert.False(Candidate(TestCategory.UnityOnly, Attribute("UnityPlatformAttribute"), platform: true));
+        Assert.False(Candidate(TestCategory.UnityOnly, TestClassifier.UnityOnlyReason(true, [])!, platform: true));
+        Assert.False(Candidate(TestCategory.NeedsUnity, "IL scan failure", platform: true));
         Assert.False(Candidate(TestCategory.Passed, string.Empty));
     }
 

@@ -14,4 +14,10 @@ public sealed record TestCaseResult(string Assembly, string ClassName, string Fu
 
     /// <summary>First engine exception frame, or the engine constructor found by finalizer prescan; null when unavailable.</summary>
     public string? EngineMember { get; init; }
+
+    /// <summary>
+    /// <c>[UnityPlatform]</c> on the method, its class or its assembly: the case names the Editor's platform, so the
+    /// Editor owns it whatever other rule classified it.
+    /// </summary>
+    public bool EditorPlatform { get; init; }
 }

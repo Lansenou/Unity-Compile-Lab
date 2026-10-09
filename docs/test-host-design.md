@@ -182,7 +182,8 @@ through these paths write where the Editor would.
 
 `[UnityTest]`, `[RequiresPlayMode]` and Play Mode assembly cases become player candidates: the
 bootstrap already installs UTF's coroutine work-item factory and runner. `[UnityPlatform]` stays
-Editor-owned because it names the Editor platform. Play Mode cases are loaded under the EditMode
+Editor-owned because it names the Editor platform: discovery records it as a separate flag
+(`EditorPlatform`), since the unity-only reason reports the Play Mode assembly or `[UnityTest]` first. Play Mode cases are loaded under the EditMode
 test platform (one `Load` call); only the `platform` test parameter differs.
 
 `PlayerTestCompiler` owns the substitution and keys it (`player-test-compiler/3`, the `dataPath`

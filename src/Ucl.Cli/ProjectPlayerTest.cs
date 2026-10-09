@@ -152,9 +152,10 @@ internal static class ProjectPlayerTest
         return new TestHostCrash(after, during, $"Player {ending} before writing results.json; see {Path.GetDirectoryName(resultsFile)}");
     }
 
-    // Engine cases, [UnityTest] (the player runs its coroutines) and Play Mode cases; [UnityPlatform] means the Editor's platform.
-    internal static bool PlayerCandidate(TestCaseResult c) => c.Category == TestCategory.NeedsUnity
-        || c.Category == TestCategory.UnityOnly && c.Reason != TestClassifier.UnityOnlyAttributes["UnityEngine.TestTools.UnityPlatformAttribute"];
+    // Engine cases, [UnityTest] (the player runs its coroutines) and Play Mode cases; [UnityPlatform] on the method, class
+    // or assembly means the Editor's platform and wins over every other reason.
+    internal static bool PlayerCandidate(TestCaseResult c) => !c.EditorPlatform
+        && c.Category is TestCategory.NeedsUnity or TestCategory.UnityOnly;
 
     // NUnit's TestDirectory is the test assembly's folder: Library/ucl/<run> mirrors the Editor's Library/ScriptAssemblies.
     internal static string StageAssemblies(string dlls, string projectRoot)

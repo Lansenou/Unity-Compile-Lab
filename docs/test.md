@@ -308,8 +308,9 @@ that depend on them need audited Editor ownership. A test that writes through th
 it would in the Editor.
 
 The player also runs `[UnityTest]` and `[RequiresPlayMode]` cases (its coroutine runner drives them
-frame by frame) and the cases of Play Mode assemblies. `[UnityPlatform]` cases stay with the Editor,
-whose platform they name. Play Mode cases are discovered under the EditMode test platform, so a test
+frame by frame) and the cases of Play Mode assemblies. `[UnityPlatform]` on the method, its class or its
+assembly keeps a case with the Editor, whose platform it names, even in a Play Mode assembly or next to
+`[UnityTest]`. Play Mode cases are discovered under the EditMode test platform, so a test
 that reads the `platform` test parameter sees `EditMode`.
 
 The player writes each result as the case ends. If it dies or reaches the 60-minute run limit before
