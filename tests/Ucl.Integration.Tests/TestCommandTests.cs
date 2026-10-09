@@ -113,6 +113,22 @@ public sealed class TestCommandTests
         Assert.Equal(cold, Test(env, project, "--format", "json").Stdout);
     }
 
+    /// <summary>--timings writes one wall-time line per sequential phase to stderr; reports stay unchanged.</summary>
+    [Fact]
+    public void Timings_report_each_phase_on_stderr()
+    {
+        using var temp = new TempDir();
+        var (project, env, _) = Setup(temp);
+        var plain = Test(env, project, "--format", "json");
+        var timed = Test(env, project, "--format", "json", "--timings");
+        Assert.DoesNotContain("timing:", plain.Stderr, StringComparison.Ordinal);
+        var phases = timed.Stderr.Split('\n').Where(l => l.StartsWith("timing: ", StringComparison.Ordinal))
+            .Select(l => l.Split(' ')[1]).ToList();
+        Assert.Equal(["session", "graph", "compile", "managed", "report"], phases);
+        Assert.Matches(@"(?m)^timing: managed \d+\.\d{3} s\r?$", timed.Stderr);
+        Assert.Equal(plain.Exit, timed.Exit);
+    }
+
     [Fact]
     public void Filter_selects_cases_by_full_name()
     {

@@ -34,14 +34,16 @@ internal static class TestCommand
             }
         }
 
+        var timer = new PhaseTimer(options.Timings ? stderr : null);
         // EditMode tests run in the Editor: one editor cell, on the active build target (--platform, default StandaloneWindows64).
         var session = Session.Open(options with { Targets = [TargetKind.Editor], Platforms = options.Platforms.Take(1).ToList() }, env, needEditor: true);
         var report = new TestRunReport { ToolVersion = App.Version, Problems = session.Problems, Timings = options.Timings };
+        timer.Mark("session");
         if (session.Problems.Count == 0 && session.Cells.FirstOrDefault() is (var cell, { } editor))
         {
             try
             {
-                report = RunCell(session, cell, editor, options, filter, report, stderr);
+                report = RunCell(session, cell, editor, options, filter, report, stderr, timer);
             }
             catch (Exception e) when (options.Host && e is ArgumentException or IOException or OperationCanceledException)
             {
@@ -63,11 +65,12 @@ internal static class TestCommand
 
         if (options.Host && options.Output is not null)
             stdout.Write(TestReport.Text(report));
+        timer.Mark("report");
 
         return report.ExitCode;
     }
 
-    private static TestRunReport RunCell(Session session, CompileCell cell, EditorInstall editor, CliOptions options, Regex? filter, TestRunReport report, TextWriter progress)
+    private static TestRunReport RunCell(Session session, CompileCell cell, EditorInstall editor, CliOptions options, Regex? filter, TestRunReport report, TextWriter progress, PhaseTimer timer)
     {
         if (options.Host)
         {
@@ -80,6 +83,7 @@ internal static class TestCommand
         }
         var graph = session.Graph(cell);
         report = report with { Cell = cell, Problems = graph.Problems };
+        timer.Mark("graph");
         if (graph.Problems.Count > 0)
         {
             return report;
@@ -99,6 +103,7 @@ internal static class TestCommand
         var (compile, images) = new CompilationRunner(session.Fs).RunWithImages(
             graph, session.Project, editor, settings, testPlans.Select(p => p.Name).ToHashSet(StringComparer.Ordinal));
         report = report with { Compile = compile, Assemblies = [.. testPlans.Select(p => p.Name).Order(StringComparer.Ordinal)] };
+        timer.Mark("compile");
         if (compile.ExitCode != ExitCodes.Clean || testPlans.Count == 0)
         {
             return report;
@@ -120,10 +125,11 @@ internal static class TestCommand
             arguments => TestHostLauncher.Launch(arguments, session.ProjectRoot),
             options.EditorCases is null ? null : File.ReadAllLines(options.EditorCases).Where(n => n.Length > 0).ToHashSet(StringComparer.Ordinal));
         report = report with { Cases = run.Cases, HostCrashes = run.Crashes };
+        timer.Mark("managed");
         if (!options.Host) return report;
         try
         {
-            return ProjectPlayerTest.Run(session, graph, editor, options, report, progress);
+            return ProjectPlayerTest.Run(session, graph, editor, options, report, progress, timer);
         }
         catch (Exception e) when (e is IOException or InvalidOperationException or OperationCanceledException)
         {

@@ -12,7 +12,7 @@ namespace Ucl.Cli;
 internal static class ProjectPlayerTest
 {
     public static TestRunReport Run(Session session, AssemblyGraph graph, EditorInstall editor,
-        CliOptions options, TestRunReport report, TextWriter progress)
+        CliOptions options, TestRunReport report, TextWriter progress, PhaseTimer timer)
     {
         var editorCases = options.EditorCases is null ? new HashSet<string>(StringComparer.Ordinal)
             : File.ReadAllLines(options.EditorCases).Where(n => n.Length > 0).ToHashSet(StringComparer.Ordinal);
@@ -26,6 +26,7 @@ internal static class ProjectPlayerTest
             cases[cases.IndexOf(c)] = c with { Route = "needs-editor", Category = TestCategory.NeedsUnity, Reason = "Audited Editor ownership (--editor-cases)." };
         if (candidates.Count == 0) return report with { Cases = cases };
         var player = ProjectPlayerCache.Get(session, editor, progress);
+        timer.Mark("player-cache");
         var runDirectory = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(player))!, "runs", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(runDirectory);
         var managed = Path.Combine(Path.GetDirectoryName(player)!, "Host_Data", "Managed");
@@ -47,6 +48,7 @@ internal static class ProjectPlayerTest
             }
             else exclusions = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.Combine(dlls, "compile-exclusions.json")))!;
         }
+        timer.Mark("player-compile");
         var reasons = SourceReasons(graph, session.Project, candidates, exclusions);
         var selected = candidates.Where(c => !reasons.ContainsKey((c.Assembly, c.ClassName)) && File.Exists(Path.Combine(dlls, c.Assembly + ".dll"))).ToList();
         var caseFile = Path.Combine(runDirectory, "cases.txt");
@@ -55,21 +57,34 @@ internal static class ProjectPlayerTest
         File.WriteAllLines(caseFile, selected.Select(c => c.Assembly + "\t" + c.FullName));
         File.WriteAllLines(assembliesFile, tests.Select(n => Path.Combine(dlls, n + ".dll")).Where(File.Exists));
         progress.WriteLine($"host run: {selected.Count} selected cases, evidence {runDirectory}");
+        timer.Mark("player-routing");
         var results = new Dictionary<(string Assembly, string Name), JsonElement>();
         if (selected.Count > 0)
         {
             var arguments = new List<string> { "-batchmode", "-logFile", Path.Combine(runDirectory, "player.log"), "-assemblyDirectory", dlls,
                 "-assemblies", assembliesFile, "-cases", caseFile, "-results", resultsFile };
             if (options.NoGraphics) arguments.Add("-nographics");
+            var launched = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             var process = ProjectPlayerCache.Run(player, arguments, runDirectory, TimeSpan.FromMinutes(60), allowTestFailure: true);
+            var exited = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             if (!File.Exists(resultsFile)) throw new IOException($"Player exited {process.ExitCode} without results; see {runDirectory}");
             using var result = JsonDocument.Parse(File.ReadAllText(resultsFile));
+            var first = result.RootElement.GetProperty("firstTestUnixMs").GetInt64();
+            var finished = result.RootElement.GetProperty("finishedUnixMs").GetInt64();
+            if (first > 0)
+            {
+                // The player's wall clock: start to first case (boot and discovery), cases, results written to exit.
+                timer.Detail("player-boot", TimeSpan.FromMilliseconds(first - launched));
+                timer.Detail("player-cases", TimeSpan.FromMilliseconds(finished - first));
+                timer.Detail("player-exit", TimeSpan.FromMilliseconds(exited - finished));
+            }
             if (result.RootElement.GetProperty("fatal").GetString() is { Length: > 0 } fatal) throw new IOException("UTF host failure: " + fatal);
             foreach (var leaf in result.RootElement.GetProperty("tests").EnumerateArray())
                 results.Add((leaf.GetProperty("assembly").GetString()!, leaf.GetProperty("name").GetString()!), leaf.Clone());
             if (process.ExitCode != 0 && !results.Values.Any(r => r.GetProperty("outcome").GetString() == "Failed"))
                 throw new IOException($"Player infrastructure failure, exit {process.ExitCode}; see {runDirectory}");
         }
+        timer.Mark("player-run");
         foreach (var c in candidates)
         {
             var index = cases.FindIndex(x => x.Assembly == c.Assembly && x.FullName == c.FullName);

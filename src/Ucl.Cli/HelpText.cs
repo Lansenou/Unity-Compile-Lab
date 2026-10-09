@@ -42,7 +42,7 @@ public static class HelpText
           --changed <git-ref>     compile only assemblies whose inputs changed since <git-ref>, and dependents
           --summary               text: only each cell's root failures (failed assemblies, ranked by how many
                                   others they block, with their most frequent errors) and result line
-          --timings               report per-assembly times
+          --timings               report per-assembly times (test: also per-phase wall times on stderr)
           --jobs <n>              parallel compiles (default: processor count)
 
         test host options (see docs/test.md):

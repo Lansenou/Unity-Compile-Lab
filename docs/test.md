@@ -41,6 +41,12 @@ ucl test path/to/Project --emit-unity-filter skip.txt      # -testFilter value f
 Other options as for `check`: `--editor`, `--unity-version`, `--platform` (the active build target, default
 StandaloneWindows64), `--editor-os`, `--analyzers`, `--cache-dir`, `--no-cache`, `--jobs`, `--timings`, `--output`.
 
+`--timings` also writes one `timing: <phase> <seconds> s` line to stderr per sequential phase: `session`,
+`graph`, `compile`, `managed`, with `--host` `player-cache` (key and integrity check, or the cold build),
+`player-compile`, `player-routing` and `player-run` (with `player-boot`, `player-cases` and `player-exit`
+details from the player's own clock), and `report`. Each phase is the wall time since the previous one, so
+the phases add up to the run; reports and exit codes are unchanged.
+
 Exit codes: 0 every case that ran passed (or was classified needs-unity, unity-only, skipped or ignored); 1 a
 case failed for a real reason, or a test assembly does not compile (nothing runs then); 3 configuration
 problem (bad `--filter` included); 4 internal error.

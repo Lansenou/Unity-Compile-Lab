@@ -10,6 +10,8 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 ### Added
 
 * Added opt-in `ucl test --host` for a keyed Windows Mono player, graphics enabled by default, with per-case routing, player integrity checks, pinned UTF support and NUnit XML results.
+* `ucl test --timings` writes one `timing: <phase> <seconds> s` line per sequential phase to stderr
+  (session, graph, compile, managed, player cache/compile/routing/run with boot/cases/exit detail, report).
 
 ### Fixed
 
