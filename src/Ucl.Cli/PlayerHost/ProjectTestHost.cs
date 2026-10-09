@@ -38,8 +38,8 @@ public sealed class ProjectTestHost : MonoBehaviour, ITestListener
     IEnumerator Start()
     {
         output = Arg("-results");
-        object runner = null;
-        IEnumerator steps = null;
+        List<IGrouping<string, Assembly>> groups;
+        Func<string, Type> type;
         try
         {
             var directory = Path.GetFullPath(Arg("-assemblyDirectory"));
@@ -48,44 +48,51 @@ public sealed class ProjectTestHost : MonoBehaviour, ITestListener
                 var path = Path.Combine(directory, new AssemblyName(e.Name).Name + ".dll");
                 return File.Exists(path) ? Assembly.LoadFrom(path) : null;
             };
-            var assemblies = File.ReadAllLines(Arg("-assemblies"))
-                .Where(s => !string.IsNullOrWhiteSpace(s)).Select(Assembly.LoadFrom).ToArray();
+            // "<EditMode|PlayMode>\t<path>" per line. UTF keeps one TestMode per run (UnityTestExecutionContext), which
+            // rejects Edit Mode yield instructions in Play Mode tests, so each platform loads and runs on its own, as in the Editor.
+            groups = File.ReadAllLines(Arg("-assemblies")).Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Split('\t'))
+                .GroupBy(s => s[0], s => Assembly.LoadFrom(s[1])).ToList();
             var utf = typeof(UnityEngine.TestTools.LogAssert).Assembly;
-            Func<string, Type> type = n => utf.GetType(n, true);
-            var builder = Activator.CreateInstance(type("UnityEngine.TestTools.NUnitExtensions.UnityTestAssemblyBuilder"),
-                new object[] { null, 0 });
-            var factory = Activator.CreateInstance(type("UnityEngine.TestRunner.NUnitExtensions.Runner.PlaymodeWorkItemFactory"), true);
+            type = n => utf.GetType(n, true);
             type("UnityEngine.TestRunner.NUnitExtensions.Runner.CoroutineTestWorkItem").GetProperty("monoBehaviourCoroutineRunner").SetValue(null, this);
-            var contextType = type("UnityEngine.TestRunner.NUnitExtensions.Runner.UnityTestExecutionContext");
-            var context = Activator.CreateInstance(contextType);
-            contextType.GetProperty("CurrentContext").SetValue(null, context);
-            contextType.GetProperty("Automated").SetValue(context, true);
-            contextType.GetProperty("FeatureFlags").SetValue(context,
-                Activator.CreateInstance(type("UnityEngine.TestRunner.NUnitExtensions.Runner.FeatureFlags"), true));
-            runner = Activator.CreateInstance(type("UnityEngine.TestRunner.NUnitExtensions.Runner.UnityTestAssemblyRunner"),
-                new[] { builder, factory, context });
-            var platform = Enum.Parse(type("UnityEngine.TestTools.TestPlatform"), "EditMode");
-            var tree = (ITest)runner.GetType().GetMethod("Load").Invoke(runner,
-                new object[] { assemblies, platform, new Dictionary<string, object>() });
-            if (Arg("-discover") != null) File.WriteAllText(output + ".discovery.xml", tree.ToXml(true).OuterXml);
-            if (Arg("-discover") != null) { Finish(); yield break; }
-            var names = new HashSet<string>(File.ReadAllLines(Arg("-cases")), StringComparer.Ordinal);
-            var filter = new ExactFilter(names);
-            steps = ((IEnumerable)runner.GetType().GetMethod("Run").Invoke(runner, new object[] { this, filter })).GetEnumerator();
         }
         catch (Exception e) { report.fatal = e.ToString(); Finish(); yield break; }
-        while (true)
+        foreach (var group in groups)
         {
-            bool more;
-            try { more = steps.MoveNext(); }
-            catch (Exception e) { report.fatal = e.ToString(); break; }
-            if (!more) break;
-            yield return steps.Current;
-        }
-        if (runner != null)
-        {
+            object runner;
+            IEnumerator steps;
+            try
+            {
+                var builder = Activator.CreateInstance(type("UnityEngine.TestTools.NUnitExtensions.UnityTestAssemblyBuilder"),
+                    new object[] { null, 0 });
+                var factory = Activator.CreateInstance(type("UnityEngine.TestRunner.NUnitExtensions.Runner.PlaymodeWorkItemFactory"), true);
+                var contextType = type("UnityEngine.TestRunner.NUnitExtensions.Runner.UnityTestExecutionContext");
+                var context = Activator.CreateInstance(contextType);
+                contextType.GetProperty("CurrentContext").SetValue(null, context);
+                contextType.GetProperty("Automated").SetValue(context, true);
+                contextType.GetProperty("FeatureFlags").SetValue(context,
+                    Activator.CreateInstance(type("UnityEngine.TestRunner.NUnitExtensions.Runner.FeatureFlags"), true));
+                runner = Activator.CreateInstance(type("UnityEngine.TestRunner.NUnitExtensions.Runner.UnityTestAssemblyRunner"),
+                    new[] { builder, factory, context });
+                var platform = Enum.Parse(type("UnityEngine.TestTools.TestPlatform"), group.Key);
+                var tree = (ITest)runner.GetType().GetMethod("Load").Invoke(runner,
+                    new object[] { group.ToArray(), platform, new Dictionary<string, object>() });
+                if (Arg("-discover") != null) { File.WriteAllText(output + "." + group.Key + ".discovery.xml", tree.ToXml(true).OuterXml); continue; }
+                var filter = new ExactFilter(new HashSet<string>(File.ReadAllLines(Arg("-cases")), StringComparer.Ordinal));
+                steps = ((IEnumerable)runner.GetType().GetMethod("Run").Invoke(runner, new object[] { this, filter })).GetEnumerator();
+            }
+            catch (Exception e) { report.fatal = e.ToString(); Finish(); yield break; }
+            while (true)
+            {
+                bool more;
+                try { more = steps.MoveNext(); }
+                catch (Exception e) { report.fatal = e.ToString(); break; }
+                if (!more) break;
+                yield return steps.Current;
+            }
             var result = (ITestResult)runner.GetType().GetProperty("Result").GetValue(runner);
-            if (result != null) File.WriteAllText(output + ".nunit.xml", result.ToXml(true).OuterXml);
+            if (result != null) File.WriteAllText(output + "." + group.Key + ".nunit.xml", result.ToXml(true).OuterXml);
+            if (report.fatal.Length > 0) break;
         }
         Finish();
     }

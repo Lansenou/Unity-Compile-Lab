@@ -382,6 +382,39 @@ public sealed class PlayerHostContractTests
         Assert.Contains("File.WriteAllText(output + \".started\", AssemblyName(test) + \"\\n\" + test.FullName);", source, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Player_test_assemblies_are_listed_with_the_platform_the_Editor_runs_them_under()
+    {
+        using var temp = new TempDir();
+        foreach (var name in new[] { "Play.Tests", "Edit.Tests" }) File.WriteAllText(Path.Combine(temp.Path, name + ".dll"), "");
+        var graph = new AssemblyGraph
+        {
+            Cell = new CompileCell(UnityVersion.Parse("6000.3.19f1").Value!, TargetKind.Editor,
+                BuildPlatform.StandaloneWindows64, null, false, HostOs.Windows),
+            BaseDefines = new DefineSet(),
+            Assemblies =
+            [
+                new AssemblyPlan { Name = "Play.Tests", Kind = AssemblyKind.Asmdef, Defines = new DefineSet() },
+                new AssemblyPlan { Name = "Edit.Tests", Kind = AssemblyKind.Asmdef, Defines = new DefineSet(), IsEditorOnly = true },
+                new AssemblyPlan { Name = "Absent.Tests", Kind = AssemblyKind.Asmdef, Defines = new DefineSet(), IsEditorOnly = true },
+            ]
+        };
+        var lines = (IEnumerable<string>)PlayerTest("AssemblyList").Invoke(null,
+            [graph, new HashSet<string>(StringComparer.Ordinal) { "Play.Tests", "Edit.Tests", "Absent.Tests" }, temp.Path])!;
+        Assert.Equal(["EditMode\t" + Path.Combine(temp.Path, "Edit.Tests.dll"), "PlayMode\t" + Path.Combine(temp.Path, "Play.Tests.dll")], lines);
+    }
+
+    [Fact]
+    public void The_player_bootstrap_loads_and_runs_each_platform_with_its_own_test_mode()
+    {
+        // UTF 1.6.0 keeps one TestMode per run (UnityTestExecutionContext); Play Mode tests that yield an
+        // IEditModeTestYieldInstruction are rejected only under TestPlatform.PlayMode.
+        var source = BootstrapSource();
+        Assert.DoesNotContain("TestPlatform\"), \"EditMode\")", source, StringComparison.Ordinal);
+        Assert.Contains("Enum.Parse(type(\"UnityEngine.TestTools.TestPlatform\"), group.Key)", source, StringComparison.Ordinal);
+        Assert.Contains("foreach (var group in groups)", source, StringComparison.Ordinal);
+    }
+
     private static TestCaseResult Case(string assembly, string name) => new(assembly, "A.C", "A.C." + name, TestCategory.NeedsUnity, "engine call");
 
     private static MethodInfo PlayerTest(string method) => typeof(CliOptions).Assembly.GetType("Ucl.Cli.ProjectPlayerTest", throwOnError: true)!

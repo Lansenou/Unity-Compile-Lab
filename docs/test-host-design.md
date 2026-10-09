@@ -183,8 +183,18 @@ through these paths write where the Editor would.
 `[UnityTest]`, `[RequiresPlayMode]` and Play Mode assembly cases become player candidates: the
 bootstrap already installs UTF's coroutine work-item factory and runner. `[UnityPlatform]` stays
 Editor-owned because it names the Editor platform: discovery records it as a separate flag
-(`EditorPlatform`), since the unity-only reason reports the Play Mode assembly or `[UnityTest]` first. Play Mode cases are loaded under the EditMode
-test platform (one `Load` call); only the `platform` test parameter differs.
+(`EditorPlatform`), since the unity-only reason reports the Play Mode assembly or `[UnityTest]` first.
+
+UTF 1.6.0 keeps one test mode per run: `UnityTestAssemblyRunner.Load` sets
+`UnityTestExecutionContext.TestMode` from its platform, and the Play Mode rejection of
+`IEditModeTestYieldInstruction` (test bodies and `[UnitySetUp]`/`[UnityTearDown]`) reads it. One EditMode
+load of every assembly would let Play Mode tests yield Edit Mode instructions and report a pass the Editor
+fails. `ProjectPlayerTest` therefore lists each staged assembly with its platform (Editor-only assemblies
+EditMode, the others PlayMode), and the bootstrap loads and runs each platform with its own runner and
+context, EditMode first, as the Editor runs them separately. Each run writes its own NUnit XML. Checked on
+Unity 6000.3 with a scratch project: a Play Mode test body and a `[UnitySetUp]` yielding an Edit Mode
+instruction fail in the player as in the Editor (they passed under the single EditMode load), and an Edit
+Mode `[UnityTest]` yielding one passes in both.
 
 `PlayerTestCompiler` owns the substitution and keys it (`player-test-compiler/4`, the `dataPath`
 value). `ProjectPlayerTest` owns staging, the working directory and candidate selection;

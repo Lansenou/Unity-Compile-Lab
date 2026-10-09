@@ -62,7 +62,7 @@ internal static class ProjectPlayerTest
         if (selected.Count > 0)
         {
             var staged = StageAssemblies(dlls, session.ProjectRoot);
-            File.WriteAllLines(assembliesFile, tests.Select(n => Path.Combine(staged, n + ".dll")).Where(File.Exists));
+            File.WriteAllLines(assembliesFile, AssemblyList(graph, tests, staged));
             var arguments = new List<string> { "-batchmode", "-logFile", Path.Combine(runDirectory, "player.log"), "-assemblyDirectory", staged,
                 "-assemblies", assembliesFile, "-cases", caseFile, "-results", resultsFile };
             if (options.NoGraphics) arguments.Add("-nographics");
@@ -178,6 +178,13 @@ internal static class ProjectPlayerTest
     // or assembly means the Editor's platform and wins over every other reason.
     internal static bool PlayerCandidate(TestCaseResult c) => !c.EditorPlatform
         && c.Category is TestCategory.NeedsUnity or TestCategory.UnityOnly;
+
+    // <platform>, a tab, <path> per staged test assembly, EditMode first: the Editor runs Editor-only assemblies as
+    // EditMode and the others as Play Mode, and UTF's TestMode (which rejects Edit Mode yields in Play Mode) is per run.
+    internal static IEnumerable<string> AssemblyList(AssemblyGraph graph, IEnumerable<string> tests, string staged) => tests
+        .Select(n => (Plan: graph.Find(n)!, Path: Path.Combine(staged, n + ".dll"))).Where(t => File.Exists(t.Path))
+        .OrderBy(t => t.Plan.IsEditorOnly ? 0 : 1).ThenBy(t => t.Plan.Name, StringComparer.Ordinal)
+        .Select(t => (t.Plan.IsEditorOnly ? "EditMode" : "PlayMode") + "\t" + t.Path);
 
     // NUnit's TestDirectory is the test assembly's folder: Library/ucl/<run> mirrors the Editor's Library/ScriptAssemblies.
     internal static string StageAssemblies(string dlls, string projectRoot)

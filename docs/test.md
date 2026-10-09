@@ -311,8 +311,10 @@ it would in the Editor.
 The player also runs `[UnityTest]` and `[RequiresPlayMode]` cases (its coroutine runner drives them
 frame by frame) and the cases of Play Mode assemblies. `[UnityPlatform]` on the method, its class or its
 assembly keeps a case with the Editor, whose platform it names, even in a Play Mode assembly or next to
-`[UnityTest]`. Play Mode cases are discovered under the EditMode test platform, so a test
-that reads the `platform` test parameter sees `EditMode`.
+`[UnityTest]`. As in the Editor, Editor-only test assemblies load and run under the EditMode test
+platform and the others under PlayMode, one run each, so the `platform` test parameter matches the Editor
+and a Play Mode test or `[UnitySetUp]` that yields an Edit Mode instruction (`IEditModeTestYieldInstruction`)
+fails as it does there.
 
 The player writes each result as the case ends and writes `results.json` to a temporary file it then
 renames. If it dies or reaches the 60-minute run limit before a complete `results.json` exists, the

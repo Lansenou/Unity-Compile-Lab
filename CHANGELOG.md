@@ -25,6 +25,9 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
   matched by assembly as well as name.
 - The player-host `dataPath` substitution replaced `nameof(...)` operands too, which no longer compiled; it
   now replaces only evaluated reads.
+- The player host loaded Play Mode assemblies under the EditMode test platform, so Play Mode tests that
+  yield an Edit Mode instruction passed where the Editor fails them. Editor-only assemblies now run under
+  EditMode and the others under PlayMode, one run each, as in the Editor.
 - Player-host compilation retained Editor ownership for source-context calls,
   including `Application.dataPath` aliases.
 - Routed player-host reports avoided completed-case duplicate Editor execution
