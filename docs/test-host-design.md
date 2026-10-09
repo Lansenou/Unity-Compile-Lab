@@ -175,8 +175,11 @@ project and leaves those cases in the slowest runner. Candidate B maps the layou
 working directory is the project root, test assemblies are staged under `Library/ucl/<run>` (the
 one project folder ucl may write), the .NET host's image folder moves to the same place, and
 symbol-resolved reads of `UnityEngine.Application.dataPath` in recompiled sources compile to the
-Editor's string (`nameof` operands are not reads and stay as they are). Candidate B is selected. It changes no input file, applies to every read whatever
-the test's outcome, and keeps the existing whole-file diagnostics. Reused player or precompiled
+Editor's string (`nameof` operands are not reads and stay as they are). Candidate B is selected. It
+changes no input file, applies to every read whatever the test's outcome, and keeps the existing
+whole-file diagnostics. `Library/ucl/<run>` is one level deeper than `Library/ScriptAssemblies`, so a
+walk up from `TestDirectory` finds the project as in the Editor, but a fixed number of parent steps does
+not. Reused player or precompiled
 helpers still report the player's own folder; such cases need audited ownership. Tests that write
 through these paths write where the Editor would.
 

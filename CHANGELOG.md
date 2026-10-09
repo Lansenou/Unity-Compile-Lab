@@ -62,8 +62,9 @@ the JSON schema id `ucl-result/1`, the graph schema id `ucl-graph/1`, the fixtur
 
 * `ucl test --host` gives the player the Editor's project layout: `Application.dataPath` reads in recompiled
   sources compile to the input `Assets` folder (no longer Editor-owned), the player runs in the project root,
-  and test assemblies load from a private folder under `Library/ucl`, so NUnit's `TestDirectory` walks up to
-  the project as in the Editor. The .NET host's images also load from `Library/ucl`.
+  and test assemblies load from a private folder under `Library/ucl`, so walking up from NUnit's
+  `TestDirectory` reaches the project as in the Editor. The .NET host's images also load from `Library/ucl`.
+  That folder is one level deeper than `Library/ScriptAssemblies`, so fixed parent steps differ.
 * `ucl test --host` runs `[UnityTest]`, `[RequiresPlayMode]` and Play Mode assembly cases in the player;
   `[UnityPlatform]` cases stay with the Editor.
 * Put the member-specific scope of ucl test upfront in the README and test docs, with public

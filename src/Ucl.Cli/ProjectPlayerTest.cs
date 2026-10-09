@@ -186,7 +186,8 @@ internal static class ProjectPlayerTest
         .OrderBy(t => t.Plan.IsEditorOnly ? 0 : 1).ThenBy(t => t.Plan.Name, StringComparer.Ordinal)
         .Select(t => (t.Plan.IsEditorOnly ? "EditMode" : "PlayMode") + "\t" + t.Path);
 
-    // NUnit's TestDirectory is the test assembly's folder: Library/ucl/<run> mirrors the Editor's Library/ScriptAssemblies.
+    // NUnit's TestDirectory is the test assembly's folder: Library/ucl/<run> stands in for the Editor's Library/ScriptAssemblies,
+    // one level deeper (ucl writes only under Library/ucl), so walks up to the project match and fixed parent steps do not.
     internal static string StageAssemblies(string dlls, string projectRoot)
     {
         var staged = Path.Combine(projectRoot, "Library", "ucl", "player-" + Guid.NewGuid().ToString("N"));

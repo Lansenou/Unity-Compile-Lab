@@ -29,7 +29,7 @@ public static class TestHost
     /// <param name="launch">Starts a host with the given arguments (after the command name), waits, and returns its exit code and error output.</param>
     /// <param name="imageRoot">Folder for the run's private image folder, or null for the system temporary folder. <c>ucl test</c>
     /// passes <c>&lt;project&gt;/Library/ucl</c>, so NUnit's <c>TestDirectory</c> sits under the project as the Editor's
-    /// <c>Library/ScriptAssemblies</c> does.</param>
+    /// <c>Library/ScriptAssemblies</c> does, one level deeper.</param>
     public static TestRun Run(
         IReadOnlyList<TestAssemblyImage> tests,
         IReadOnlyDictionary<string, byte[]> images,

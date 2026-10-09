@@ -197,7 +197,9 @@ The test host runs with the project root as its working directory, including aft
 Relative `Assets/...` paths resolve within that project; the parent process directory is unchanged.
 `ucl test` writes the compiled images to a private folder under `<project>/Library/ucl` (deleted after the
 run), so NUnit's `TestContext.CurrentContext.TestDirectory` is a folder under the project, as the Editor's
-`Library/ScriptAssemblies` is, and fixtures found by walking up from it resolve the same way.
+`Library/ScriptAssemblies` is, and fixtures found by walking up from it resolve the same way. The folder is
+one level deeper than the Editor's `Library/ScriptAssemblies`, because ucl writes only under `Library/ucl`, so a path built with a fixed number of parent steps from `TestDirectory`
+resolves one level lower than in the Editor.
 
 `LogAssert` requires Unity's log scope and is classified `needs-unity`, without running direct
 calls. Helpers reaching a missing scope are classified from the framework's exact
@@ -301,10 +303,10 @@ diagnostics retained in the cache. Compiler exclusions propagate to inherited fi
 The player sees the project layout the Editor sees. Reads of `UnityEngine.Application.dataPath` in
 recompiled sources (aliases and `using static` included, resolved by symbol) compile to the Editor's value,
 the input project's `Assets` folder with forward slashes; `nameof` operands are names, not reads, and keep
-their text. The input files are unchanged. The player runs
-with the project root as its working directory, and its test assemblies are copied to a private folder
-under `<project>/Library/ucl` for the run, so `TestDirectory` and relative `Assets/...` paths resolve as
-in the Editor. Helpers reused from player or precompiled DLLs keep the player's own `dataPath`; cases
+their text. The input files are unchanged. The player runs with the project root as its working
+directory, and its test assemblies are copied to a private folder under `<project>/Library/ucl` for the
+run, so relative `Assets/...` paths and fixtures found by walking up from `TestDirectory` resolve as in
+the Editor (fixed parent steps do not; see the .NET host above). Helpers reused from player or precompiled DLLs keep the player's own `dataPath`; cases
 that depend on them need audited Editor ownership. A test that writes through these paths writes where
 it would in the Editor.
 

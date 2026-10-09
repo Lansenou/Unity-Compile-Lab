@@ -156,10 +156,15 @@ Details: [docs/architecture.md](docs/architecture.md), [docs/platforms.md](docs/
   4 minutes of player build, most of it player script compilation. Any change under `Assets`, `Packages`
   or `ProjectSettings`, test and Editor scripts included, rebuilds it.
 * The player has no per-case time limit; one slow Play Mode case holds the run (60-minute cap).
-* On that project the hybrid gate (`ucl test --host`, then the Editor for the rest) was not faster than
-  the Editor alone: 783 s in sequence and 610 s with both at once, against 672 s for the Editor's full
-  EditMode run. The .NET pass alone took 171 to 325 s on a shared 12-core machine, and the Editor still
-  had to start for the cases only it can run.
+* On that project the hybrid gate (`ucl test --host`, then the Editor for the rest) did not meet the bar
+  for replacing the Editor gates (at least 2x faster with 100% outcome parity). Run in sequence it was
+  slower than the Editor alone (783 s against 672 s for the Editor's full EditMode run, 0.86x); with both
+  at once it was only 1.10x faster (610 s). Outcomes matched the Editor for 95% of the player's cases and
+  98% of the .NET cases. The .NET pass alone took 171 to 325 s on a shared 12-core machine, and the Editor
+  still had to start for the cases only it can run. Keep the Editor gates.
+* Test assemblies load from a run folder under `Library/ucl`, one level deeper than the Editor's `Library/ScriptAssemblies`, because ucl writes only under `Library/ucl`.
+  Fixtures found by walking up from NUnit's `TestDirectory` resolve as in the Editor; a path built with a
+  fixed number of parent steps (`TestDirectory/../..`) does not.
 * Asset import, shaders, Burst and real platform players still need Unity.
 
 ## When `ucl` helps
@@ -170,7 +175,7 @@ Details: [docs/architecture.md](docs/architecture.md), [docs/platforms.md](docs/
 | Compile gate in CI or a pre-commit hook | `ucl check --changed <ref>` | Warm cache: 0.35 s on the benchmark project ([Speed](#speed)) |
 | Tests of plain C# logic (no engine calls) | `ucl test` | Runs under .NET without Unity |
 | Test suite that mostly creates engine objects | Unity Test Runner | Most cases need the Editor anyway |
-| Full test gate of a large project | Unity Test Runner | Measured: the hybrid gate was not faster (above) |
+| Full test gate of a large project | Unity Test Runner | Measured: the hybrid gate was slower in sequence and only 1.10x faster concurrently (above) |
 | Package compiled for several platforms | `ucl check --platform ...` | No Unity install per platform |
 
 ## Speed
